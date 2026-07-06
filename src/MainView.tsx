@@ -1,6 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 import { usePomodoroStore } from "./stores/pomodoroStore";
-import DebugPanel from "./features/debug/DebugPanel";
 import Dashboard from "./features/dashboard/Dashboard";
 import ExportImport from "./features/settings/ExportImport";
 
@@ -16,64 +15,47 @@ export default function MainView() {
   const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer } =
     usePomodoroStore();
 
-  // Calculate progress for the circular timer
-  const maxTime = state === "focus" ? 25 * 60 : state === "break" ? 5 * 60 : 25 * 60;
-  const progress = (timeLeft / maxTime) * 100;
-
-  const stateClass = state === "focus" ? "state-focus" : state === "break" ? "state-break" : "";
-
   return (
-    <div className="container">
-      <div
-        className="glass-panel"
-        style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
-      >
-        <div
-          className="timer-circle"
-          style={{ "--progress": `${progress}%` } as React.CSSProperties}
-        >
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <div className="timer-display">{formatTime(timeLeft)}</div>
-            <div className="timer-status">{state}</div>
-          </div>
-        </div>
+    <div className="main-view">
+      <div className="timer-container">
+        <div className="timer-text">{formatTime(timeLeft)}</div>
+        <div className="timer-phase">{state}</div>
 
-        <div className="controls">
+        <div className="timer-controls">
           {state === "idle" ? (
-            <button className="state-focus" onClick={() => startTimer(25, "focus")}>
+            <button className="primary" onClick={() => startTimer(25, "focus")}>
               Start Focus
             </button>
           ) : (
             <>
               {isActive ? (
-                <button className={`secondary ${stateClass}`} onClick={pauseTimer}>
-                  Pause
-                </button>
+                <button onClick={pauseTimer}>Pause</button>
               ) : (
-                <button className={stateClass} onClick={resumeTimer}>
-                  Resume
-                </button>
+                <button className="primary" onClick={resumeTimer}>Resume</button>
               )}
-              <button className="secondary" onClick={stopTimer}>
-                Stop
-              </button>
+              <button onClick={stopTimer}>Stop</button>
             </>
           )}
         </div>
       </div>
 
       <button
-        className="secondary"
-        style={{ marginTop: "2rem", opacity: 0.7 }}
+        style={{ margin: "0 auto 24px" }}
         onClick={() => invoke("toggle_mini_window")}
       >
-        Toggle Mini Window
+        Compact View
       </button>
 
-      <Dashboard />
-      <ExportImport />
+      <div className="panel">
+        <div className="panel-header">Dashboard</div>
+        <Dashboard />
+      </div>
 
-      {import.meta.env.DEV && <DebugPanel />}
+      <div className="panel">
+        <div className="panel-header">Settings</div>
+        <ExportImport />
+      </div>
+
     </div>
   );
 }

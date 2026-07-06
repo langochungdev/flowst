@@ -13,65 +13,35 @@ export default function MiniView() {
   const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer } =
     usePomodoroStore();
 
-  const stateClass = state === "focus" ? "state-focus" : state === "break" ? "state-break" : "";
-
   return (
-    <div className="mini-container">
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <div
-          className="mini-timer"
-          style={{
-            color:
-              state === "focus"
-                ? "var(--red-accent)"
-                : state === "break"
-                  ? "var(--green-accent)"
-                  : "white",
-          }}
-        >
-          {formatTime(timeLeft)}
-        </div>
-        <div
-          style={{
-            fontSize: "0.75rem",
-            color: "var(--text-muted)",
-            textTransform: "uppercase",
-            letterSpacing: "1px",
-          }}
-        >
-          {state}
-        </div>
+    <div className="mini-view">
+      <div className="timer-container" style={{ margin: "16px 0" }}>
+        <div className="timer-text">{formatTime(timeLeft)}</div>
+        <div className="timer-phase">{state}</div>
       </div>
 
-      <div className="mini-controls" style={{ display: "flex", gap: "8px" }}>
+      <div className="timer-controls" style={{ marginTop: "16px" }}>
         {state === "idle" ? (
-          <button className="state-focus" onClick={() => startTimer(25, "focus")}>
+          <button className="primary" onClick={() => startTimer(25, "focus")}>
             Start
           </button>
         ) : (
           <>
             {isActive ? (
-              <button className={`secondary ${stateClass}`} onClick={pauseTimer}>
-                Pause
-              </button>
+              <button onClick={pauseTimer}>Pause</button>
             ) : (
-              <button className={stateClass} onClick={resumeTimer}>
-                Resume
-              </button>
+              <button className="primary" onClick={resumeTimer}>Resume</button>
             )}
-            <button className="secondary" onClick={stopTimer}>
-              Stop
-            </button>
+            <button onClick={stopTimer}>Stop</button>
           </>
         )}
         <button
-          className="secondary"
           onClick={() => invoke("toggle_mini_window")}
           title="Back to Main"
         >
           <svg
-            width="16"
-            height="16"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"

@@ -3,6 +3,8 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import MainView from "./MainView";
 import MiniView from "./MiniView";
 import { usePomodoroStore } from "./stores/pomodoroStore";
+import { TitleBar } from "./components/TitleBar";
+import DebugPanel from "./features/debug/DebugPanel";
 import "./App.css";
 
 function App() {
@@ -32,11 +34,14 @@ function App() {
 
   if (!windowLabel) return null;
 
-  if (windowLabel === "mini") {
-    return <MiniView />;
-  }
-
-  return <MainView />;
+  return (
+    <div className="app-container">
+      <TitleBar />
+      {windowLabel === "main" && <MainView />}
+      {windowLabel === "mini" && <MiniView />}
+      <DebugPanel />
+    </div>
+  );
 }
 
 export default App;
