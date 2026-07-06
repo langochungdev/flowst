@@ -1,5 +1,7 @@
 # Logs
 logs
+.agents/
+rustup-init.exe
 *.log
 npm-debug.log*
 yarn-debug.log*
