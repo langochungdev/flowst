@@ -1,1 +1,2 @@
+node scripts/pre-push.js
 node scripts/release.js

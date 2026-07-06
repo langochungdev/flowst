@@ -1,6 +1,7 @@
 # Logs
 logs
 .agents/
+ai-reports/
 rustup-init.exe
 *.log
 npm-debug.log*
