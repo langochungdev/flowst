@@ -17,9 +17,17 @@ function App() {
   }, [tick]);
 
   useEffect(() => {
-    const appWindow = getCurrentWebviewWindow();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setWindowLabel(appWindow.label);
+    try {
+      const appWindow = getCurrentWebviewWindow();
+      if (appWindow) {
+        setWindowLabel(appWindow.label);
+      } else {
+        setWindowLabel("main");
+      }
+    } catch (e) {
+      console.warn("Not in Tauri environment, defaulting to main");
+      setWindowLabel("main");
+    }
   }, []);
 
   if (!windowLabel) return null;
