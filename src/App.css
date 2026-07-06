@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap");
 
 :root {
   --bg-dark: #0f172a;
@@ -20,7 +20,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-main);
   line-height: 1.5;
@@ -131,8 +131,16 @@ button.secondary:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.state-focus { --accent: var(--red-accent); --accent-hover: #dc2626; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); }
-.state-break { --accent: var(--green-accent); --accent-hover: #059669; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); }
+.state-focus {
+  --accent: var(--red-accent);
+  --accent-hover: #dc2626;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+}
+.state-break {
+  --accent: var(--green-accent);
+  --accent-hover: #059669;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
 
 /* Mini View Specifics */
 .mini-container {

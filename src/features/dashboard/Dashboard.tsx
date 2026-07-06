@@ -12,14 +12,26 @@ const data = [
 
 export default function Dashboard() {
   return (
-    <div style={{ width: "100%", maxWidth: "600px", marginTop: "2rem", padding: "1rem", background: "var(--glass-bg)", borderRadius: "16px", border: "1px solid var(--glass-border)" }}>
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "600px",
+        marginTop: "2rem",
+        padding: "1rem",
+        background: "var(--glass-bg)",
+        borderRadius: "16px",
+        border: "1px solid var(--glass-border)",
+      }}
+    >
       <h3 style={{ marginBottom: "1rem", textAlign: "center" }}>Weekly Focus Time (Mins)</h3>
       <div style={{ height: "200px" }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} />
             <YAxis stroke="var(--text-muted)" fontSize={12} />
-            <Tooltip contentStyle={{ background: "var(--bg-card)", border: "none", borderRadius: "8px" }} />
+            <Tooltip
+              contentStyle={{ background: "var(--bg-card)", border: "none", borderRadius: "8px" }}
+            />
             <Bar dataKey="focus" fill="var(--accent)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

@@ -12,10 +12,18 @@ export default function ExportImport() {
 
   return (
     <div style={{ marginTop: "1rem", display: "flex", gap: "8px" }}>
-      <button className="secondary" style={{ fontSize: "0.875rem", padding: "6px 12px" }} onClick={handleExport}>
+      <button
+        className="secondary"
+        style={{ fontSize: "0.875rem", padding: "6px 12px" }}
+        onClick={handleExport}
+      >
         Export Data
       </button>
-      <button className="secondary" style={{ fontSize: "0.875rem", padding: "6px 12px" }} onClick={() => alert("Import not fully implemented yet.")}>
+      <button
+        className="secondary"
+        style={{ fontSize: "0.875rem", padding: "6px 12px" }}
+        onClick={() => alert("Import not fully implemented yet.")}
+      >
         Import Data
       </button>
     </div>

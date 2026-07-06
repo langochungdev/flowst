@@ -19,11 +19,30 @@ export default function DebugPanel() {
   if (!import.meta.env.DEV) return null;
 
   return (
-    <div style={{ position: "fixed", bottom: 10, right: 10, padding: 10, background: "rgba(0,0,0,0.8)", borderRadius: 8, fontSize: "12px", color: "#0f0", zIndex: 9999, border: "1px solid #333" }}>
-      <strong>[DEV DEBUG]</strong><br/>
+    <div
+      style={{
+        position: "fixed",
+        bottom: 10,
+        right: 10,
+        padding: 10,
+        background: "rgba(0,0,0,0.8)",
+        borderRadius: 8,
+        fontSize: "12px",
+        color: "#0f0",
+        zIndex: 9999,
+        border: "1px solid #333",
+      }}
+    >
+      <strong>[DEV DEBUG]</strong>
+      <br />
       RAM Usage: {(ramUsage / 1024).toFixed(2)} MB
       <div style={{ marginTop: 8, display: "flex", gap: 4 }}>
-        <button style={{ padding: "4px 8px", fontSize: "10px", background: "#333" }} onClick={() => console.clear()}>Clear Log</button>
+        <button
+          style={{ padding: "4px 8px", fontSize: "10px", background: "#333" }}
+          onClick={() => console.clear()}
+        >
+          Clear Log
+        </button>
       </div>
     </div>
   );

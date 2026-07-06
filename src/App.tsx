@@ -18,6 +18,7 @@ function App() {
 
   useEffect(() => {
     const appWindow = getCurrentWebviewWindow();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setWindowLabel(appWindow.label);
   }, []);
 
