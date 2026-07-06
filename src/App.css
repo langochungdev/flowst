@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg-dark: #0f172a;
+  --bg-card: #1e293b;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --red-accent: #ef4444;
+  --green-accent: #10b981;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.5;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none; /* Prevent selection for desktop app feel */
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: radial-gradient(circle at top, #1e293b, var(--bg-dark));
+}
+
+.timer-circle {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: conic-gradient(var(--accent) var(--progress, 100%), var(--bg-card) 0deg);
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 40px rgba(59, 130, 246, 0.2);
+  transition: background 0.5s linear;
+}
+
+.timer-circle::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  background: var(--bg-dark);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.timer-display {
+  position: relative;
+  z-index: 2;
+  font-size: 4rem;
+  font-weight: 300;
+  letter-spacing: -2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-status {
+  position: relative;
+  z-index: 2;
+  font-size: 1rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: -10px;
+  text-align: center;
+}
+
+.controls {
+  display: flex;
+  gap: 16px;
+  z-index: 2;
+}
+
+button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+}
+
+button:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button.secondary {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  box-shadow: none;
+}
+
+button.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.state-focus { --accent: var(--red-accent); --accent-hover: #dc2626; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); }
+.state-break { --accent: var(--green-accent); --accent-hover: #059669; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); }
+
+/* Mini View Specifics */
+.mini-container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  /* Make the window draggable on Tauri */
+  -webkit-app-region: drag;
+}
+
+.mini-container * {
+  /* Prevent child elements from blocking the drag */
+  -webkit-app-region: no-drag;
+}
+
+.mini-timer {
+  font-size: 2rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-controls button {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+}
