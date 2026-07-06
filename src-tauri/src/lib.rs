@@ -58,6 +58,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::window::toggle_mini_window,
+            commands::window::open_settings_window,
             commands::settings::load_settings,
             commands::settings::save_settings,
             commands::sys::get_memory_usage

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import MainView from "./MainView";
 import MiniView from "./MiniView";
+import SettingsView from "./SettingsView";
 import { usePomodoroStore } from "./stores/pomodoroStore";
 import { TitleBar } from "./components/TitleBar";
 import DebugPanel from "./features/debug/DebugPanel";
@@ -22,12 +23,15 @@ function App() {
     try {
       const appWindow = getCurrentWebviewWindow();
       if (appWindow) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setWindowLabel(appWindow.label);
       } else {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setWindowLabel("main");
       }
     } catch (e) {
       console.warn("Not in Tauri environment, defaulting to main");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWindowLabel("main");
     }
   }, []);
@@ -39,6 +43,7 @@ function App() {
       <TitleBar />
       {windowLabel === "main" && <MainView />}
       {windowLabel === "mini" && <MiniView />}
+      {windowLabel === "settings" && <SettingsView />}
       <DebugPanel />
     </div>
   );

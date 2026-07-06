@@ -15,6 +15,7 @@ export default function DebugPanel() {
     const originalError = console.error;
     const originalWarn = console.warn;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const addLog = (type: string, ...args: any[]) => {
       const message = args
         .map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a)))
@@ -39,7 +40,7 @@ export default function DebugPanel() {
       try {
         const usage = await invoke<number>("get_memory_usage");
         setRamUsage(usage);
-      } catch (e) {
+      } catch {
         // Ignore error
       }
     }, 2000);

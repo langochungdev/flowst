@@ -1,7 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { usePomodoroStore } from "./stores/pomodoroStore";
 import Dashboard from "./features/dashboard/Dashboard";
-import ExportImport from "./features/settings/ExportImport";
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60)
@@ -39,23 +38,17 @@ export default function MainView() {
         </div>
       </div>
 
-      <button
-        style={{ margin: "0 auto 24px" }}
-        onClick={() => invoke("toggle_mini_window")}
-      >
-        Compact View
-      </button>
-
       <div className="panel">
         <div className="panel-header">Dashboard</div>
         <Dashboard />
       </div>
 
       <div className="panel">
-        <div className="panel-header">Settings</div>
-        <ExportImport />
+        <div className="panel-header">Settings & Backup</div>
+        <button className="secondary" onClick={() => invoke("open_settings_window")} style={{ width: "100%" }}>
+          ⚙️ Open Settings
+        </button>
       </div>
-
     </div>
   );
 }
