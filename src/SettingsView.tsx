@@ -7,12 +7,12 @@ export default function SettingsView() {
         <div className="panel-header">Settings</div>
         <ExportImport />
       </div>
-      
+
       <div className="panel">
         <div className="panel-header">About</div>
         <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
-          Flowst v0.1.0<br/>
-          A minimalist Pomodoro timer.
+          Flowst v0.1.0
+          <br />A minimalist Pomodoro timer.
         </div>
       </div>
     </div>

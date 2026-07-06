@@ -29,7 +29,9 @@ export default function MiniView() {
             {isActive ? (
               <button onClick={pauseTimer}>Pause</button>
             ) : (
-              <button className="primary" onClick={resumeTimer}>Resume</button>
+              <button className="primary" onClick={resumeTimer}>
+                Resume
+              </button>
             )}
             <button onClick={stopTimer}>Stop</button>
           </>

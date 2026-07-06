@@ -138,9 +138,7 @@ export default function DebugPanel() {
               maxHeight: 250,
             }}
           >
-            {logs.length === 0 ? (
-              <div style={{ color: "#999" }}>No logs yet...</div>
-            ) : null}
+            {logs.length === 0 ? <div style={{ color: "#999" }}>No logs yet...</div> : null}
             {logs.map((l, i) => (
               <div
                 key={i}

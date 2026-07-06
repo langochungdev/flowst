@@ -30,7 +30,9 @@ export default function MainView() {
               {isActive ? (
                 <button onClick={pauseTimer}>Pause</button>
               ) : (
-                <button className="primary" onClick={resumeTimer}>Resume</button>
+                <button className="primary" onClick={resumeTimer}>
+                  Resume
+                </button>
               )}
               <button onClick={stopTimer}>Stop</button>
             </>
@@ -45,7 +47,11 @@ export default function MainView() {
 
       <div className="panel">
         <div className="panel-header">Settings & Backup</div>
-        <button className="secondary" onClick={() => invoke("open_settings_window")} style={{ width: "100%" }}>
+        <button
+          className="secondary"
+          onClick={() => invoke("open_settings_window")}
+          style={{ width: "100%" }}
+        >
           ⚙️ Open Settings
         </button>
       </div>

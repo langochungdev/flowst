@@ -26,12 +26,10 @@ function App() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setWindowLabel(appWindow.label);
       } else {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setWindowLabel("main");
       }
-    } catch (e) {
+    } catch {
       console.warn("Not in Tauri environment, defaulting to main");
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWindowLabel("main");
     }
   }, []);
