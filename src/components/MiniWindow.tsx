@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Maximize2, X, Play, Pause } from 'lucide-react';
-import { usePomodoroStore } from '../stores/pomodoroStore';
+import { Play, Pause, X, Maximize2 } from 'lucide-react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { invoke } from '@tauri-apps/api/core';
+import { usePomodoroStore } from '../stores/pomodoroStore';
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60)
@@ -15,11 +14,10 @@ function formatTime(seconds: number) {
 
 export default function MiniWindow() {
   const [hovered, setHovered] = useState(false);
-  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer } = usePomodoroStore();
+  const { timeLeft, isActive, pauseTimer, resumeTimer } = usePomodoroStore();
 
-  const handleClose = () => {
-    const appWindow = getCurrentWebviewWindow();
-    if (appWindow) appWindow.close();
+  const closeWindow = () => {
+    getCurrentWindow().close();
   };
 
   const handleExpand = () => {
@@ -27,24 +25,13 @@ export default function MiniWindow() {
   };
 
   const handlePlayPause = () => {
-    if (state === 'idle') {
-      startTimer(25, 'focus');
-    } else if (isActive) {
-      pauseTimer();
-    } else {
-      resumeTimer();
-    }
+    if (isActive) pauseTimer();
+    else resumeTimer();
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (
-      target.closest('button') || 
-      target.closest('input') || 
-      target.closest('select') || 
-      target.closest('.custom-select') || 
-      target.closest('.time-text')
-    ) {
+    if (target.closest('button') || target.closest('input') || target.closest('select') || target.closest('.custom-select') || target.closest('.time-text')) {
       return;
     }
     const appWindow = getCurrentWindow();
@@ -53,36 +40,28 @@ export default function MiniWindow() {
 
   return (
     <div 
-      className="glass-window mini-window"
-      onMouseDown={handleMouseDown}
+      className={`mini-window-container ${hovered ? 'hovered' : ''}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onPointerDown={handleMouseDown}
+      data-tauri-drag-region
     >
-      <div className="top-bar">
-        <button 
-          className="icon-btn" 
-          onClick={handleExpand}
-          style={{ opacity: hovered ? 1 : 0, transition: 'opacity 150ms ease' }}
-        >
-          <Maximize2 size={16} />
-        </button>
-        <button 
-          className="icon-btn" 
-          onClick={handleClose}
-          style={{ opacity: hovered ? 1 : 0, transition: 'opacity 150ms ease' }}
-        >
-          <X size={16} />
-        </button>
-      </div>
-
-      <div className="timer-display" style={{ margin: 0 }}>
-        <div className="time-text">{formatTime(timeLeft)}</div>
+      <div className="time-text mini-text" data-tauri-drag-region>
+        {formatTime(timeLeft)}
       </div>
 
       {hovered && (
-        <button className="mini-play-pause-btn" onClick={handlePlayPause}>
-          {isActive ? <Pause size={15} /> : <Play size={15} />}
-        </button>
+        <div className="mini-hover-overlay">
+          <button className="icon-btn float-left" onClick={handleExpand}>
+            <Maximize2 size={12} />
+          </button>
+          <button className="icon-btn float-right" onClick={closeWindow}>
+            <X size={12} />
+          </button>
+          <button className="icon-btn center-play" onClick={handlePlayPause}>
+            {isActive ? <Pause size={18} /> : <Play size={18} />}
+          </button>
+        </div>
       )}
     </div>
   );

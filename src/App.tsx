@@ -3,7 +3,6 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import MainWindow from "./components/MainWindow";
 import MiniWindow from "./components/MiniWindow";
 import { usePomodoroStore } from "./stores/pomodoroStore";
-import DebugPanel from "./features/debug/DebugPanel";
 import "./App.css";
 
 function App() {
@@ -39,7 +38,6 @@ function App() {
       {windowLabel === "mini" && <MiniWindow />}
       {/* settings window logic is deprecated since it's merged into MainWindow, but fallback just in case */}
       {windowLabel === "settings" && <MainWindow />}
-      <DebugPanel />
     </>
   );
 }

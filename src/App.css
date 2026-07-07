@@ -58,8 +58,54 @@ body {
   padding: 14px;
 }
 
-.mini-window {
-  padding: 10px 14px;
+.mini-window-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  transition: all 150ms ease;
+  position: relative;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+.mini-window-container.hovered {
+  border: 1px solid var(--border-window);
+}
+.mini-hover-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-window);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: inherit;
+}
+.float-left {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 2px;
+}
+.float-right {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 2px;
+}
+.center-play {
+  padding: 6px;
+  background: var(--bg-element);
+  border-radius: 50%;
+  border: 1px solid var(--border-element);
+}
+.mini-text {
+  font-size: 26px !important;
+  margin: 0;
+  line-height: 1;
 }
 
 /* Top bar */
@@ -71,8 +117,8 @@ body {
 .main-window .top-bar {
   margin-bottom: 10px;
 }
-.mini-window .top-bar {
-  margin-bottom: 4px;
+.main-window .top-bar {
+  margin-bottom: 10px;
 }
 
 .icon-btn {
@@ -302,19 +348,7 @@ body {
   border-color: var(--text-secondary);
 }
 
-.mini-play-pause-btn {
-  width: 15px;
-  height: 15px;
-  border: none;
-  background: none;
-  color: var(--text-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 4px auto 0 auto;
-}
+
 
 .divider {
   border-top: 0.5px solid var(--divider);
