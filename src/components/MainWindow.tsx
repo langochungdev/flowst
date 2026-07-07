@@ -26,7 +26,13 @@ export default function MainWindow() {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('input') || target.closest('select')) {
+    if (
+      target.closest('button') || 
+      target.closest('input') || 
+      target.closest('select') || 
+      target.closest('.custom-select') || 
+      target.closest('.time-text')
+    ) {
       return;
     }
     const appWindow = getCurrentWindow();

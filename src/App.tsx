@@ -4,7 +4,6 @@ import MainWindow from "./components/MainWindow";
 import MiniWindow from "./components/MiniWindow";
 import { usePomodoroStore } from "./stores/pomodoroStore";
 import DebugPanel from "./features/debug/DebugPanel";
-import { Agentation } from "agentation";
 import "./App.css";
 
 function App() {
@@ -41,7 +40,6 @@ function App() {
       {/* settings window logic is deprecated since it's merged into MainWindow, but fallback just in case */}
       {windowLabel === "settings" && <MainWindow />}
       <DebugPanel />
-      {import.meta.env.DEV && <Agentation endpoint="http://localhost:4747" />}
     </>
   );
 }

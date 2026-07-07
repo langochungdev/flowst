@@ -11,6 +11,7 @@ interface PomodoroState {
   resumeTimer: () => void;
   stopTimer: () => void;
   tick: () => void;
+  setTimeLeft: (seconds: number) => void;
 }
 
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
@@ -32,6 +33,10 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
 
   stopTimer: () => {
     set({ state: "idle", timeLeft: 25 * 60, isActive: false });
+  },
+
+  setTimeLeft: (seconds) => {
+    set({ timeLeft: seconds });
   },
 
   tick: () => {

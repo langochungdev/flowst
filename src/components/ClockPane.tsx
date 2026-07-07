@@ -1,7 +1,9 @@
-
-import { Play, Pause } from 'lucide-react';
+import { useState } from 'react';
+import { Play, Pause, Square } from 'lucide-react';
 import ContributionGrid from './ContributionGrid';
 import { usePomodoroStore } from '../stores/pomodoroStore';
+import CustomSelect from './CustomSelect';
+import WheelPicker from './WheelPicker';
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60)
@@ -12,11 +14,16 @@ function formatTime(seconds: number) {
 }
 
 export default function ClockPane() {
-  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer } = usePomodoroStore();
+  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer, setTimeLeft } = usePomodoroStore();
+  const [focusTime, setFocusTime] = useState("25");
+  const [breakTime, setBreakTime] = useState("5");
+  const [taskCategory, setTaskCategory] = useState("work");
+
+  const [isEditing, setIsEditing] = useState(false);
 
   const handlePlayPause = () => {
     if (state === 'idle') {
-      startTimer(25, 'focus');
+      startTimer(parseInt(focusTime) || 25, 'focus');
     } else if (isActive) {
       pauseTimer();
     } else {
@@ -24,30 +31,79 @@ export default function ClockPane() {
     }
   };
 
+  const handleTimeClick = () => {
+    if (!isActive) {
+      setIsEditing(true);
+    }
+  };
+
+
   return (
     <div className="clock-pane">
       <div className="select-group">
-        <select defaultValue="25">
-          <option value="25">25p</option>
-          <option value="45">45p</option>
-          <option value="auto">Auto</option>
-        </select>
-        <select defaultValue="5">
-          <option value="5">5p</option>
-          <option value="10">10p</option>
-        </select>
+        <CustomSelect 
+          options={[{label: '25p', value: '25'}, {label: '45p', value: '45'}, {label: 'Auto', value: 'auto'}]}
+          value={focusTime}
+          onChange={setFocusTime}
+          width="auto"
+        />
+        <CustomSelect 
+          options={[{label: '5p', value: '5'}, {label: '10p', value: '10'}]}
+          value={breakTime}
+          onChange={setBreakTime}
+          width="auto"
+        />
+        <CustomSelect 
+          options={[
+            {label: 'Làm việc', value: 'work'}, 
+            {label: 'Học tập', value: 'study'},
+            {label: 'Khác', value: 'other'}
+          ]}
+          value={taskCategory}
+          onChange={setTaskCategory}
+          width="auto"
+        />
       </div>
 
       <div className="timer-display">
-        <div className="time-text">{formatTime(timeLeft)}</div>
+        <div 
+          className="time-text editable" 
+          onClick={handleTimeClick}
+          title={!isActive ? "Click to edit" : ""}
+          style={{ 
+            cursor: isActive ? 'default' : 'pointer',
+            opacity: isEditing ? 0 : 1
+          }}
+        >
+          {formatTime(timeLeft)}
+        </div>
+        {isEditing && (
+          <WheelPicker 
+            value={timeLeft} 
+            onChange={(val) => setTimeLeft(val)} 
+            onClose={() => setIsEditing(false)} 
+          />
+        )}
         <div className="time-subtext">
           {state === 'focus' ? 'Focus — block 1/2' : state === 'break' ? 'Break' : 'Ready'}
         </div>
       </div>
 
-      <button className="play-pause-btn" onClick={handlePlayPause}>
-        {isActive ? <Pause size={20} /> : <Play size={20} />}
-      </button>
+      <div className="action-buttons">
+        <div className="action-left"></div>
+        <div className="action-center">
+          <button className="play-pause-btn" onClick={handlePlayPause}>
+            {isActive ? <Pause size={20} /> : <Play size={20} />}
+          </button>
+        </div>
+        <div className="action-right">
+          {state !== 'idle' && (
+            <button className="stop-btn" onClick={stopTimer} title="Stop Timer">
+              <Square size={18} fill="currentColor" />
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="divider" />
       <div className="contribution-label">7 ngày gần đây</div>
