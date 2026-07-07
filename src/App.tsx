@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import MainView from "./MainView";
-import MiniView from "./MiniView";
-import SettingsView from "./SettingsView";
+import MainWindow from "./components/MainWindow";
+import MiniWindow from "./components/MiniWindow";
 import { usePomodoroStore } from "./stores/pomodoroStore";
-import { TitleBar } from "./components/TitleBar";
 import DebugPanel from "./features/debug/DebugPanel";
 import "./App.css";
 
@@ -23,7 +21,6 @@ function App() {
     try {
       const appWindow = getCurrentWebviewWindow();
       if (appWindow) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setWindowLabel(appWindow.label);
       } else {
         setWindowLabel("main");
@@ -37,13 +34,13 @@ function App() {
   if (!windowLabel) return null;
 
   return (
-    <div className="app-container">
-      <TitleBar />
-      {windowLabel === "main" && <MainView />}
-      {windowLabel === "mini" && <MiniView />}
-      {windowLabel === "settings" && <SettingsView />}
+    <>
+      {windowLabel === "main" && <MainWindow />}
+      {windowLabel === "mini" && <MiniWindow />}
+      {/* settings window logic is deprecated since it's merged into MainWindow, but fallback just in case */}
+      {windowLabel === "settings" && <MainWindow />}
       <DebugPanel />
-    </div>
+    </>
   );
 }
 
