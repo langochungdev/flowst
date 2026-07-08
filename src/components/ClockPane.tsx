@@ -108,9 +108,9 @@ export default function ClockPane() {
         />
         <CustomSelect 
           options={[
-            {label: 'Làm việc', value: 'work'}, 
-            {label: 'Học tập', value: 'study'},
-            {label: 'Khác', value: 'other'}
+            {label: 'Work', value: 'work'}, 
+            {label: 'Study', value: 'study'},
+            {label: 'Other', value: 'other'}
           ]}
           value={taskCategory}
           onChange={setTaskCategory}

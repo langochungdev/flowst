@@ -12,14 +12,28 @@ interface PomodoroState {
   stopTimer: () => void;
   tick: () => void;
   setTimeLeft: (seconds: number) => void;
+  soundOption: "victory" | "trumpet";
+  setSoundOption: (option: "victory" | "trumpet") => void;
+  playSound: () => void;
 }
 
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   state: "idle",
   timeLeft: 25 * 60,
   isActive: false,
+  soundOption: "victory",
+
+  setSoundOption: (option) => set({ soundOption: option }),
+
+  playSound: () => {
+    const { soundOption } = get();
+    const soundFile = soundOption === "trumpet" ? "success-fanfare-trumpets.mp3" : "victory-chime.mp3";
+    const audio = new Audio(`/sounds/${soundFile}`);
+    audio.play().catch(e => console.error("Error playing sound:", e));
+  },
 
   startTimer: (duration, type) => {
+    get().playSound();
     set({ state: type, timeLeft: duration * 60, isActive: true });
   },
 
@@ -46,6 +60,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     if (timeLeft > 0) {
       set({ timeLeft: timeLeft - 1 });
     } else {
+      get().playSound();
       stopTimer();
       // TODO: Log session to database and auto-start next block if auto_mode is on
     }
