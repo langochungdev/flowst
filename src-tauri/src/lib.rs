@@ -17,14 +17,14 @@ fn clamp_window_to_monitor(window: &tauri::Window) {
     // On Windows, transparent borderless windows have an invisible DWM border
     // Left/right shadow is split evenly. Top has NO shadow. Bottom gets all vertical shadow.
     let shadow_side = (outer.width as i32 - inner.width as i32) / 2;
-    let shadow_bottom = outer.height as i32 - inner.height as i32; // no top shadow, all goes to bottom
+    let shadow_bottom = outer.height as i32 - inner.height as i32;
 
     let mon_pos = monitor.position();
     let mon_size = monitor.size();
 
-    // Adjust bounds to compensate for the invisible border
+    // Adjust bounds to compensate for invisible DWM border
     let min_x = mon_pos.x - shadow_side;
-    let min_y = mon_pos.y; // No shadow on top
+    let min_y = mon_pos.y;
     let max_x = mon_pos.x + mon_size.width as i32 - outer.width as i32 + shadow_side;
     let max_y = mon_pos.y + mon_size.height as i32 - outer.height as i32 + shadow_bottom;
 
@@ -35,6 +35,7 @@ fn clamp_window_to_monitor(window: &tauri::Window) {
         let _ = window.set_position(tauri::PhysicalPosition::new(new_x, new_y));
     }
 }
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
