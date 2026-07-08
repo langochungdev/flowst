@@ -24,6 +24,8 @@ interface PomodoroState {
   playSound: () => void;
   categories: TaskCategory[];
   addCategory: (category: TaskCategory) => void;
+  updateCategory: (id: string, name: string, color: string) => void;
+  deleteCategory: (id: string) => void;
 }
 
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
@@ -37,6 +39,14 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   ],
 
   addCategory: (category) => set((state) => ({ categories: [...state.categories, category] })),
+  
+  updateCategory: (id, name, color) => set((state) => ({
+    categories: state.categories.map(c => c.id === id ? { ...c, name, color } : c)
+  })),
+
+  deleteCategory: (id) => set((state) => ({
+    categories: state.categories.filter(c => c.id !== id)
+  })),
 
   setSoundOption: (option) => set({ soundOption: option }),
 
@@ -48,7 +58,6 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   },
 
   startTimer: (duration, type) => {
-    get().playSound();
     set({ state: type, timeLeft: duration * 60, isActive: true });
   },
 

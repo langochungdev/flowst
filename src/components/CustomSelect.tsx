@@ -1,20 +1,22 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Pencil } from 'lucide-react';
 
 interface Option {
   label: string;
   value: string;
   color?: string;
+  editable?: boolean;
 }
 
 interface CustomSelectProps {
   options: Option[];
   value: string;
   onChange: (value: string) => void;
+  onEditOption?: (value: string) => void;
   width?: string;
 }
 
-export default function CustomSelect({ options, value, onChange, width = '70px' }: CustomSelectProps) {
+export default function CustomSelect({ options, value, onChange, onEditOption, width = '70px' }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -53,10 +55,26 @@ export default function CustomSelect({ options, value, onChange, width = '70px' 
               }}
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              {option.color && (
-                <div style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: option.color }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+                {option.color && (
+                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: option.color, flexShrink: 0 }} />
+                )}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{option.label}</span>
+              </div>
+              {option.editable && onEditOption && (
+                <div 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditOption(option.value);
+                    setIsOpen(false);
+                  }}
+                  style={{ opacity: 0.5, cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px', marginLeft: '4px' }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+                >
+                  <Pencil size={12} />
+                </div>
               )}
-              {option.label}
             </div>
           ))}
         </div>

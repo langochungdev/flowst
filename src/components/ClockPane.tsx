@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Square } from 'lucide-react';
+import { Play, Pause, Square, Trash2 } from 'lucide-react';
 import ContributionGrid from './ContributionGrid';
 import { usePomodoroStore } from '../stores/pomodoroStore';
 import CustomSelect from './CustomSelect';
@@ -14,12 +14,13 @@ function formatTime(seconds: number) {
 }
 
 export default function ClockPane() {
-  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer, setTimeLeft, categories, addCategory } = usePomodoroStore();
+  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer, setTimeLeft, categories, addCategory, updateCategory, deleteCategory } = usePomodoroStore();
   const [focusTime, setFocusTime] = useState("25");
   const [breakTime, setBreakTime] = useState("5");
   const [taskCategory, setTaskCategory] = useState("work");
 
-  const [showAddPopup, setShowAddPopup] = useState(false);
+  const [showCatPopup, setShowCatPopup] = useState(false);
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [newCatName, setNewCatName] = useState("");
   const [newCatColor, setNewCatColor] = useState("");
 
@@ -112,7 +113,7 @@ export default function ClockPane() {
         />
         <CustomSelect 
           options={[
-            ...categories.map(c => ({ label: c.name, value: c.id, color: c.color })),
+            ...categories.map(c => ({ label: c.name, value: c.id, color: c.color, editable: true })),
             { label: 'Add...', value: 'add' }
           ]}
           value={taskCategory}
@@ -121,9 +122,19 @@ export default function ClockPane() {
               const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
               setNewCatColor(randomColor);
               setNewCatName("");
-              setShowAddPopup(true);
+              setEditingCatId(null);
+              setShowCatPopup(true);
             } else {
               setTaskCategory(val);
+            }
+          }}
+          onEditOption={(val) => {
+            const cat = categories.find(c => c.id === val);
+            if (cat) {
+              setNewCatName(cat.name);
+              setNewCatColor(cat.color);
+              setEditingCatId(cat.id);
+              setShowCatPopup(true);
             }
           }}
           width="auto"
@@ -188,10 +199,29 @@ export default function ClockPane() {
 
       <ContributionGrid />
 
-      {showAddPopup && (
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--el-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, borderRadius: 12 }}>
+      {showCatPopup && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ background: 'var(--dropdown-bg)', border: '1px solid var(--el-border)', padding: '16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: 'var(--el-shadow)' }}>
-            <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>New Category</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>
+                {editingCatId ? 'Edit Category' : 'New Category'}
+              </div>
+              {editingCatId && (
+                <button 
+                  onClick={() => {
+                    deleteCategory(editingCatId);
+                    if (taskCategory === editingCatId) {
+                      setTaskCategory(categories.find(c => c.id !== editingCatId)?.id || "auto");
+                    }
+                    setShowCatPopup(false);
+                  }}
+                  title="Delete Category"
+                  style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, display: 'flex' }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <input 
                 type="color" 
@@ -204,17 +234,22 @@ export default function ClockPane() {
                 value={newCatName} 
                 onChange={(e) => setNewCatName(e.target.value)} 
                 placeholder="Category Name" 
+                autoFocus
                 style={{ background: 'transparent', border: '1px solid var(--divider)', color: 'var(--text-primary)', padding: '6px 8px', borderRadius: '6px', fontSize: '13px', outline: 'none' }} 
               />
             </div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-              <button onClick={() => setShowAddPopup(false)} style={{ background: 'transparent', border: '1px solid var(--divider)', padding: '4px 10px', borderRadius: '6px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+              <button onClick={() => setShowCatPopup(false)} style={{ background: 'transparent', border: '1px solid var(--divider)', padding: '4px 10px', borderRadius: '6px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
               <button onClick={() => {
                 if (newCatName.trim()) {
-                  const id = 'cat_' + Date.now();
-                  addCategory({ id, name: newCatName.trim(), color: newCatColor });
-                  setTaskCategory(id);
-                  setShowAddPopup(false);
+                  if (editingCatId) {
+                    updateCategory(editingCatId, newCatName.trim(), newCatColor);
+                  } else {
+                    const id = 'cat_' + Date.now();
+                    addCategory({ id, name: newCatName.trim(), color: newCatColor });
+                    setTaskCategory(id);
+                  }
+                  setShowCatPopup(false);
                 }
               }} style={{ background: 'var(--text-primary)', border: 'none', padding: '4px 10px', borderRadius: '6px', color: 'var(--el-bg)', cursor: 'pointer', fontSize: '12px' }}>Save</button>
             </div>
