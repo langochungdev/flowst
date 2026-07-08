@@ -14,10 +14,14 @@ function formatTime(seconds: number) {
 }
 
 export default function ClockPane() {
-  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer, setTimeLeft } = usePomodoroStore();
+  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer, setTimeLeft, categories, addCategory } = usePomodoroStore();
   const [focusTime, setFocusTime] = useState("25");
   const [breakTime, setBreakTime] = useState("5");
   const [taskCategory, setTaskCategory] = useState("work");
+
+  const [showAddPopup, setShowAddPopup] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatColor, setNewCatColor] = useState("");
 
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingCustom, setIsEditingCustom] = useState(false);
@@ -108,12 +112,20 @@ export default function ClockPane() {
         />
         <CustomSelect 
           options={[
-            {label: 'Work', value: 'work'}, 
-            {label: 'Study', value: 'study'},
-            {label: 'Other', value: 'other'}
+            ...categories.map(c => ({ label: c.name, value: c.id, color: c.color })),
+            { label: 'Add...', value: 'add' }
           ]}
           value={taskCategory}
-          onChange={setTaskCategory}
+          onChange={(val) => {
+            if (val === 'add') {
+              const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+              setNewCatColor(randomColor);
+              setNewCatName("");
+              setShowAddPopup(true);
+            } else {
+              setTaskCategory(val);
+            }
+          }}
           width="auto"
         />
       </div>
@@ -175,6 +187,40 @@ export default function ClockPane() {
       </div>
 
       <ContributionGrid />
+
+      {showAddPopup && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--el-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, borderRadius: 12 }}>
+          <div style={{ background: 'var(--dropdown-bg)', border: '1px solid var(--el-border)', padding: '16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: 'var(--el-shadow)' }}>
+            <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>New Category</div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input 
+                type="color" 
+                value={newCatColor} 
+                onChange={(e) => setNewCatColor(e.target.value)} 
+                style={{ width: '28px', height: '28px', padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }} 
+              />
+              <input 
+                type="text" 
+                value={newCatName} 
+                onChange={(e) => setNewCatName(e.target.value)} 
+                placeholder="Category Name" 
+                style={{ background: 'transparent', border: '1px solid var(--divider)', color: 'var(--text-primary)', padding: '6px 8px', borderRadius: '6px', fontSize: '13px', outline: 'none' }} 
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+              <button onClick={() => setShowAddPopup(false)} style={{ background: 'transparent', border: '1px solid var(--divider)', padding: '4px 10px', borderRadius: '6px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+              <button onClick={() => {
+                if (newCatName.trim()) {
+                  const id = 'cat_' + Date.now();
+                  addCategory({ id, name: newCatName.trim(), color: newCatColor });
+                  setTaskCategory(id);
+                  setShowAddPopup(false);
+                }
+              }} style={{ background: 'var(--text-primary)', border: 'none', padding: '4px 10px', borderRadius: '6px', color: 'var(--el-bg)', cursor: 'pointer', fontSize: '12px' }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

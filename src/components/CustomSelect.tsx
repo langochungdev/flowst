@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react';
 interface Option {
   label: string;
   value: string;
+  color?: string;
 }
 
 interface CustomSelectProps {
@@ -32,7 +33,12 @@ export default function CustomSelect({ options, value, onChange, width = '70px' 
   return (
     <div className="custom-select" ref={ref} style={{ width }}>
       <div className="select-trigger" onClick={() => setIsOpen(!isOpen)}>
-        <span>{selectedOption.label}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {selectedOption.color && (
+            <div style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: selectedOption.color }} />
+          )}
+          <span>{selectedOption.label}</span>
+        </div>
         <ChevronDown size={14} />
       </div>
       {isOpen && (
@@ -45,7 +51,11 @@ export default function CustomSelect({ options, value, onChange, width = '70px' 
                 onChange(option.value);
                 setIsOpen(false);
               }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
+              {option.color && (
+                <div style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: option.color }} />
+              )}
               {option.label}
             </div>
           ))}

@@ -2,6 +2,12 @@ import { create } from "zustand";
 
 export type SessionType = "focus" | "break" | "idle";
 
+export interface TaskCategory {
+  id: string;
+  name: string;
+  color: string;
+}
+
 interface PomodoroState {
   state: SessionType;
   timeLeft: number; // in seconds
@@ -15,6 +21,8 @@ interface PomodoroState {
   soundOption: "victory" | "trumpet";
   setSoundOption: (option: "victory" | "trumpet") => void;
   playSound: () => void;
+  categories: TaskCategory[];
+  addCategory: (category: TaskCategory) => void;
 }
 
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
@@ -22,6 +30,12 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   timeLeft: 25 * 60,
   isActive: false,
   soundOption: "victory",
+  categories: [
+    { id: "work", name: "Work", color: "#00FBFF" },
+    { id: "study", name: "Study", color: "#808080" }
+  ],
+
+  addCategory: (category) => set((state) => ({ categories: [...state.categories, category] })),
 
   setSoundOption: (option) => set({ soundOption: option }),
 
