@@ -4,8 +4,37 @@ use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
     Manager,
+    WindowEvent,
 };
 use tauri_plugin_sql::{Migration, MigrationKind};
+
+fn clamp_window_to_monitor(window: &tauri::Window) {
+    let Ok(pos) = window.outer_position() else { return };
+    let Ok(outer) = window.outer_size() else { return };
+    let Ok(inner) = window.inner_size() else { return };
+    let Some(monitor) = window.current_monitor().ok().flatten() else { return };
+
+    // On Windows, transparent borderless windows have an invisible DWM border
+    // Left/right shadow is split evenly. Top has NO shadow. Bottom gets all vertical shadow.
+    let shadow_side = (outer.width as i32 - inner.width as i32) / 2;
+    let shadow_bottom = outer.height as i32 - inner.height as i32; // no top shadow, all goes to bottom
+
+    let mon_pos = monitor.position();
+    let mon_size = monitor.size();
+
+    // Adjust bounds to compensate for the invisible border
+    let min_x = mon_pos.x - shadow_side;
+    let min_y = mon_pos.y; // No shadow on top
+    let max_x = mon_pos.x + mon_size.width as i32 - outer.width as i32 + shadow_side;
+    let max_y = mon_pos.y + mon_size.height as i32 - outer.height as i32 + shadow_bottom;
+
+    let new_x = pos.x.clamp(min_x, max_x);
+    let new_y = pos.y.clamp(min_y, max_y);
+
+    if new_x != pos.x || new_y != pos.y {
+        let _ = window.set_position(tauri::PhysicalPosition::new(new_x, new_y));
+    }
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -55,6 +84,11 @@ pub fn run() {
                 .build(app)?;
 
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let WindowEvent::Moved(_) = event {
+                clamp_window_to_monitor(window);
+            }
         })
         .invoke_handler(tauri::generate_handler![
             commands::window::toggle_mini_window,

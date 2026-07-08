@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Play, Pause, X, Maximize2 } from 'lucide-react';
-import { getCurrentWindow } from '@tauri-apps/api/window';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { invoke } from '@tauri-apps/api/core';
 import { usePomodoroStore } from '../stores/pomodoroStore';
+import { useWindowDrag } from '../hooks/useWindowDrag';
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60)
@@ -15,9 +16,10 @@ function formatTime(seconds: number) {
 export default function MiniWindow() {
   const [hovered, setHovered] = useState(false);
   const { timeLeft, isActive, pauseTimer, resumeTimer } = usePomodoroStore();
+  const { startDrag } = useWindowDrag();
 
   const closeWindow = () => {
-    getCurrentWindow().close();
+    getCurrentWebviewWindow()?.close();
   };
 
   const handleExpand = () => {
@@ -29,21 +31,12 @@ export default function MiniWindow() {
     else resumeTimer();
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('input') || target.closest('select') || target.closest('.custom-select') || target.closest('.time-text')) {
-      return;
-    }
-    const appWindow = getCurrentWindow();
-    if (appWindow) appWindow.startDragging().catch(console.error);
-  };
-
   return (
     <div 
       className={`mini-window-container ${hovered ? 'hovered' : ''}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onPointerDown={handleMouseDown}
+      onPointerDown={startDrag}
       data-tauri-drag-region
     >
       <div className="time-text mini-text" data-tauri-drag-region>

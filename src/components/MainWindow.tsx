@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Minimize2, Minus, X, Settings } from 'lucide-react';
 import ClockPane from './ClockPane';
 import SettingsPane from './SettingsPane';
-import { getCurrentWindow } from '@tauri-apps/api/window';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { invoke } from '@tauri-apps/api/core';
+import { useWindowDrag } from '../hooks/useWindowDrag';
 
 export default function MainWindow() {
   const [isSettings, setIsSettings] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const { startDrag } = useWindowDrag();
 
   const handleMinimize = () => {
     const appWindow = getCurrentWebviewWindow();
@@ -24,26 +25,10 @@ export default function MainWindow() {
     invoke('toggle_mini_window').catch(console.error);
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (
-      target.closest('button') || 
-      target.closest('input') || 
-      target.closest('select') || 
-      target.closest('.custom-select') || 
-      target.closest('.time-text') ||
-      target.closest('.wheel-container')
-    ) {
-      return;
-    }
-    const appWindow = getCurrentWindow();
-    if (appWindow) appWindow.startDragging().catch(console.error);
-  };
-
   return (
     <div 
       className="glass-window main-window"
-      onMouseDown={handleMouseDown}
+      onPointerDown={startDrag}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
