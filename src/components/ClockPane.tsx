@@ -174,8 +174,6 @@ export default function ClockPane() {
         </div>
       </div>
 
-      <div className="divider" />
-      <div className="contribution-label">7 ngày gần đây</div>
       <ContributionGrid />
     </div>
   );

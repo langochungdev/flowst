@@ -9,7 +9,7 @@ pub fn toggle_mini_window(app: AppHandle) {
         if mini.is_visible().unwrap_or(false) {
             // mini → main: position main near mini (top-left of mini aligns with main)
             if let Some(main) = main_window {
-                if let (Ok(mini_pos), Ok(mini_outer)) = (mini.outer_position(), mini.outer_size()) {
+                if let Ok(mini_pos) = mini.outer_position() {
                     // Try to place main window so it overlaps/covers mini position
                     let target_x = mini_pos.x;
                     let target_y = mini_pos.y;
