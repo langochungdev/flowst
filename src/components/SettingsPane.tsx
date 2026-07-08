@@ -94,6 +94,65 @@ export default function SettingsPane() {
         <span className="setting-label">Daily Focus Target (minutes)</span>
         <input type="number" defaultValue={120} className="modern-input" />
       </div>
+
+      <div className="setting-item-col" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+        <span className="setting-label">Developer Debug Mode</span>
+        <button 
+          onClick={async () => {
+            try {
+              const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+              let debugWin = await WebviewWindow.getByLabel('debug');
+              if (debugWin) {
+                const isVisible = await debugWin.isVisible();
+                if (isVisible) {
+                  await debugWin.hide();
+                } else {
+                  await debugWin.show();
+                  await debugWin.setFocus();
+                }
+              } else {
+                debugWin = new WebviewWindow('debug', {
+                  url: 'index.html',
+                  title: 'Debug Window',
+                  width: 500,
+                  height: 600,
+                  resizable: true,
+                });
+                debugWin.once('tauri://created', async () => {
+                  await debugWin?.show();
+                  await debugWin?.setFocus();
+                });
+                debugWin.once('tauri://error', (e) => {
+                  console.error('Error creating debug window:', e);
+                });
+              }
+            } catch(e) {
+              console.error('Debug Window Error:', e);
+            }
+          }}
+          style={{
+            background: 'var(--el-bg)',
+            border: '1px solid var(--el-border)',
+            color: 'var(--text-primary)',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontWeight: 500,
+            transition: 'all 200ms ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--grid-active)';
+            e.currentTarget.style.color = 'var(--grid-active)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'var(--el-border)';
+            e.currentTarget.style.color = 'var(--text-primary)';
+          }}
+        >
+          Open Debug
+        </button>
+      </div>
     </div>
   );
 }

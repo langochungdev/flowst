@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import MainWindow from "./components/MainWindow";
 import MiniWindow from "./components/MiniWindow";
+import DebugWindow from "./components/DebugWindow";
 import { usePomodoroStore } from "./stores/pomodoroStore";
 import "./App.css";
 
@@ -36,6 +37,7 @@ function App() {
     <>
       {windowLabel === "main" && <MainWindow />}
       {windowLabel === "mini" && <MiniWindow />}
+      {windowLabel === "debug" && <DebugWindow />}
       {/* settings window logic is deprecated since it's merged into MainWindow, but fallback just in case */}
       {windowLabel === "settings" && <MainWindow />}
     </>

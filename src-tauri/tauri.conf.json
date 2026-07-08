@@ -46,6 +46,17 @@
         "visible": false,
         "resizable": false,
         "url": "index.html"
+      },
+      {
+        "label": "debug",
+        "title": "Debug Window",
+        "width": 500,
+        "height": 600,
+        "decorations": true,
+        "transparent": false,
+        "visible": false,
+        "resizable": true,
+        "url": "index.html"
       }
     ],
     "security": {

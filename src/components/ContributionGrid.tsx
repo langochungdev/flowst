@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useDebugStore, getMockedDate } from '../stores/debugStore';
 
 type CellData = {
   level: number;
@@ -10,10 +11,11 @@ type CellData = {
 export default function ContributionGrid() {
   const days = 7;
   const blocksPerDay = 30;
+  const dateOffsetDays = useDebugStore((state) => state.dateOffsetDays);
 
   // Generate stable mock data on mount
   const grid = useMemo(() => {
-    const today = new Date();
+    const today = getMockedDate();
     return Array.from({ length: days }, (_, rowIndex) =>
       Array.from({ length: blocksPerDay }, (_, colIndex) => {
         const rand = Math.random();
@@ -38,7 +40,7 @@ export default function ContributionGrid() {
         return { level, date, totalHours, breakdown };
       })
     );
-  }, []);
+  }, [dateOffsetDays]);
 
   const [hoveredCell, setHoveredCell] = useState<{
     data: CellData;

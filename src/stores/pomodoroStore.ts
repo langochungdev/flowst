@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useDebugStore } from "./debugStore";
 
 export type SessionType = "focus" | "break" | "idle";
 
@@ -71,8 +72,10 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     const { isActive, timeLeft, stopTimer } = get();
     if (!isActive) return;
 
+    const multiplier = useDebugStore.getState().timeMultiplier;
+
     if (timeLeft > 0) {
-      set({ timeLeft: timeLeft - 1 });
+      set({ timeLeft: Math.max(0, timeLeft - multiplier) });
     } else {
       get().playSound();
       stopTimer();

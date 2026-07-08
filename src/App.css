@@ -84,6 +84,11 @@ body {
   display: block;
 }
 
+/* Prevent pointer capture bugs when SVGs unmount during click */
+button svg, .icon-btn svg, .play-pause-btn svg, .stop-btn svg {
+  pointer-events: none;
+}
+
 /* Window shell: always transparent — never draws any background */
 .glass-window {
   width: 100vw;
@@ -348,6 +353,7 @@ body {
 .time-text-input::-webkit-outer-spin-button,
 .time-text-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
@@ -661,10 +667,12 @@ body {
   box-sizing: border-box;
   transition: all 200ms ease;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 .modern-input::-webkit-outer-spin-button,
 .modern-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 @media (prefers-color-scheme: dark) {
