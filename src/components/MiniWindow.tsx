@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef } from 'react';
 import { Play, Pause, X, Maximize2 } from 'lucide-react';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { invoke } from '@tauri-apps/api/core';
@@ -14,7 +14,6 @@ function formatTime(seconds: number) {
 }
 
 export default function MiniWindow() {
-  const [hovered, setHovered] = useState(false);
   const { timeLeft, isActive, pauseTimer, resumeTimer } = usePomodoroStore();
   const { startDrag } = useWindowDrag();
 
@@ -31,31 +30,73 @@ export default function MiniWindow() {
     else resumeTimer();
   };
 
+  const isDraggingRef = useRef(false);
+  const startPos = useRef({ x: 0, y: 0 });
+
+  const handleButtonDown = (e: React.PointerEvent) => {
+    isDraggingRef.current = true;
+    startPos.current = { x: e.clientX, y: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handleButtonMove = (e: React.PointerEvent) => {
+    if (!isDraggingRef.current) return;
+    const dx = e.clientX - startPos.current.x;
+    const dy = e.clientY - startPos.current.y;
+    // Drag threshold of 4 pixels
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      isDraggingRef.current = false;
+      e.currentTarget.releasePointerCapture(e.pointerId);
+      getCurrentWebviewWindow()?.startDragging();
+    }
+  };
+
+  const handleButtonUp = (e: React.PointerEvent, action: () => void) => {
+    if (isDraggingRef.current) {
+      // Mouse was released without moving beyond threshold -> it's a click!
+      isDraggingRef.current = false;
+      e.currentTarget.releasePointerCapture(e.pointerId);
+      action();
+    }
+  };
+
   return (
-    <div 
-      className={`mini-window-container ${hovered ? 'hovered' : ''}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onPointerDown={startDrag}
-      data-tauri-drag-region
-    >
-      <div className="time-text mini-text" data-tauri-drag-region>
+    <div className="mini-window-container" onPointerDown={startDrag} data-tauri-drag-region>
+      <div className={`time-text mini-text ${!isActive ? 'paused' : ''}`} data-tauri-drag-region>
         {formatTime(timeLeft)}
       </div>
 
-      {hovered && (
-        <div className="mini-hover-overlay">
-          <button className="icon-btn float-left" onClick={handleExpand}>
-            <Maximize2 size={12} />
-          </button>
-          <button className="icon-btn float-right" onClick={closeWindow}>
-            <X size={12} />
-          </button>
-          <button className="icon-btn center-play" onClick={handlePlayPause}>
-            {isActive ? <Pause size={18} /> : <Play size={18} />}
-          </button>
-        </div>
-      )}
+      <div className="mini-hover-overlay">
+        <button 
+          className="mini-action-btn side" 
+          onPointerDown={handleButtonDown}
+          onPointerMove={handleButtonMove}
+          onPointerUp={(e) => handleButtonUp(e, handleExpand)}
+          title="Expand"
+        >
+          <Maximize2 size={12} pointerEvents="none" />
+        </button>
+        <div className="mini-divider" />
+        <button 
+          className="mini-action-btn center" 
+          onPointerDown={handleButtonDown}
+          onPointerMove={handleButtonMove}
+          onPointerUp={(e) => handleButtonUp(e, handlePlayPause)}
+          title={isActive ? "Pause" : "Play"}
+        >
+          {isActive ? <Pause size={18} pointerEvents="none" /> : <Play size={18} pointerEvents="none" />}
+        </button>
+        <div className="mini-divider" />
+        <button 
+          className="mini-action-btn side" 
+          onPointerDown={handleButtonDown}
+          onPointerMove={handleButtonMove}
+          onPointerUp={(e) => handleButtonUp(e, closeWindow)}
+          title="Close"
+        >
+          <X size={12} pointerEvents="none" />
+        </button>
+      </div>
     </div>
   );
 }
