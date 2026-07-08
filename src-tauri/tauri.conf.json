@@ -20,6 +20,7 @@
         "minHeight": 300,
         "decorations": false,
         "transparent": true,
+        "resizable": false,
         "url": "index.html"
       },
       {
@@ -42,6 +43,7 @@
         "decorations": false,
         "transparent": true,
         "visible": false,
+        "resizable": false,
         "url": "index.html"
       }
     ],

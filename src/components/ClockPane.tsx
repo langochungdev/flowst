@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Square } from 'lucide-react';
 import ContributionGrid from './ContributionGrid';
 import { usePomodoroStore } from '../stores/pomodoroStore';
@@ -20,6 +20,14 @@ export default function ClockPane() {
   const [taskCategory, setTaskCategory] = useState("work");
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingCustom, setIsEditingCustom] = useState(false);
+  const clickTimeout = useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (clickTimeout.current) clearTimeout(clickTimeout.current);
+    };
+  }, []);
 
   const handlePlayPause = () => {
     if (state === 'idle') {
@@ -32,23 +40,68 @@ export default function ClockPane() {
   };
 
   const handleTimeClick = () => {
-    if (!isActive) {
+    if (isActive) return;
+    if (clickTimeout.current) clearTimeout(clickTimeout.current);
+    clickTimeout.current = setTimeout(() => {
       setIsEditing(true);
-    }
+    }, 300);
   };
 
+  const handleTimeDoubleClick = () => {
+    if (isActive) return;
+    if (clickTimeout.current) clearTimeout(clickTimeout.current);
+    setIsEditingCustom(true);
+    setIsEditing(false);
+  };
 
+  const handleCustomInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (e.target.value.trim() === '') {
+      setIsEditingCustom(false);
+      return;
+    }
+    const val = parseInt(e.target.value);
+    if (!isNaN(val) && val > 0) {
+      setTimeLeft(val * 60);
+    }
+    setIsEditingCustom(false);
+  };
+
+  const handleCustomInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.currentTarget.blur();
+    }
+    if (e.key === 'Escape') {
+      setIsEditingCustom(false);
+    }
+  };
   return (
     <div className="clock-pane">
       <div className="select-group">
         <CustomSelect 
-          options={[{label: '25p', value: '25'}, {label: '45p', value: '45'}, {label: 'Auto', value: 'auto'}]}
+          options={[
+            {label: 'Auto', value: 'auto'},
+            {label: '20m', value: '20'},
+            {label: '25m', value: '25'},
+            {label: '30m', value: '30'},
+            {label: '35m', value: '35'},
+            {label: '40m', value: '40'},
+            {label: '45m', value: '45'},
+            {label: '50m', value: '50'},
+            {label: '1h', value: '60'},
+            {label: '1h30', value: '90'}
+          ]}
           value={focusTime}
           onChange={setFocusTime}
           width="auto"
         />
         <CustomSelect 
-          options={[{label: '5p', value: '5'}, {label: '10p', value: '10'}]}
+          options={[
+            {label: 'Off', value: '0'},
+            {label: '5m', value: '5'},
+            {label: '10m', value: '10'},
+            {label: '15m', value: '15'},
+            {label: '20m', value: '20'}
+          ]}
           value={breakTime}
           onChange={setBreakTime}
           width="auto"
@@ -66,16 +119,32 @@ export default function ClockPane() {
       </div>
 
       <div className="timer-display">
-        <div 
-          className="time-text editable" 
-          onClick={handleTimeClick}
-          title={!isActive ? "Click to edit" : ""}
-          style={{ 
-            cursor: isActive ? 'default' : 'pointer',
-            opacity: isEditing ? 0 : 1
-          }}
-        >
-          {formatTime(timeLeft)}
+        <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
+          <div 
+            className="time-text editable" 
+            onClick={handleTimeClick}
+            onDoubleClick={handleTimeDoubleClick}
+            title={!isActive ? "Click to open picker, Double click to type" : ""}
+            style={{ 
+              cursor: isActive ? 'default' : 'pointer',
+              opacity: isEditing || isEditingCustom ? 0 : 1,
+              pointerEvents: isEditingCustom ? 'none' : 'auto'
+            }}
+          >
+            {formatTime(timeLeft)}
+          </div>
+
+          {isEditingCustom && (
+            <input 
+              type="number" 
+              className="time-text time-text-input" 
+              autoFocus
+              defaultValue=""
+              onBlur={handleCustomInputBlur}
+              onKeyDown={handleCustomInputKeyDown}
+              placeholder={Math.floor(timeLeft / 60).toString()}
+            />
+          )}
         </div>
         {isEditing && (
           <WheelPicker 

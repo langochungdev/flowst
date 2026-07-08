@@ -36,6 +36,8 @@ body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 #root {
@@ -243,6 +245,33 @@ body {
   opacity: 0.8;
 }
 
+.timer-display input.time-text-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  box-sizing: border-box;
+  font-size: 44px;
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.time-text-input::-webkit-outer-spin-button,
+.time-text-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* Wheel Picker */
 .wheel-container {
   position: absolute;
@@ -267,7 +296,7 @@ body {
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scrollbar-width: none; /* Firefox */
-  cursor: grab;
+  cursor: pointer;
   position: relative;
   z-index: 2;
 }
@@ -300,7 +329,8 @@ body {
   z-index: 1;
 }
 
-.mini-window .time-text {
+.mini-window .time-text,
+.mini-window .timer-display input.time-text-input {
   font-size: 26px;
 }
 

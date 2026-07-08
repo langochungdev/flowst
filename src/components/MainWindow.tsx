@@ -31,7 +31,8 @@ export default function MainWindow() {
       target.closest('input') || 
       target.closest('select') || 
       target.closest('.custom-select') || 
-      target.closest('.time-text')
+      target.closest('.time-text') ||
+      target.closest('.wheel-container')
     ) {
       return;
     }
