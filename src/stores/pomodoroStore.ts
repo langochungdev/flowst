@@ -26,6 +26,9 @@ interface PomodoroState {
   addCategory: (category: TaskCategory) => void;
   updateCategory: (id: string, name: string, color: string) => void;
   deleteCategory: (id: string) => void;
+  dailyTarget: number;
+  setDailyTarget: (minutes: number) => void;
+  todayTotalTime: number; // in minutes
 }
 
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
@@ -33,6 +36,8 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   timeLeft: 25 * 60,
   isActive: false,
   soundOption: "victory",
+  dailyTarget: 120,
+  todayTotalTime: 60, // MOCKED at 50% for preview
   categories: [
     { id: "work", name: "Work", color: "#00FBFF" },
     { id: "study", name: "Study", color: "#808080" }
@@ -47,6 +52,8 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   deleteCategory: (id) => set((state) => ({
     categories: state.categories.filter(c => c.id !== id)
   })),
+
+  setDailyTarget: (minutes) => set({ dailyTarget: minutes }),
 
   setSoundOption: (option) => set({ soundOption: option }),
 
@@ -84,6 +91,9 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     const multiplier = useDebugStore.getState().timeMultiplier;
 
     if (timeLeft > 0) {
+      if (isActive && get().state === 'focus') {
+        set((s) => ({ todayTotalTime: s.todayTotalTime + multiplier / 60 }));
+      }
       set({ timeLeft: Math.max(0, timeLeft - multiplier) });
     } else {
       get().playSound();

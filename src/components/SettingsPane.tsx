@@ -5,6 +5,10 @@ import { useState, useRef, useEffect } from "react";
 export default function SettingsPane() {
   const soundOption = usePomodoroStore((state) => state.soundOption);
   const setSoundOption = usePomodoroStore((state) => state.setSoundOption);
+  const dailyTarget = usePomodoroStore((state) => state.dailyTarget);
+  const setDailyTarget = usePomodoroStore((state) => state.setDailyTarget);
+
+  const [localTarget, setLocalTarget] = useState(dailyTarget.toString());
   const [isSoundDropdownOpen, setIsSoundDropdownOpen] = useState(false);
   const soundDropdownRef = useRef<HTMLDivElement>(null);
   
@@ -91,8 +95,39 @@ export default function SettingsPane() {
       </div>
 
       <div className="setting-item-col">
-        <span className="setting-label">Daily Focus Target (minutes)</span>
-        <input type="number" defaultValue={120} className="modern-input" />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="setting-label">Daily Focus Target (minutes)</span>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input 
+            type="number" 
+            value={localTarget}
+            onChange={(e) => setLocalTarget(e.target.value)}
+            className="modern-input" 
+          />
+          <button
+            onClick={() => {
+              const val = parseInt(localTarget);
+              if (!isNaN(val) && val > 0) {
+                setDailyTarget(val);
+              }
+            }}
+            disabled={localTarget === dailyTarget.toString()}
+            style={{
+              background: localTarget !== dailyTarget.toString() ? 'var(--text-primary)' : 'transparent',
+              border: localTarget !== dailyTarget.toString() ? 'none' : '1px solid var(--divider)',
+              color: localTarget !== dailyTarget.toString() ? 'var(--el-bg)' : 'var(--text-secondary)',
+              padding: '0 16px',
+              borderRadius: '8px',
+              cursor: localTarget !== dailyTarget.toString() ? 'pointer' : 'not-allowed',
+              fontSize: '13px',
+              fontWeight: 500,
+              transition: 'all 200ms ease'
+            }}
+          >
+            Save
+          </button>
+        </div>
       </div>
 
       <div className="setting-item-col" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>

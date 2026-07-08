@@ -13,8 +13,17 @@ function formatTime(seconds: number) {
   return `${m}:${s}`;
 }
 
+function formatTotalTime(minutes: number) {
+  const m = Math.floor(minutes);
+  if (m < 60) return `${m}m`;
+  const hrs = Math.floor(m / 60);
+  const mins = m % 60;
+  if (mins === 0) return `${hrs}h`;
+  return `${hrs}h${mins}m`;
+}
+
 export default function ClockPane() {
-  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer, setTimeLeft, categories, addCategory, updateCategory, deleteCategory } = usePomodoroStore();
+  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer, setTimeLeft, categories, addCategory, updateCategory, deleteCategory, todayTotalTime, dailyTarget } = usePomodoroStore();
   const [focusTime, setFocusTime] = useState("25");
   const [breakTime, setBreakTime] = useState("5");
   const [taskCategory, setTaskCategory] = useState("work");
@@ -197,7 +206,29 @@ export default function ClockPane() {
         </div>
       </div>
 
-      <ContributionGrid />
+      <div style={{ position: 'relative', marginTop: 'auto' }}>
+        <div style={{ position: 'absolute', bottom: '100%', left: '-24px', right: '-24px', paddingBottom: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 24px', fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px', fontWeight: 500 }}>
+            <span>{formatTotalTime(todayTotalTime)}</span>
+            <span>
+              {todayTotalTime >= dailyTarget 
+                ? `+${formatTotalTime(todayTotalTime - dailyTarget)} over` 
+                : `${formatTotalTime(dailyTarget - todayTotalTime)} left`}
+            </span>
+          </div>
+          <div style={{ height: '1px', background: 'var(--grid-base)' }}>
+            <div 
+              style={{ 
+                height: '100%', 
+                background: 'var(--grid-active)', 
+                width: `${Math.min((todayTotalTime / (dailyTarget || 1)) * 100, 100)}%`,
+                transition: 'width 0.5s ease' 
+              }} 
+            />
+          </div>
+        </div>
+        <ContributionGrid />
+      </div>
 
       {showCatPopup && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
