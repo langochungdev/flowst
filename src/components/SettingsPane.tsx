@@ -11,6 +11,8 @@ export default function SettingsPane() {
   const todayTotalTime = usePomodoroStore((state) => state.todayTotalTime);
   const todayCategoryBreakdown = usePomodoroStore((state) => state.todayCategoryBreakdown);
   const history = usePomodoroStore((state) => state.history);
+  const gridColor = usePomodoroStore((state) => state.gridColor);
+  const setGridColor = usePomodoroStore((state) => state.setGridColor);
 
   const [localTarget, setLocalTarget] = useState(dailyTarget.toString());
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -99,6 +101,16 @@ export default function SettingsPane() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="setting-item-row">
+        <span className="setting-label">Grid Theme Color</span>
+        <input 
+          type="color" 
+          value={gridColor || '#00FBFF'} 
+          onChange={(e) => setGridColor(e.target.value)} 
+          style={{ width: '26px', height: '26px', padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }} 
+        />
       </div>
 
       <div className="setting-item-row">
@@ -218,6 +230,7 @@ export default function SettingsPane() {
                     todayTotalTime: data.todayTotalTime !== undefined ? data.todayTotalTime : todayTotalTime,
                     todayCategoryBreakdown: data.todayCategoryBreakdown || todayCategoryBreakdown,
                     history: data.history || history,
+                    gridColor: data.gridColor || gridColor,
                   });
                   setLocalTarget((data.dailyTarget || dailyTarget).toString());
                   alert("Data imported successfully!");
@@ -232,7 +245,7 @@ export default function SettingsPane() {
           <button 
             className="action-btn-outline"
             onClick={() => {
-              const data = { categories, dailyTarget, soundOption, todayTotalTime, todayCategoryBreakdown, history };
+              const data = { categories, dailyTarget, soundOption, todayTotalTime, todayCategoryBreakdown, history, gridColor };
               const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
@@ -286,7 +299,8 @@ export default function SettingsPane() {
                     todayTotalTime: 0,
                     todayCategoryBreakdown: {},
                     history: {},
-                    soundOption: "victory"
+                    soundOption: "victory",
+                    gridColor: "#00FBFF"
                   });
                   setLocalTarget("120");
                   setShowClearConfirm(false);

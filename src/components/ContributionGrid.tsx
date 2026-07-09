@@ -49,7 +49,7 @@ export default function ContributionGrid() {
                     else if (totalHours <= 5) level = 3;
                     else level = 4;
 
-                    for (const [catId, mins] of Object.entries(todayCategoryBreakdown)) {
+                    for (const [catId, mins] of Object.entries(todayCategoryBreakdown || {})) {
                         const cat = categories.find(c => c.id === catId);
                         if (cat && mins > 0) {
                             breakdown.push({ name: cat.name, hours: Math.round((mins / 60) * 10) / 10 });
@@ -58,7 +58,7 @@ export default function ContributionGrid() {
                 } else {
                     // Past days real history
                     const dateString = date.toISOString().split('T')[0];
-                    const historicalData = history[dateString];
+                    const historicalData = (history || {})[dateString];
                     if (historicalData && historicalData.totalHours > 0) {
                         totalHours = Math.round(historicalData.totalHours * 10) / 10;
                         if (totalHours <= 0) level = 0;

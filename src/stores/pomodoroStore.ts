@@ -48,6 +48,8 @@ interface PomodoroState {
   dailyTarget: number;
   setDailyTarget: (minutes: number) => void;
   todayTotalTime: number; // in minutes
+  gridColor: string;
+  setGridColor: (color: string) => void;
 }
 
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
@@ -70,6 +72,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   soundOption: "victory",
   dailyTarget: 120,
   todayTotalTime: 0, 
+  gridColor: "#00FBFF",
   categories: [
     { id: "study", name: "Study", color: "#808080" },
     { id: "work", name: "Work", color: "#00FBFF" }
@@ -86,6 +89,8 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   })),
 
   setDailyTarget: (minutes) => set({ dailyTarget: minutes }),
+  
+  setGridColor: (color) => set({ gridColor: color }),
 
   setSoundOption: (option) => set({ soundOption: option }),
 
@@ -194,13 +199,13 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
       // Rollover
       const archivedTotalHours = todayTotalTime / 60;
       const archivedBreakdown: Record<string, number> = {};
-      for (const [cat, mins] of Object.entries(todayCategoryBreakdown)) {
+      for (const [cat, mins] of Object.entries(todayCategoryBreakdown || {})) {
         archivedBreakdown[cat] = mins / 60;
       }
       
       set((s) => ({
         history: {
-          ...s.history,
+          ...(s.history || {}),
           [currentDate]: {
             totalHours: archivedTotalHours,
             breakdown: archivedBreakdown

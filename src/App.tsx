@@ -33,10 +33,13 @@ function App() {
     }
   }, []);
 
+  const gridColor = usePomodoroStore(state => state.gridColor);
+
   if (!windowLabel) return null;
 
   return (
     <>
+      <style>{`:root { --grid-active: ${gridColor || '#00FBFF'} !important; }`}</style>
       {windowLabel === "main" && <MainWindow />}
       {windowLabel === "mini" && <MiniWindow />}
       {windowLabel === "debug" && <DebugWindow />}
