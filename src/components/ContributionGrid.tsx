@@ -90,7 +90,7 @@ export default function ContributionGrid() {
     } | null>(null);
 
     const handleMouseEnter = (e: React.MouseEvent, data: CellData) => {
-        if (data.level <= 0) return; // Skip empty and future cells
+        if (data.level < 0) return; // Skip future cells
         const rect = (e.target as HTMLElement).getBoundingClientRect();
         setHoveredCell({ data, rect });
     };
@@ -104,41 +104,105 @@ export default function ContributionGrid() {
             <div className="contribution-grid" onMouseLeave={handleMouseLeave}>
                 {grid.map((row, rowIndex) => (
                     <div key={rowIndex} className="contribution-row">
-                        {row.map((cell, colIndex) => (
-                            <div
-                                key={colIndex}
-                                className="contribution-cell"
-                                style={{
-                                    backgroundColor: cell.level <= 0 ? 'var(--grid-base)' : 'var(--grid-active)',
-                                    opacity: cell.level === -1 ? 0 : cell.level === 0 ? 1 : [0, 0.30, 0.50, 0.72, 1.0][cell.level],
-                                    pointerEvents: cell.level === -1 ? 'none' : 'auto'
-                                }}
-                                onMouseEnter={(e) => handleMouseEnter(e, cell)}
-                            />
-                        ))}
+                        {row.map((cell, colIndex) => {
+                            const monthThis = cell.date.getMonth();
+                            const isNewMonthLeft = colIndex > 0 && monthThis !== grid[rowIndex][colIndex - 1].date.getMonth();
+                            const isNewMonthTop = rowIndex > 0 && monthThis !== grid[rowIndex - 1][colIndex].date.getMonth();
+                            const isCornerTurn = rowIndex > 0 && colIndex > 0 &&
+                                                monthThis === grid[rowIndex - 1][colIndex].date.getMonth() &&
+                                                monthThis === grid[rowIndex][colIndex - 1].date.getMonth() &&
+                                                monthThis !== grid[rowIndex - 1][colIndex - 1].date.getMonth();
+                            const fillCorner = (isNewMonthLeft && isNewMonthTop) || isCornerTurn;
+                            
+                            return (
+                                <div
+                                    key={colIndex}
+                                    className="contribution-cell"
+                                    style={{
+                                        position: 'relative',
+                                        backgroundColor: 'transparent',
+                                        pointerEvents: cell.level === -1 ? 'none' : 'auto'
+                                    }}
+                                    onMouseEnter={(e) => handleMouseEnter(e, cell)}
+                                >
+                                    {/* Cell Background */}
+                                    <div style={{
+                                        position: 'absolute', inset: 0, borderRadius: '2px',
+                                        backgroundColor: cell.level <= 0 ? 'var(--grid-base)' : 'var(--grid-active)',
+                                        opacity: cell.level === -1 ? 0 : cell.level === 0 ? 1 : [0, 0.30, 0.50, 0.72, 1.0][cell.level],
+                                    }} />
+
+                                    {/* Month Boundaries */}
+                                    {isNewMonthLeft && (
+                                        <div style={{ 
+                                            position: 'absolute', 
+                                            left: '-2px', 
+                                            top: (rowIndex > 0 && !isNewMonthTop) ? '-2px' : '0', 
+                                            bottom: 0, 
+                                            width: '2px', 
+                                            backgroundColor: '#FFFFFF', 
+                                            opacity: 1, 
+                                            zIndex: 5, 
+                                            pointerEvents: 'none' 
+                                        }} />
+                                    )}
+                                    {isNewMonthTop && (
+                                        <div style={{ 
+                                            position: 'absolute', 
+                                            top: '-2px', 
+                                            left: (colIndex > 0 && !isNewMonthLeft) ? '-2px' : '0', 
+                                            right: 0, 
+                                            height: '2px', 
+                                            backgroundColor: '#FFFFFF', 
+                                            opacity: 1, 
+                                            zIndex: 5, 
+                                            pointerEvents: 'none' 
+                                        }} />
+                                    )}
+                                    {fillCorner && (
+                                        <div style={{ 
+                                            position: 'absolute', 
+                                            top: '-2px', 
+                                            left: '-2px', 
+                                            width: '2px', 
+                                            height: '2px', 
+                                            backgroundColor: '#FFFFFF', 
+                                            opacity: 1, 
+                                            zIndex: 5, 
+                                            pointerEvents: 'none' 
+                                        }} />
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 ))}
             </div>
 
-            {hoveredCell && (() => {
-                const tooltipWidth = 140; // Approximate width based on min-width 120 + padding
-                const center = hoveredCell.rect.left + hoveredCell.rect.width / 2;
-                // Clamp the left position to keep tooltip within the window's 300px width
-                const left = Math.max(10, Math.min(center - tooltipWidth / 2, window.innerWidth - tooltipWidth - 10));
-
-                return (
-                    <div
-                        className="contribution-tooltip"
-                        style={{
-                            position: 'fixed',
-                            left: left,
-                            top: hoveredCell.rect.top - 8,
-                        }}
-                    >
-                        <div className="tooltip-date">
-                            {`${hoveredCell.data.date.getDate()}/${hoveredCell.data.date.getMonth() + 1}/${hoveredCell.data.date.getFullYear() % 100}`}
-                        </div>
-                        <div className="tooltip-total">{hoveredCell.data.totalHours}h</div>
+            {hoveredCell && (
+                <div
+                    className="contribution-tooltip"
+                    ref={(el) => {
+                        if (el) {
+                            const rect = el.getBoundingClientRect();
+                            const center = hoveredCell.rect.left + hoveredCell.rect.width / 2;
+                            let newLeft = center - rect.width / 2;
+                            newLeft = Math.max(10, Math.min(newLeft, window.innerWidth - rect.width - 10));
+                            if (el.style.left !== `${newLeft}px`) {
+                                el.style.left = `${newLeft}px`;
+                            }
+                        }
+                    }}
+                    style={{
+                        position: 'fixed',
+                        top: hoveredCell.rect.top - 8,
+                        left: -9999, // Initial off-screen
+                    }}
+                >
+                    <div className="tooltip-date">
+                        {`${hoveredCell.data.date.getDate()}/${hoveredCell.data.date.getMonth() + 1}/${hoveredCell.data.date.getFullYear() % 100}`}
+                    </div>
+                    <div className="tooltip-total">{hoveredCell.data.totalHours}h</div>
                         {hoveredCell.data.breakdown.length > 0 && (
                             <div className="tooltip-breakdown">
                                 {hoveredCell.data.breakdown.map(b => (
@@ -150,8 +214,7 @@ export default function ContributionGrid() {
                             </div>
                         )}
                     </div>
-                );
-            })()}
+            )}
         </>
     );
 }
