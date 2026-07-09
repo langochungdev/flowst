@@ -400,7 +400,12 @@ export default function ClockPane() {
       <div className="action-buttons">
         <div className="action-left"></div>
         <div className="action-center">
-          <button className="play-pause-btn" onClick={handlePlayPause}>
+          <button 
+            className="play-pause-btn" 
+            onClick={handlePlayPause} 
+            disabled={isEditing || isEditingCustom}
+            style={{ opacity: (isEditing || isEditingCustom) ? 0.3 : 1, cursor: (isEditing || isEditingCustom) ? 'not-allowed' : 'pointer' }}
+          >
             {isActive ? <Pause size={20} /> : <Play size={20} />}
           </button>
         </div>
