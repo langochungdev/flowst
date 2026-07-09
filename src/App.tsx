@@ -4,20 +4,22 @@ import MainWindow from "./components/MainWindow";
 import MiniWindow from "./components/MiniWindow";
 import DebugWindow from "./components/DebugWindow";
 import { usePomodoroStore } from "./stores/pomodoroStore";
+import { useDebugStore } from "./stores/debugStore";
 import "./App.css";
 
 function App() {
   const [windowLabel, setWindowLabel] = useState<string | null>(null);
   const tick = usePomodoroStore((state) => state.tick);
+  const timeMultiplier = useDebugStore((state) => state.timeMultiplier);
 
   useEffect(() => {
     if (windowLabel === "main") {
       const timer = setInterval(() => {
         tick();
-      }, 1000);
+      }, 1000 / Math.max(0.1, timeMultiplier));
       return () => clearInterval(timer);
     }
-  }, [windowLabel, tick]);
+  }, [windowLabel, tick, timeMultiplier]);
 
   useEffect(() => {
     try {

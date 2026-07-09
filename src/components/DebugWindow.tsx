@@ -3,7 +3,7 @@ import { useDebugStore, getMockedDate } from "../stores/debugStore";
 import { Trash2, Copy } from "lucide-react";
 
 export default function DebugWindow() {
-  const { logs, timeMultiplier, dateOffsetDays, clearLogs, setTimeMultiplier, setDateOffsetDays } = useDebugStore();
+  const { logs, timeMultiplier, dateOffsetDays, isDebugMode, clearLogs, setTimeMultiplier, setDateOffsetDays, toggleDebugMode, resetDebug } = useDebugStore();
   const pomodoroState = usePomodoroStore();
 
   const handleCopyLogs = () => {
@@ -11,12 +11,59 @@ export default function DebugWindow() {
     navigator.clipboard.writeText(text);
   };
 
+  const handleClearAppData = () => {
+    usePomodoroStore.setState({
+      categories: [
+        { id: "study", name: "Study", color: "#808080" },
+        { id: "work", name: "Work", color: "#00FBFF" }
+      ],
+      dailyTarget: 120,
+      todayTotalTime: 0,
+      todayCategoryBreakdown: {},
+      history: {},
+      soundOption: "victory",
+      gridColor: "#00FBFF",
+      goal: null,
+      blocks: [],
+      currentBlockIndex: 0,
+      state: "idle",
+      isActive: false
+    });
+  };
+
   return (
     <div style={{ width: '100vw', height: '100vh', background: 'var(--text-primary)', color: 'var(--el-bg)', display: 'flex', flexDirection: 'column', fontFamily: 'monospace', fontSize: '12px', padding: '16px', boxSizing: 'border-box', overflow: 'hidden' }}>
       
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--text-secondary)', paddingBottom: '8px' }}>
-        <h2 style={{ margin: 0, fontSize: '16px', color: '#00FBFF' }}>Debug Console</h2>
+        <h2 style={{ margin: 0, fontSize: '16px', color: isDebugMode ? '#e81123' : '#00FBFF', display: 'flex', gap: '6px' }}>
+          Debug Console <span style={{ opacity: isDebugMode ? 1 : 0, transition: 'opacity 0.2s' }}>(SANDBOX)</span>
+        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'bold', color: isDebugMode ? '#e81123' : 'inherit' }}>
+            <input 
+              type="checkbox" 
+              checked={isDebugMode} 
+              onChange={toggleDebugMode} 
+              style={{ cursor: 'pointer' }} 
+            />
+            Sandbox Mode
+          </label>
+          <button 
+            onClick={resetDebug} 
+            disabled={!isDebugMode}
+            style={{ background: 'var(--text-secondary)', border: 'none', color: 'var(--el-bg)', cursor: !isDebugMode ? 'not-allowed' : 'pointer', padding: '4px 12px', borderRadius: 0, fontWeight: 'bold', opacity: !isDebugMode ? 0.5 : 1 }}
+          >
+            Reset Time/Date
+          </button>
+          <button 
+            onClick={handleClearAppData} 
+            disabled={!isDebugMode}
+            style={{ background: '#e81123', border: 'none', color: 'white', cursor: !isDebugMode ? 'not-allowed' : 'pointer', padding: '4px 12px', borderRadius: 0, fontWeight: 'bold', opacity: !isDebugMode ? 0.5 : 1 }}
+          >
+            Clear App Data
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: '16px', height: 'calc(100% - 40px)' }}>
@@ -50,25 +97,41 @@ export default function DebugWindow() {
         {/* Right Column: State & Time */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 }}>
           
-          {/* Time Simulator */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {/* Simulators */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: isDebugMode ? 1 : 0.5, pointerEvents: isDebugMode ? 'auto' : 'none' }}>
             <span style={{ fontWeight: 'bold' }}>Time Simulator</span>
             <div style={{ border: '1px solid var(--text-secondary)', padding: '12px', borderRadius: 0, background: 'rgba(255,255,255,0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span>Speed Multiplier: <span style={{ color: '#00FBFF' }}>{timeMultiplier}x</span></span>
+                <span>Speed Multiplier: <span style={{ color: '#00FBFF' }}>{timeMultiplier === 0 ? 'Stopped' : `${timeMultiplier}x`}</span></span>
               </div>
-              <input 
-                type="range" 
-                min="1" 
-                max="60" 
-                step="1"
-                value={timeMultiplier} 
-                onChange={(e) => setTimeMultiplier(parseInt(e.target.value))}
-                style={{ width: '100%', accentColor: '#00FBFF' }} 
-              />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                <span>1x (Realtime)</span>
-                <span>60x (1s = 1m)</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={() => setTimeMultiplier(Math.max(1, timeMultiplier - 1))} 
+                  disabled={timeMultiplier <= 1}
+                  style={{ flex: 1, background: 'transparent', border: '1px solid var(--text-secondary)', color: timeMultiplier <= 1 ? 'var(--text-secondary)' : 'var(--el-bg)', cursor: timeMultiplier <= 1 ? 'not-allowed' : 'pointer', padding: '4px' }}
+                >
+                  - Slower
+                </button>
+                <button 
+                  onClick={() => setTimeMultiplier(timeMultiplier === 0 ? 1 : 0)} 
+                  style={{ flex: 1, background: timeMultiplier === 0 ? '#00FBFF' : 'var(--text-secondary)', border: '1px solid ' + (timeMultiplier === 0 ? '#00FBFF' : 'var(--text-secondary)'), color: timeMultiplier === 0 ? '#111' : 'var(--el-bg)', cursor: 'pointer', padding: '4px', fontWeight: timeMultiplier === 0 ? 'bold' : 'normal' }}
+                >
+                  {timeMultiplier === 0 ? 'Play' : 'Stop'}
+                </button>
+                <button 
+                  onClick={() => setTimeMultiplier(Math.min(60, timeMultiplier === 0 ? 1 : timeMultiplier + 1))} 
+                  disabled={timeMultiplier >= 60}
+                  style={{ flex: 1, background: 'transparent', border: '1px solid var(--text-secondary)', color: timeMultiplier >= 60 ? 'var(--text-secondary)' : 'var(--el-bg)', cursor: timeMultiplier >= 60 ? 'not-allowed' : 'pointer', padding: '4px' }}
+                >
+                  + Faster
+                </button>
+                <button 
+                  onClick={() => setTimeMultiplier(Math.min(60, timeMultiplier === 0 ? 2 : timeMultiplier * 2))} 
+                  disabled={timeMultiplier >= 60}
+                  style={{ flex: 1, background: 'transparent', border: '1px solid var(--text-secondary)', color: timeMultiplier >= 60 ? 'var(--text-secondary)' : '#00FBFF', cursor: timeMultiplier >= 60 ? 'not-allowed' : 'pointer', padding: '4px', fontWeight: 'bold' }}
+                >
+                  x2 Faster
+                </button>
               </div>
             </div>
 

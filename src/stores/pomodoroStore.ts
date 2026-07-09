@@ -281,3 +281,54 @@ usePomodoroStore.subscribe((state) => {
     emit('pomodoro-state-sync', state).catch(console.error);
   }
 });
+
+export const swapData = (toDebug: boolean) => {
+  const currentState = usePomodoroStore.getState();
+  if (toDebug) {
+    localStorage.setItem("flowst-real-backup", JSON.stringify({ state: currentState }));
+    const debugDataStr = localStorage.getItem("flowst-debug-backup");
+    if (debugDataStr) {
+      try {
+        const debugData = JSON.parse(debugDataStr);
+        usePomodoroStore.setState({
+          ...debugData.state,
+          state: "idle",
+          isActive: false,
+          blocks: [],
+          currentBlockIndex: 0,
+          timeLeft: 25 * 60,
+          sessionDuration: 25 * 60
+        });
+      } catch (e) {}
+    } else {
+      usePomodoroStore.setState({
+         history: {},
+         todayTotalTime: 0,
+         todayCategoryBreakdown: {},
+         goal: null,
+         blocks: [],
+         state: "idle",
+         isActive: false,
+         timeLeft: 25 * 60,
+         sessionDuration: 25 * 60
+      });
+    }
+  } else {
+    localStorage.setItem("flowst-debug-backup", JSON.stringify({ state: currentState }));
+    const realDataStr = localStorage.getItem("flowst-real-backup");
+    if (realDataStr) {
+      try {
+        const realData = JSON.parse(realDataStr);
+        usePomodoroStore.setState({
+          ...realData.state,
+          state: "idle",
+          isActive: false,
+          blocks: [],
+          currentBlockIndex: 0,
+          timeLeft: 25 * 60,
+          sessionDuration: 25 * 60
+        });
+      } catch (e) {}
+    }
+  }
+};

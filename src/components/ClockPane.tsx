@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Square, Trash2, Pen } from 'lucide-react';
 import ContributionGrid from './ContributionGrid';
 import { usePomodoroStore } from '../stores/pomodoroStore';
+import { useDebugStore } from '../stores/debugStore';
 import CustomSelect from './CustomSelect';
 import WheelPicker from './WheelPicker';
 
@@ -33,13 +34,15 @@ function GoalTrackerView() {
   const [year, setYear] = useState("");
   const [displayUnit, setDisplayUnit] = useState<"hours"|"days"|"weeks"|"months">("days");
   
+  const timeMultiplier = useDebugStore((state) => state.timeMultiplier);
+  
   const [now, setNow] = useState(Date.now());
   
   useEffect(() => {
     if (!goal) return;
-    const interval = setInterval(() => setNow(Date.now()), 1000);
+    const interval = setInterval(() => setNow(Date.now()), 1000 / Math.max(0.1, timeMultiplier));
     return () => clearInterval(interval);
-  }, [goal]);
+  }, [goal, timeMultiplier]);
   
   const handleOpenPopup = () => {
     if (goal) {
