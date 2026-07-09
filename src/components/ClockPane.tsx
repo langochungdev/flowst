@@ -23,7 +23,7 @@ function formatTotalTime(minutes: number) {
 }
 
 export default function ClockPane() {
-  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer, setTimeLeft, categories, addCategory, updateCategory, deleteCategory, todayTotalTime, dailyTarget } = usePomodoroStore();
+  const { state, timeLeft, isActive, startTimer, pauseTimer, resumeTimer, stopTimer, setTimeLeft, categories, addCategory, updateCategory, deleteCategory, todayTotalTime, dailyTarget, blocks, currentBlockIndex } = usePomodoroStore();
   const [focusTime, setFocusTime] = useState("25");
   const [breakTime, setBreakTime] = useState("5");
   const [taskCategory, setTaskCategory] = useState("work");
@@ -45,7 +45,7 @@ export default function ClockPane() {
 
   const handlePlayPause = () => {
     if (state === 'idle') {
-      startTimer(parseInt(focusTime) || 25, 'focus');
+      startTimer(focusTime, breakTime, timeLeft);
     } else if (isActive) {
       pauseTimer();
     } else {
@@ -147,6 +147,7 @@ export default function ClockPane() {
             }
           }}
           width="auto"
+          disabled={state !== 'idle'}
         />
       </div>
 
@@ -186,7 +187,7 @@ export default function ClockPane() {
           />
         )}
         <div className="time-subtext">
-          {state === 'focus' ? 'Focus — block 1/2' : state === 'break' ? 'Break' : 'Ready'}
+          {state === 'focus' ? `Focus — block ${currentBlockIndex + 1}/${blocks.length || 1}` : state === 'break' ? 'Break' : 'Ready'}
         </div>
       </div>
 

@@ -11,11 +11,13 @@ function App() {
   const tick = usePomodoroStore((state) => state.tick);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      tick();
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [tick]);
+    if (windowLabel === "main") {
+      const timer = setInterval(() => {
+        tick();
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [windowLabel, tick]);
 
   useEffect(() => {
     try {

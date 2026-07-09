@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useDebugStore, getMockedDate } from '../stores/debugStore';
+import { usePomodoroStore } from '../stores/pomodoroStore';
 
 type CellData = {
   level: number;
@@ -12,35 +13,58 @@ export default function ContributionGrid() {
   const days = 7;
   const blocksPerDay = 30;
   const dateOffsetDays = useDebugStore((state) => state.dateOffsetDays);
+  const todayTotalTime = usePomodoroStore(state => state.todayTotalTime);
 
   // Generate stable mock data on mount
   const grid = useMemo(() => {
-    const today = getMockedDate();
+    const todayDate = getMockedDate();
+    const todayDOW = todayDate.getDay();
+
     return Array.from({ length: days }, (_, rowIndex) =>
       Array.from({ length: blocksPerDay }, (_, colIndex) => {
-        const rand = Math.random();
-        const level = rand < 0.45 ? 0 : rand < 0.62 ? 1 : rand < 0.78 ? 2 : rand < 0.91 ? 3 : 4;
+        const weeksAgo = (blocksPerDay - 1) - colIndex;
+        const daysAgo = weeksAgo * 7 + (todayDOW - rowIndex);
         
-        // Fake date calculation (just going backwards)
-        const date = new Date(today);
-        const daysAgo = (days - rowIndex - 1) * blocksPerDay + (blocksPerDay - colIndex - 1);
-        date.setDate(date.getDate() - daysAgo);
-
+        let level = 0;
         let totalHours = 0;
         let breakdown: { name: string; hours: number }[] = [];
+        
+        const date = new Date(todayDate);
+        date.setDate(date.getDate() - daysAgo);
 
-        if (level > 0) {
-          totalHours = Math.floor(Math.random() * 4) + level; // 1 to 8 hours
-          const codeHours = Math.floor(totalHours * 0.6);
-          const readHours = totalHours - codeHours;
-          if (codeHours > 0) breakdown.push({ name: 'Code', hours: codeHours });
-          if (readHours > 0) breakdown.push({ name: 'Read', hours: readHours });
+        if (daysAgo < 0) {
+          // Future day
+          level = 0;
+        } else if (daysAgo === 0) {
+          // Today
+          totalHours = Math.round((todayTotalTime / 60) * 10) / 10;
+          if (totalHours <= 0) level = 0;
+          else if (totalHours <= 1) level = 1;
+          else if (totalHours <= 3) level = 2;
+          else if (totalHours <= 5) level = 3;
+          else level = 4;
+          
+          if (totalHours > 0) {
+            breakdown.push({ name: 'Session', hours: totalHours });
+          }
+        } else {
+          // Past days mock
+          const seed = date.getFullYear() * 10000 + (date.getMonth()+1) * 100 + date.getDate();
+          const rand = Math.abs(Math.sin(seed));
+          level = rand < 0.45 ? 0 : rand < 0.62 ? 1 : rand < 0.78 ? 2 : rand < 0.91 ? 3 : 4;
+          if (level > 0) {
+            totalHours = Math.floor(rand * 4) + level;
+            const codeHours = Math.floor(totalHours * 0.6);
+            const readHours = totalHours - codeHours;
+            if (codeHours > 0) breakdown.push({ name: 'Code', hours: codeHours });
+            if (readHours > 0) breakdown.push({ name: 'Read', hours: readHours });
+          }
         }
 
         return { level, date, totalHours, breakdown };
       })
     );
-  }, [dateOffsetDays]);
+  }, [dateOffsetDays, todayTotalTime]);
 
   const [hoveredCell, setHoveredCell] = useState<{
     data: CellData;

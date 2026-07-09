@@ -14,9 +14,10 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   onEditOption?: (value: string) => void;
   width?: string;
+  disabled?: boolean;
 }
 
-export default function CustomSelect({ options, value, onChange, onEditOption, width = '70px' }: CustomSelectProps) {
+export default function CustomSelect({ options, value, onChange, onEditOption, width = '70px', disabled = false }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -33,8 +34,8 @@ export default function CustomSelect({ options, value, onChange, onEditOption, w
   const selectedOption = options.find(o => o.value === value) || options[0];
 
   return (
-    <div className="custom-select" ref={ref} style={{ width }}>
-      <div className="select-trigger" onClick={() => setIsOpen(!isOpen)}>
+    <div className="custom-select" ref={ref} style={{ width, opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? 'none' : 'auto' }}>
+      <div className="select-trigger" onClick={() => !disabled && setIsOpen(!isOpen)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {selectedOption.color && (
             <div style={{ width: '10px', height: '10px', borderRadius: 0, backgroundColor: selectedOption.color }} />

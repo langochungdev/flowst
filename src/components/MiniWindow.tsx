@@ -13,7 +13,7 @@ function formatTime(seconds: number) {
 }
 
 export default function MiniWindow() {
-    const { timeLeft, isActive, pauseTimer, resumeTimer, sessionDuration } = usePomodoroStore();
+    const { timeLeft, isActive, pauseTimer, resumeTimer, totalSessionDuration, elapsedSessionTime } = usePomodoroStore();
     const { bind } = useWindowDrag();
 
     const closeWindow = () => {
@@ -29,8 +29,8 @@ export default function MiniWindow() {
         else resumeTimer();
     };
 
-    const progressPercent = sessionDuration > 0 ? ((sessionDuration - timeLeft) / sessionDuration) * 100 : 0;
-    const elapsed = sessionDuration - timeLeft;
+    const progressPercent = totalSessionDuration > 0 ? (elapsedSessionTime / totalSessionDuration) * 100 : 0;
+    const sessionTimeLeft = totalSessionDuration - elapsedSessionTime;
 
     return (
         <div className="mini-window-container" {...bind}>
@@ -66,8 +66,8 @@ export default function MiniWindow() {
 
             <div className="mini-progress-row">
                 <div className="mini-progress-times">
-                    <span className="mini-progress-text">{formatTime(elapsed > 0 ? elapsed : 0)}</span>
-                    <span className="mini-progress-text">{formatTime(timeLeft)}</span>
+                    <span className="mini-progress-text">{formatTime(elapsedSessionTime > 0 ? Math.floor(elapsedSessionTime) : 0)}</span>
+                    <span className="mini-progress-text">{formatTime(sessionTimeLeft > 0 ? Math.floor(sessionTimeLeft) : 0)}</span>
                 </div>
                 <div className="mini-progress-bar-bg">
                     <div className="mini-progress-bar-fill" style={{ width: `${progressPercent}%` }} />
