@@ -85,7 +85,7 @@ body {
 }
 
 /* Prevent pointer capture bugs when SVGs unmount during click */
-button svg, .icon-btn svg, .play-pause-btn svg, .stop-btn svg {
+button svg, .play-pause-btn svg, .stop-btn svg {
   pointer-events: none;
 }
 
@@ -101,7 +101,7 @@ button svg, .icon-btn svg, .play-pause-btn svg, .stop-btn svg {
 
 /* Main window: transparent bg, only layout padding */
 .main-window {
-  padding: 14px 14px 2px;
+  padding: 32px 14px 2px;
   background: transparent;
   box-sizing: border-box;
 }
@@ -210,44 +210,46 @@ button svg, .icon-btn svg, .play-pause-btn svg, .stop-btn svg {
   transition: width 1s linear;
 }
 
-/* ───── Top bar ───── */
-.top-bar {
+.corner-btn-group {
+  position: absolute;
+  top: 0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background: transparent;
+  z-index: 100;
 }
-.main-window .top-bar {
-  margin-bottom: 10px;
+.corner-btn-group.left {
+  left: 0;
+  border-right: 1px solid var(--el-border);
+}
+.corner-btn-group.right {
+  right: 0;
+  border-left: 1px solid var(--el-border);
 }
 
-.icon-btn {
-  background: var(--el-bg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--el-border);
-  padding: 6px;
+.corner-btn {
+  background: transparent;
+  border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
-  border-radius: 0;
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--el-shadow);
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  transition: all 150ms ease;
 }
-.icon-btn:hover {
-  background-color: var(--el-bg-hover);
-  border-color: var(--el-border-hover);
+.corner-btn:hover {
+  background: var(--el-bg-hover);
   color: var(--text-primary);
-  transform: translateY(-1px);
 }
-.icon-btn:active {
-  transform: translateY(0);
+.corner-btn.hover-danger:hover {
+  background: #e81123;
+  color: white;
 }
-
-.window-controls {
-  display: flex;
-  gap: 4px;
+.corner-divider {
+  width: 1px;
+  background-color: var(--el-border);
 }
 
 /* ───── Clock pane ───── */
@@ -258,20 +260,43 @@ button svg, .icon-btn svg, .play-pause-btn svg, .stop-btn svg {
   height: 100%;
 }
 
+.top-header-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--el-border);
+  z-index: 90;
+}
+
 .select-group {
+  position: absolute;
+  top: -32px;
+  left: 43px; /* 57px - 14px padding of main-window */
+  right: 43px;
+  height: 28px;
   display: flex;
-  justify-content: center;
-  width: 100%;
+  justify-content: flex-start;
+  align-items: center;
   box-sizing: border-box;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 0;
+  margin: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+.select-group > * {
+  pointer-events: auto;
 }
 .select-group > :nth-child(1),
 .select-group > :nth-child(2) {
   flex-shrink: 0;
 }
 .select-group > :nth-child(3) {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -281,38 +306,49 @@ button svg, .icon-btn svg, .play-pause-btn svg, .stop-btn svg {
   font-size: 12px;
   color: var(--text-primary);
   user-select: none;
+  height: 28px;
+  min-width: 0;
+  display: flex;
 }
 .select-trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 4px;
-  padding: 4px 8px;
+  padding: 0 8px;
+  height: 28px;
+  width: 100%;
+  box-sizing: border-box;
   background-color: var(--el-bg);
-  border: 1px solid var(--el-border);
+  border: none;
+  border-right: 1px solid var(--el-border);
   border-radius: 0;
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease;
-  box-shadow: var(--el-shadow);
+  transition: background-color 150ms ease;
+  min-width: 0;
+}
+.select-trigger:hover {
+  background-color: var(--el-bg-hover);
+}
+.custom-select:last-child .select-trigger {
+  border-right: none;
 }
 .select-trigger span {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.select-trigger:hover {
-  background-color: var(--el-bg-hover);
-  border-color: var(--el-border-hover);
-}
+
 .select-dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: 100%;
   left: 0;
   min-width: 100%;
   width: max-content;
   max-width: 150px;
   background-color: var(--dropdown-bg);
   border: 1px solid var(--el-border);
+  border-top: none;
   border-radius: 0;
   overflow: hidden;
   z-index: 10;

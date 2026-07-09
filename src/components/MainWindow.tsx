@@ -32,26 +32,26 @@ export default function MainWindow() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className="top-bar">
-        <div style={{ display: 'flex', gap: '4px' }}>
-          <button className="icon-btn" onClick={handleCompact} title="Mini View">
-            <Minimize2 size={16} />
-          </button>
-          <button className="icon-btn" onClick={() => setIsSettings(!isSettings)} title="Settings">
-            <Settings size={16} />
-          </button>
-        </div>
-        <div 
-          className="window-controls" 
-          style={{ opacity: hovered ? 1 : 0, transition: 'opacity 150ms ease' }}
-        >
-          <button className="icon-btn" onClick={handleMinimize}>
-            <Minus size={16} />
-          </button>
-          <button className="icon-btn" onClick={handleClose}>
-            <X size={16} />
-          </button>
-        </div>
+      <div className="top-header-bar" data-tauri-drag-region></div>
+
+      <div className="corner-btn-group left">
+        <button className="corner-btn" onClick={handleCompact} title="Mini View">
+          <Minimize2 size={14} />
+        </button>
+        <div className="corner-divider" />
+        <button className="corner-btn" onClick={() => setIsSettings(!isSettings)} title="Settings">
+          <Settings size={14} />
+        </button>
+      </div>
+
+      <div className="corner-btn-group right">
+        <button className="corner-btn" onClick={handleMinimize} title="Minimize">
+          <Minus size={14} />
+        </button>
+        <div className="corner-divider" />
+        <button className="corner-btn hover-danger" onClick={handleClose} title="Close">
+          <X size={14} />
+        </button>
       </div>
 
       {isSettings ? (
