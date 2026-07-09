@@ -181,6 +181,35 @@ button svg, .icon-btn svg, .play-pause-btn svg, .stop-btn svg {
   color: var(--text-secondary); /* No red, only gray */
 }
 
+/* ───── Mini progress row ───── */
+.mini-progress-row {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  font-size: 8.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.mini-progress-text {
+  padding: 0 3px;
+  line-height: 1;
+}
+.mini-progress-bar-bg {
+  flex: 1;
+  height: 2px;
+  background: var(--el-border);
+  align-self: flex-end;
+}
+.mini-progress-bar-fill {
+  height: 100%;
+  background: var(--text-primary);
+  transition: width 1s linear;
+}
+
 /* ───── Top bar ───── */
 .top-bar {
   display: flex;

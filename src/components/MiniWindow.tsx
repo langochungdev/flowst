@@ -14,7 +14,7 @@ function formatTime(seconds: number) {
 }
 
 export default function MiniWindow() {
-  const { timeLeft, isActive, pauseTimer, resumeTimer } = usePomodoroStore();
+  const { timeLeft, isActive, pauseTimer, resumeTimer, sessionDuration } = usePomodoroStore();
   const { startDrag } = useWindowDrag();
 
   const closeWindow = () => {
@@ -60,6 +60,9 @@ export default function MiniWindow() {
     }
   };
 
+  const progressPercent = sessionDuration > 0 ? ((sessionDuration - timeLeft) / sessionDuration) * 100 : 0;
+  const elapsed = sessionDuration - timeLeft;
+
   return (
     <div className="mini-window-container" onPointerDown={startDrag} data-tauri-drag-region>
       <div className={`time-text mini-text ${!isActive ? 'paused' : ''}`} data-tauri-drag-region>
@@ -96,6 +99,14 @@ export default function MiniWindow() {
         >
           <X size={12} pointerEvents="none" />
         </button>
+      </div>
+
+      <div className="mini-progress-row" data-tauri-drag-region>
+        <span className="mini-progress-text">{formatTime(elapsed > 0 ? elapsed : 0)}</span>
+        <div className="mini-progress-bar-bg">
+          <div className="mini-progress-bar-fill" style={{ width: `${progressPercent}%` }} />
+        </div>
+        <span className="mini-progress-text">{formatTime(timeLeft)}</span>
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ export interface TaskCategory {
 interface PomodoroState {
   state: SessionType;
   timeLeft: number; // in seconds
+  sessionDuration: number; // in seconds
   isActive: boolean;
   startTimer: (duration: number, type: SessionType) => void;
   pauseTimer: () => void;
@@ -34,6 +35,7 @@ interface PomodoroState {
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   state: "idle",
   timeLeft: 25 * 60,
+  sessionDuration: 25 * 60,
   isActive: false,
   soundOption: "victory",
   dailyTarget: 120,
@@ -65,7 +67,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   },
 
   startTimer: (duration, type) => {
-    set({ state: type, timeLeft: duration * 60, isActive: true });
+    set({ state: type, timeLeft: duration * 60, sessionDuration: duration * 60, isActive: true });
   },
 
   pauseTimer: () => {
@@ -77,7 +79,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   },
 
   stopTimer: () => {
-    set({ state: "idle", timeLeft: 25 * 60, isActive: false });
+    set({ state: "idle", timeLeft: 25 * 60, sessionDuration: 25 * 60, isActive: false });
   },
 
   setTimeLeft: (seconds) => {
