@@ -9,7 +9,7 @@ import { useWindowDrag } from '../hooks/useWindowDrag';
 export default function MainWindow() {
     const [isSettings, setIsSettings] = useState(false);
     const [, setHovered] = useState(false);
-    const { startDrag } = useWindowDrag();
+    const { bind } = useWindowDrag();
 
     const handleMinimize = () => {
         const appWindow = getCurrentWebviewWindow();
@@ -28,11 +28,11 @@ export default function MainWindow() {
     return (
         <div
             className="glass-window main-window"
-            onPointerDown={startDrag}
+            {...bind}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
-            <div className="top-header-bar" data-tauri-drag-region></div>
+            <div className="top-header-bar"></div>
 
             <div className="corner-btn-group left">
                 <button className="corner-btn" onClick={handleCompact} title="Mini View">

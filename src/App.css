@@ -106,6 +106,14 @@ button svg, .play-pause-btn svg, .stop-btn svg {
   box-sizing: border-box;
 }
 
+/* Khi nhấn giữ (kể cả trên nút) thì toàn bộ view biến thành grabbing */
+.main-window:active,
+.main-window:active * {
+  cursor: grabbing !important;
+}
+
+
+
 /* ───── Mini window ───── */
 .mini-window-container {
   width: 100vw;
@@ -576,6 +584,7 @@ button svg, .play-pause-btn svg, .stop-btn svg {
   border-radius: 2px;
   background-color: var(--grid-base);
   min-width: 0;
+  cursor: pointer;
 }
 
 .contribution-tooltip {
