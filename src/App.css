@@ -659,13 +659,7 @@ button svg, .play-pause-btn svg, .stop-btn svg {
   background: var(--el-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  overflow-y: auto;
-  scrollbar-width: none;
   animation: fadeIn 0.2s ease-out;
-}
-
-.settings-pane::-webkit-scrollbar {
-  display: none;
 }
 
 @keyframes fadeIn {

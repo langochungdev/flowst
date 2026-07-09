@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Minimize2, Minus, X, Settings } from 'lucide-react';
+import { Minimize2, Minus, X, Settings, Home } from 'lucide-react';
 import ClockPane from './ClockPane';
 import SettingsPane from './SettingsPane';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
@@ -22,6 +22,7 @@ export default function MainWindow() {
     };
 
     const handleCompact = () => {
+        setIsSettings(false);
         invoke('toggle_mini_window').catch(console.error);
     };
 
@@ -39,8 +40,8 @@ export default function MainWindow() {
                     <Minimize2 size={14} />
                 </button>
                 <div className="corner-divider" />
-                <button className="corner-btn" onClick={() => setIsSettings(!isSettings)} title="Settings">
-                    <Settings size={14} />
+                <button className="corner-btn" onClick={() => setIsSettings(!isSettings)} title={isSettings ? "Home" : "Settings"}>
+                    {isSettings ? <Home size={14} /> : <Settings size={14} />}
                 </button>
             </div>
 
