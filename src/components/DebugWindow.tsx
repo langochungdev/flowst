@@ -32,9 +32,21 @@ export default function DebugWindow() {
     };
 
     const handleGenerateMockData = (type: 'year-random' | 'month-consistent' | 'month-random') => {
-        const { categories } = usePomodoroStore.getState();
+        let { categories } = usePomodoroStore.getState();
         const history: Record<string, { totalHours: number, breakdown: Record<string, number> }> = {};
         
+        // Add custom categories if missing
+        const extraCats = [
+            { id: "read", name: "Reading", color: "#FFD700" },
+            { id: "code", name: "Coding", color: "#FF00FF" },
+            { id: "sport", name: "Sports", color: "#00FF00" }
+        ];
+        
+        let newCats = [...categories];
+        extraCats.forEach(ec => {
+            if (!newCats.find(c => c.id === ec.id)) newCats.push(ec);
+        });
+
         const now = new Date();
         const daysToGenerate = type.startsWith('year') ? 365 : 30;
         
@@ -54,8 +66,8 @@ export default function DebugWindow() {
                 const breakdown: Record<string, number> = {};
                 let remaining = totalHours;
                 
-                categories.forEach((cat, idx) => {
-                    if (idx === categories.length - 1) {
+                newCats.forEach((cat, idx) => {
+                    if (idx === newCats.length - 1) {
                         breakdown[cat.id] = remaining;
                     } else {
                         const amount = Math.random() * remaining;
@@ -68,7 +80,15 @@ export default function DebugWindow() {
             }
         }
         
-        usePomodoroStore.setState({ history });
+        const futureDate = new Date(now.getTime() + 15 * 86400000);
+        const goal = {
+            text: type === 'month-consistent' ? "Stay Consistent!" : "Ship the MVP",
+            targetDate: futureDate.getTime(),
+            createdDate: now.getTime() - (type.startsWith('year') ? 180 : 15) * 86400000,
+            displayUnit: "days" as const
+        };
+        
+        usePomodoroStore.setState({ history, categories: newCats, goal });
     };
 
     return (
