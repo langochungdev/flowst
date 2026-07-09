@@ -18,7 +18,14 @@ export default function MainWindow() {
 
     const handleClose = () => {
         const appWindow = getCurrentWebviewWindow();
-        if (appWindow) appWindow.close();
+        if (appWindow) {
+            import('../stores/pomodoroStore').then(({ usePomodoroStore }) => {
+                if (usePomodoroStore.getState().isActive) {
+                    usePomodoroStore.getState().stopTimer();
+                }
+                appWindow.hide();
+            });
+        }
     };
 
     const handleCompact = () => {

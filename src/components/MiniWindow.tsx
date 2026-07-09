@@ -17,7 +17,15 @@ export default function MiniWindow() {
     const { bind } = useWindowDrag();
 
     const closeWindow = () => {
-        getCurrentWebviewWindow()?.close();
+        const appWindow = getCurrentWebviewWindow();
+        if (appWindow) {
+            import('../stores/pomodoroStore').then(({ usePomodoroStore }) => {
+                if (usePomodoroStore.getState().isActive) {
+                    usePomodoroStore.getState().stopTimer();
+                }
+                appWindow.hide();
+            });
+        }
     };
 
     const handleExpand = () => {

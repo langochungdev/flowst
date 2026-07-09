@@ -102,7 +102,7 @@ pub fn run() {
             
             let menu = Menu::with_items(app, &[&focus_25, &focus_50, &break_5, &break_15, &sep, &quit_i])?;
 
-            let _tray = TrayIconBuilder::new()
+            let tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
                 .show_menu_on_left_click(false)
@@ -140,6 +140,7 @@ pub fn run() {
                     if let tauri::tray::TrayIconEvent::Click {
                         button: tauri::tray::MouseButton::Left,
                         button_state: tauri::tray::MouseButtonState::Up,
+                        rect,
                         ..
                     } = event {
                         let app = tray.app_handle();
@@ -147,12 +148,46 @@ pub fn run() {
                             let _ = if window.is_visible().unwrap_or(false) {
                                 window.hide()
                             } else {
+                                if let Ok(window_size) = window.outer_size() {
+                                    let (tray_x, tray_y) = match rect.position {
+                                        tauri::Position::Physical(p) => (p.x, p.y),
+                                        tauri::Position::Logical(p) => (p.x as i32, p.y as i32),
+                                    };
+                                    let (tray_w, _tray_h) = match rect.size {
+                                        tauri::Size::Physical(s) => (s.width as i32, s.height as i32),
+                                        tauri::Size::Logical(s) => (s.width as i32, s.height as i32),
+                                    };
+
+                                    let x = tray_x - window_size.width as i32 + tray_w;
+                                    let y = tray_y - window_size.height as i32 - 10;
+                                    let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
+                                }
                                 window.show().and_then(|_| window.set_focus())
                             };
                         }
                     }
                 })
                 .build(app)?;
+
+            if let Some(window) = app.get_webview_window("main") {
+                if let Ok(Some(rect)) = tray.rect() {
+                    if let Ok(window_size) = window.outer_size() {
+                        let (tray_x, tray_y) = match rect.position {
+                            tauri::Position::Physical(p) => (p.x, p.y),
+                            tauri::Position::Logical(p) => (p.x as i32, p.y as i32),
+                        };
+                        let (tray_w, _tray_h) = match rect.size {
+                            tauri::Size::Physical(s) => (s.width as i32, s.height as i32),
+                            tauri::Size::Logical(s) => (s.width as i32, s.height as i32),
+                        };
+
+                        let x = tray_x - window_size.width as i32 + tray_w;
+                        let y = tray_y - window_size.height as i32 - 10;
+                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
+                    }
+                }
+                let _ = window.show();
+            }
 
             Ok(())
         })
