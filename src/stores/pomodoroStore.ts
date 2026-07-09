@@ -85,9 +85,12 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     const B = parseInt(breakTimeStr) || 0;
     let T = customTimeLeft; 
     
+    let totalSessionDuration = 0;
     let blocks: number[] = [];
+
     if (focusTimeStr === 'auto') {
       const T_minutes = Math.floor(T / 60);
+      totalSessionDuration = T; // Full inputted time including breaks
       if (B === 0) {
         blocks = [T];
       } else {
@@ -96,7 +99,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
         let validNs = [];
 
         for (let n = 1; n <= Math.max(1, Math.ceil(T_minutes / 15)); n++) {
-          const blockTime = (T_minutes - (n - 1) * B) / n;
+          const blockTime = T_minutes / n;
           if (blockTime >= 15 && blockTime <= 30) {
             validNs.push(n);
             const diff = Math.abs(blockTime - 25);
@@ -110,7 +113,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
         if (validNs.length === 0) {
           blocks = [T];
         } else {
-          const totalFocusSeconds = (T_minutes - (bestN - 1) * B) * 60;
+          const totalFocusSeconds = T_minutes * 60;
           const baseBlockSeconds = Math.floor(totalFocusSeconds / bestN);
           const remainderSeconds = totalFocusSeconds % bestN;
 
@@ -121,11 +124,21 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
         }
       }
     } else {
-      const blockMinutes = parseInt(focusTimeStr) || 25;
-      blocks = [blockMinutes * 60];
+      const blockSeconds = (parseInt(focusTimeStr) || 25) * 60;
+      let remainingSeconds = T;
+      
+      while (remainingSeconds > 0) {
+        if (remainingSeconds >= blockSeconds) {
+          blocks.push(blockSeconds);
+          remainingSeconds -= blockSeconds;
+        } else {
+          blocks.push(remainingSeconds);
+          remainingSeconds = 0;
+        }
+      }
+      
+      totalSessionDuration = T;
     }
-
-    const totalSessionDuration = blocks.reduce((a, b) => a + b, 0);
 
     set({ 
       state: 'focus', 
@@ -165,8 +178,8 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     if (timeLeft > 0) {
       if (state === 'focus') {
         set((s) => ({ 
-          todayTotalTime: s.todayTotalTime + multiplier / 60,
-          elapsedSessionTime: s.elapsedSessionTime + multiplier
+          elapsedSessionTime: s.elapsedSessionTime + multiplier,
+          todayTotalTime: s.todayTotalTime + multiplier / 60
         }));
       }
       set({ timeLeft: Math.max(0, timeLeft - multiplier) });
