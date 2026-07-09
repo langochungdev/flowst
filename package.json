@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:exe": "tauri build --no-bundle && (if not exist temp mkdir temp) && copy /Y src-tauri\\target\\release\\tauri-app.exe temp\\flowst.exe",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",

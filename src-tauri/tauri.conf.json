@@ -22,7 +22,6 @@
         "transparent": true,
         "resizable": false,
         "alwaysOnTop": false,
-        "skipTaskbar": true,
         "url": "index.html"
       },
       {
