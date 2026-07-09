@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Square, Trash2, Pen } from 'lucide-react';
 import ContributionGrid from './ContributionGrid';
 import { usePomodoroStore } from '../stores/pomodoroStore';
-import { useDebugStore } from '../stores/debugStore';
+import { useDebugStore, getMockedDate } from '../stores/debugStore';
 import CustomSelect from './CustomSelect';
 import WheelPicker from './WheelPicker';
 
@@ -35,14 +35,16 @@ function GoalTrackerView() {
   const [displayUnit, setDisplayUnit] = useState<"hours"|"days"|"weeks"|"months">("days");
   
   const timeMultiplier = useDebugStore((state) => state.timeMultiplier);
+  const dateOffsetDays = useDebugStore((state) => state.dateOffsetDays);
   
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(getMockedDate().getTime());
   
   useEffect(() => {
+    setNow(getMockedDate().getTime());
     if (!goal) return;
-    const interval = setInterval(() => setNow(Date.now()), 1000 / Math.max(0.1, timeMultiplier));
+    const interval = setInterval(() => setNow(getMockedDate().getTime()), 1000 / Math.max(0.1, timeMultiplier));
     return () => clearInterval(interval);
-  }, [goal, timeMultiplier]);
+  }, [goal, timeMultiplier, dateOffsetDays]);
   
   const handleOpenPopup = () => {
     if (goal) {
@@ -77,7 +79,7 @@ function GoalTrackerView() {
     setGoal({
       text: text.trim().substring(0, 19),
       targetDate: targetMs,
-      createdDate: goal && goal.targetDate === targetMs ? goal.createdDate : Date.now(),
+      createdDate: goal && goal.targetDate === targetMs ? goal.createdDate : getMockedDate().getTime(),
       displayUnit
     });
     setShowPopup(false);
@@ -111,7 +113,7 @@ function GoalTrackerView() {
       timeString = Math.round(timeRemainingMs / (1000 * 60 * 60 * 24 * 30)) + " months left";
     }
     
-    // Green (120) to Red (0)
+    // Green (120) to Red (0) based on elapsed time
     const hue = 120 - (progressPercent / 100) * 120;
     const color = `hsl(${hue}, 100%, 65%)`;
     
