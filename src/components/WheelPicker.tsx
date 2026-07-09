@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 interface WheelPickerProps {
   value: number; 
@@ -26,7 +26,8 @@ function formatEditTime(seconds: number) {
 
 export default function WheelPicker({ value, onChange, onClose }: WheelPickerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const itemHeight = 50; 
+  const itemHeight = 36; 
+  const [activeIndex, setActiveIndex] = useState(() => options.indexOf(value));
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -166,6 +167,12 @@ export default function WheelPicker({ value, onChange, onClose }: WheelPickerPro
       <div 
         className="wheel-list" 
         ref={scrollRef} 
+        onScroll={() => {
+          if (scrollRef.current) {
+            const index = Math.round(scrollRef.current.scrollTop / itemHeight);
+            setActiveIndex(index);
+          }
+        }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -173,10 +180,10 @@ export default function WheelPicker({ value, onChange, onClose }: WheelPickerPro
         style={{ userSelect: 'none', touchAction: 'none' }}
       >
         <div style={{ height: itemHeight }} />
-        {options.map(opt => (
+        {options.map((opt, i) => (
           <div 
             key={opt} 
-            className="wheel-item" 
+            className={`wheel-item ${i === activeIndex ? 'active' : ''}`} 
             style={{ height: itemHeight }}
             data-value={opt}
           >

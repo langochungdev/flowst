@@ -432,12 +432,12 @@ button svg, .play-pause-btn svg, .stop-btn svg {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  height: 150px;
+  transform: translate(-50%, calc(-50% - 8px));
+  height: 108px;
   width: 160px;
   overflow: hidden;
-  mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
   display: flex;
   flex-direction: column;
   background: var(--card-bg);
@@ -447,10 +447,9 @@ button svg, .play-pause-btn svg, .stop-btn svg {
   border: 1px solid var(--el-border);
   border-radius: 0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.20);
-  z-index: 20;
 }
 .wheel-list {
-  height: 150px;
+  height: 108px;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
@@ -469,10 +468,16 @@ button svg, .play-pause-btn svg, .stop-btn svg {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
+  font-size: 34px;
   font-weight: 500;
   color: var(--text-primary);
+  opacity: 0.45;
   user-select: none;
+  transition: all 150ms ease;
+}
+.wheel-item.active {
+  font-size: 44px;
+  opacity: 1;
 }
 .wheel-highlight {
   position: absolute;
