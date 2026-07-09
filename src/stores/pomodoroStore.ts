@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { useDebugStore } from "./debugStore";
+import { useDebugStore, getMockedDate } from "./debugStore";
 import { emit, listen } from "@tauri-apps/api/event";
 
 export type SessionType = "focus" | "break" | "idle";
@@ -44,6 +44,7 @@ interface PomodoroState {
   resumeTimer: () => void;
   stopTimer: () => void;
   tick: () => void;
+  checkRollover: () => void;
   setTimeLeft: (seconds: number) => void;
   soundOption: "victory" | "trumpet";
   setSoundOption: (option: "victory" | "trumpet") => void;
@@ -202,32 +203,51 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     set({ timeLeft: seconds });
   },
 
-  tick: () => {
-    const { isActive, timeLeft, stopTimer, state, blocks, currentBlockIndex, breakDuration, currentDate, todayTotalTime, todayCategoryBreakdown, activeCategoryId } = get();
-    if (!isActive) return;
-
-    const todayDateString = new Date().toISOString().split('T')[0];
+  checkRollover: () => {
+    const todayDateString = getMockedDate().toISOString().split('T')[0];
+    const { currentDate, todayTotalTime, todayCategoryBreakdown, history } = get();
+    
     if (todayDateString !== currentDate) {
-      // Rollover
       const archivedTotalHours = todayTotalTime / 60;
       const archivedBreakdown: Record<string, number> = {};
       for (const [cat, mins] of Object.entries(todayCategoryBreakdown || {})) {
         archivedBreakdown[cat] = mins / 60;
       }
       
-      set((s) => ({
-        history: {
-          ...(s.history || {}),
-          [currentDate]: {
-            totalHours: archivedTotalHours,
-            breakdown: archivedBreakdown
-          }
-        },
+      const newHistory = {
+        ...(history || {}),
+        [currentDate]: {
+          totalHours: archivedTotalHours,
+          breakdown: archivedBreakdown
+        }
+      };
+      
+      const targetDayHistory = newHistory[todayDateString];
+      let restoredTotalTime = 0;
+      const restoredBreakdown: Record<string, number> = {};
+      
+      if (targetDayHistory) {
+        restoredTotalTime = targetDayHistory.totalHours * 60;
+        for (const [cat, hrs] of Object.entries(targetDayHistory.breakdown || {})) {
+          restoredBreakdown[cat] = hrs * 60;
+        }
+      }
+
+      set({
+        history: newHistory,
         currentDate: todayDateString,
-        todayTotalTime: 0,
-        todayCategoryBreakdown: {}
-      }));
+        todayTotalTime: restoredTotalTime,
+        todayCategoryBreakdown: restoredBreakdown
+      });
     }
+  },
+
+  tick: () => {
+    const { isActive, timeLeft, stopTimer, state, blocks, currentBlockIndex, breakDuration, activeCategoryId, checkRollover } = get();
+    
+    checkRollover();
+    
+    if (!isActive) return;
 
     const multiplier = useDebugStore.getState().timeMultiplier;
 

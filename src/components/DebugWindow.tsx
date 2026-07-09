@@ -31,6 +31,46 @@ export default function DebugWindow() {
         });
     };
 
+    const handleGenerateMockData = (type: 'year-random' | 'month-consistent' | 'month-random') => {
+        const { categories } = usePomodoroStore.getState();
+        const history: Record<string, { totalHours: number, breakdown: Record<string, number> }> = {};
+        
+        const now = new Date();
+        const daysToGenerate = type.startsWith('year') ? 365 : 30;
+        
+        for (let i = 0; i < daysToGenerate; i++) {
+            const d = new Date(now.getTime() - i * 86400000);
+            const dateStr = d.toISOString().split('T')[0];
+            
+            if (type === 'month-consistent') {
+                history[dateStr] = {
+                    totalHours: 4,
+                    breakdown: { 'work': 4 }
+                };
+            } else {
+                // Random
+                const isExtreme = type === 'month-random';
+                const totalHours = isExtreme ? Math.random() * 12 : Math.random() * 6;
+                const breakdown: Record<string, number> = {};
+                let remaining = totalHours;
+                
+                categories.forEach((cat, idx) => {
+                    if (idx === categories.length - 1) {
+                        breakdown[cat.id] = remaining;
+                    } else {
+                        const amount = Math.random() * remaining;
+                        breakdown[cat.id] = amount;
+                        remaining -= amount;
+                    }
+                });
+                
+                history[dateStr] = { totalHours, breakdown };
+            }
+        }
+        
+        usePomodoroStore.setState({ history });
+    };
+
     return (
         <div style={{ width: '100vw', height: '100vh', background: 'var(--text-primary)', color: 'var(--el-bg)', display: 'flex', flexDirection: 'column', fontFamily: 'monospace', fontSize: '12px', padding: '16px', boxSizing: 'border-box', overflow: 'hidden' }}>
 
@@ -150,6 +190,15 @@ export default function DebugWindow() {
                                 <button onClick={() => setDateOffsetDays(dateOffsetDays - 1)} style={{ flex: 1, background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--el-bg)', cursor: 'pointer', padding: '4px' }}>-1 Day</button>
                                 <button onClick={() => setDateOffsetDays(0)} style={{ flex: 1, background: 'var(--text-secondary)', border: 'none', color: 'var(--el-bg)', cursor: 'pointer', padding: '4px' }}>Today</button>
                                 <button onClick={() => setDateOffsetDays(dateOffsetDays + 1)} style={{ flex: 1, background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--el-bg)', cursor: 'pointer', padding: '4px' }}>+1 Day</button>
+                            </div>
+                        </div>
+
+                        <span style={{ fontWeight: 'bold' }}>Mock Data Generator</span>
+                        <div style={{ border: '1px solid var(--text-secondary)', padding: '12px', borderRadius: 0, background: 'rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button onClick={() => handleGenerateMockData('year-random')} style={{ flex: 1, background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--el-bg)', cursor: 'pointer', padding: '4px', fontSize: '10px' }}>1 Year (Random)</button>
+                                <button onClick={() => handleGenerateMockData('month-consistent')} style={{ flex: 1, background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--el-bg)', cursor: 'pointer', padding: '4px', fontSize: '10px' }}>1 Month (Consistent)</button>
+                                <button onClick={() => handleGenerateMockData('month-random')} style={{ flex: 1, background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--el-bg)', cursor: 'pointer', padding: '4px', fontSize: '10px' }}>1 Month (Extreme)</button>
                             </div>
                         </div>
                     </div>

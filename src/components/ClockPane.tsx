@@ -41,8 +41,12 @@ function GoalTrackerView() {
   
   useEffect(() => {
     setNow(getMockedDate().getTime());
+    usePomodoroStore.getState().checkRollover();
     if (!goal) return;
-    const interval = setInterval(() => setNow(getMockedDate().getTime()), 1000 / Math.max(0.1, timeMultiplier));
+    const interval = setInterval(() => {
+       setNow(getMockedDate().getTime());
+       usePomodoroStore.getState().checkRollover();
+    }, 1000 / Math.max(0.1, timeMultiplier));
     return () => clearInterval(interval);
   }, [goal, timeMultiplier, dateOffsetDays]);
   
