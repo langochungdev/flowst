@@ -195,7 +195,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   },
 
   stopTimer: () => {
-    set({ state: "idle", timeLeft: 25 * 60, sessionDuration: 25 * 60, isActive: false, blocks: [], currentBlockIndex: 0 });
+    set({ state: "idle", timeLeft: 25 * 60, sessionDuration: 25 * 60, isActive: false, blocks: [], currentBlockIndex: 0, totalSessionDuration: 0, elapsedSessionTime: 0 });
   },
 
   setTimeLeft: (seconds) => {
@@ -297,7 +297,9 @@ export const swapData = (toDebug: boolean) => {
           blocks: [],
           currentBlockIndex: 0,
           timeLeft: 25 * 60,
-          sessionDuration: 25 * 60
+          sessionDuration: 25 * 60,
+          totalSessionDuration: 0,
+          elapsedSessionTime: 0
         });
       } catch (e) {}
     } else {
@@ -310,7 +312,9 @@ export const swapData = (toDebug: boolean) => {
          state: "idle",
          isActive: false,
          timeLeft: 25 * 60,
-         sessionDuration: 25 * 60
+         sessionDuration: 25 * 60,
+         totalSessionDuration: 0,
+         elapsedSessionTime: 0
       });
     }
   } else {
@@ -326,7 +330,9 @@ export const swapData = (toDebug: boolean) => {
           blocks: [],
           currentBlockIndex: 0,
           timeLeft: 25 * 60,
-          sessionDuration: 25 * 60
+          sessionDuration: 25 * 60,
+          totalSessionDuration: 0,
+          elapsedSessionTime: 0
         });
       } catch (e) {}
     }
