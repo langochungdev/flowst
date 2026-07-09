@@ -10,7 +10,7 @@ import "./App.css";
 function App() {
   const [windowLabel, setWindowLabel] = useState<string | null>(null);
   const tick = usePomodoroStore((state) => state.tick);
-  const timeMultiplier = useDebugStore((state) => state.timeMultiplier);
+  const timeMultiplier = useDebugStore((state) => state.isDebugMode ? state.timeMultiplier : 1);
 
   useEffect(() => {
     if (windowLabel === "main") {

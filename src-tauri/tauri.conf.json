@@ -59,7 +59,6 @@
         "transparent": false,
         "visible": false,
         "resizable": true,
-        "skipTaskbar": true,
         "url": "index.html"
       }
     ],

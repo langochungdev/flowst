@@ -249,7 +249,8 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     
     if (!isActive) return;
 
-    const multiplier = useDebugStore.getState().timeMultiplier;
+    const debugState = useDebugStore.getState();
+    const multiplier = debugState.isDebugMode ? debugState.timeMultiplier : 1;
 
     if (timeLeft > 0) {
       if (state === 'focus') {
