@@ -102,11 +102,13 @@ export default function MiniWindow() {
       </div>
 
       <div className="mini-progress-row" data-tauri-drag-region>
-        <span className="mini-progress-text">{formatTime(elapsed > 0 ? elapsed : 0)}</span>
+        <div className="mini-progress-times">
+          <span className="mini-progress-text">{formatTime(elapsed > 0 ? elapsed : 0)}</span>
+          <span className="mini-progress-text">{formatTime(timeLeft)}</span>
+        </div>
         <div className="mini-progress-bar-bg">
           <div className="mini-progress-bar-fill" style={{ width: `${progressPercent}%` }} />
         </div>
-        <span className="mini-progress-text">{formatTime(timeLeft)}</span>
       </div>
     </div>
   );

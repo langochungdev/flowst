@@ -151,7 +151,7 @@ export default function ClockPane() {
       </div>
 
       <div className="timer-display">
-        <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
+        <div style={{ position: 'relative', display: 'inline-block' }}>
           <div 
             className="time-text editable" 
             onClick={handleTimeClick}

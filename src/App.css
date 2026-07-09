@@ -188,25 +188,29 @@ button svg, .play-pause-btn svg, .stop-btn svg {
   left: 0;
   right: 0;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  pointer-events: none;
+}
+.mini-progress-times {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  margin-bottom: 2px;
+}
+.mini-progress-text {
   font-size: 8.5px;
   font-weight: 500;
   color: var(--text-secondary);
-  pointer-events: none;
-}
-.mini-progress-text {
-  padding: 0 3px;
   line-height: 1;
 }
 .mini-progress-bar-bg {
-  flex: 1;
+  width: 100%;
   height: 2px;
   background: var(--el-border);
-  align-self: flex-end;
 }
 .mini-progress-bar-fill {
   height: 100%;
-  background: var(--text-primary);
+  background: var(--grid-active);
   transition: width 1s linear;
 }
 
