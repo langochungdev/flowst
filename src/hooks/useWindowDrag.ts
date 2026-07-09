@@ -3,6 +3,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 
 export function useWindowDrag() {
   const isDraggingRef = useRef(false);
+  const dragOccurred = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
 
   const startDrag = (e: React.PointerEvent) => {
@@ -12,6 +13,7 @@ export function useWindowDrag() {
       return;
     }
     isDraggingRef.current = true;
+    dragOccurred.current = false;
     startPos.current = { x: e.clientX, y: e.clientY };
   };
 
@@ -22,6 +24,7 @@ export function useWindowDrag() {
     // Start dragging if moved more than 4 pixels
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
       isDraggingRef.current = false;
+      dragOccurred.current = true;
       getCurrentWindow().startDragging().catch(() => {});
     }
   };
@@ -33,12 +36,21 @@ export function useWindowDrag() {
     }
   };
 
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (dragOccurred.current) {
+      e.stopPropagation();
+      e.preventDefault();
+      dragOccurred.current = false;
+    }
+  };
+
   return { 
     startDrag,
     bind: {
       onPointerDown: startDrag,
       onPointerMove,
       onPointerUp,
+      onClickCapture,
     }
   };
 }
