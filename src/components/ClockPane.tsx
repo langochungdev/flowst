@@ -43,6 +43,8 @@ export default function ClockPane() {
     };
   }, []);
 
+  const minTimeInSeconds = focusTime === 'auto' ? 0 : (parseInt(focusTime) + parseInt(breakTime)) * 60;
+
   const handlePlayPause = () => {
     if (state === 'idle') {
       startTimer(focusTime, breakTime, timeLeft);
@@ -54,7 +56,7 @@ export default function ClockPane() {
   };
 
   const handleTimeClick = () => {
-    if (isActive) return;
+    if (state !== 'idle') return;
     if (clickTimeout.current) clearTimeout(clickTimeout.current);
     clickTimeout.current = setTimeout(() => {
       setIsEditing(true);
@@ -62,7 +64,7 @@ export default function ClockPane() {
   };
 
   const handleTimeDoubleClick = () => {
-    if (isActive) return;
+    if (state !== 'idle') return;
     if (clickTimeout.current) clearTimeout(clickTimeout.current);
     setIsEditingCustom(true);
     setIsEditing(false);
@@ -73,8 +75,11 @@ export default function ClockPane() {
       setIsEditingCustom(false);
       return;
     }
-    const val = parseInt(e.target.value);
+    let val = parseInt(e.target.value);
     if (!isNaN(val) && val > 0) {
+      if (val * 60 < minTimeInSeconds) {
+        val = minTimeInSeconds / 60;
+      }
       setTimeLeft(val * 60);
     }
     setIsEditingCustom(false);
@@ -105,8 +110,13 @@ export default function ClockPane() {
             {label: '1h30', value: '90'}
           ]}
           value={focusTime}
-          onChange={setFocusTime}
+          onChange={(val) => {
+            setFocusTime(val);
+            const newMinTime = val === 'auto' ? 0 : (parseInt(val) + parseInt(breakTime)) * 60;
+            if (timeLeft < newMinTime) setTimeLeft(newMinTime);
+          }}
           width="auto"
+          disabled={state !== 'idle'}
         />
         <CustomSelect 
           options={[
@@ -117,8 +127,13 @@ export default function ClockPane() {
             {label: '20m', value: '20'}
           ]}
           value={breakTime}
-          onChange={setBreakTime}
+          onChange={(val) => {
+            setBreakTime(val);
+            const newMinTime = focusTime === 'auto' ? 0 : (parseInt(focusTime) + parseInt(val)) * 60;
+            if (timeLeft < newMinTime) setTimeLeft(newMinTime);
+          }}
           width="auto"
+          disabled={state !== 'idle'}
         />
         <CustomSelect 
           options={[
@@ -181,9 +196,10 @@ export default function ClockPane() {
         </div>
         {isEditing && (
           <WheelPicker 
-            value={timeLeft} 
+            value={Math.max(timeLeft, minTimeInSeconds)} 
             onChange={(val) => setTimeLeft(val)} 
             onClose={() => setIsEditing(false)} 
+            minTime={minTimeInSeconds}
           />
         )}
         <div className="time-subtext">

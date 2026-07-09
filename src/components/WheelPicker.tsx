@@ -4,6 +4,7 @@ interface WheelPickerProps {
   value: number; 
   onChange: (value: number) => void;
   onClose: () => void;
+  minTime?: number;
 }
 
 const options = [
@@ -24,14 +25,15 @@ function formatEditTime(seconds: number) {
   return `${hours}h${mins}m`;
 }
 
-export default function WheelPicker({ value, onChange, onClose }: WheelPickerProps) {
+export default function WheelPicker({ value, onChange, onClose, minTime }: WheelPickerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const itemHeight = 36; 
-  const [activeIndex, setActiveIndex] = useState(() => options.indexOf(value));
+  const availableOptions = minTime ? options.filter(o => o >= minTime) : options;
+  const [activeIndex, setActiveIndex] = useState(() => availableOptions.indexOf(value));
 
   useEffect(() => {
     if (scrollRef.current) {
-      const index = options.indexOf(value);
+      const index = availableOptions.indexOf(value);
       if (index !== -1) {
         scrollRef.current.scrollTop = index * itemHeight;
       }
@@ -180,7 +182,7 @@ export default function WheelPicker({ value, onChange, onClose }: WheelPickerPro
         style={{ userSelect: 'none', touchAction: 'none' }}
       >
         <div style={{ height: itemHeight }} />
-        {options.map((opt, i) => (
+        {availableOptions.map((opt, i) => (
           <div 
             key={opt} 
             className={`wheel-item ${i === activeIndex ? 'active' : ''}`} 
