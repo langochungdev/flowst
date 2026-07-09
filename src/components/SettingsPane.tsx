@@ -300,7 +300,8 @@ export default function SettingsPane() {
                     todayCategoryBreakdown: {},
                     history: {},
                     soundOption: "victory",
-                    gridColor: "#00FBFF"
+                    gridColor: "#00FBFF",
+                    goal: null
                   });
                   setLocalTarget("120");
                   setShowClearConfirm(false);
