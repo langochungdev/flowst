@@ -150,7 +150,7 @@ export default function ClockPane() {
         />
       </div>
 
-      <div className="timer-display">
+      <div className={`timer-display ${isEditing ? 'is-editing' : ''}`}>
         <div style={{ position: 'relative', display: 'inline-block' }}>
           <div 
             className="time-text editable" 

@@ -7,8 +7,8 @@ export function useWindowDrag() {
 
   const startDrag = (e: React.PointerEvent) => {
     const target = e.target as HTMLElement;
-    // Do not drag if clicking on inputs so text can be selected
-    if (target.closest('input')) {
+    // Do not drag if clicking on inputs or wheel container
+    if (target.closest('input') || target.closest('.wheel-container') || target.closest('.wheel-list')) {
       return;
     }
     isDraggingRef.current = true;

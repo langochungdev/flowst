@@ -389,7 +389,10 @@ button svg, .play-pause-btn svg, .stop-btn svg {
   text-align: center;
   margin-bottom: 20px;
   position: relative;
-  z-index: 200;
+  z-index: 50; /* Thấp hơn select-group (100) để list hiển thị đè lên */
+}
+.timer-display.is-editing {
+  z-index: 150; /* Cao hơn select-group (100) khi mở bánh xe để bánh xe đè lên list */
 }
 
 .time-text {
