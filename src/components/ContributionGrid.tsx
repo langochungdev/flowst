@@ -24,11 +24,12 @@ export default function ContributionGrid() {
         // Actually, getMockedDate applies offset to the real Date.
         // But store's currentDate is just a string. Let's use getMockedDate so we can test the grid offset.
         const todayDOW = todayDate.getDay();
+        const currentDOW = todayDOW === 0 ? 6 : todayDOW - 1; // 0=Mon, 6=Sun
 
         return Array.from({ length: days }, (_, rowIndex) =>
             Array.from({ length: blocksPerDay }, (_, colIndex) => {
                 const weeksAgo = (blocksPerDay - 1) - colIndex;
-                const daysAgo = weeksAgo * 7 + (todayDOW - rowIndex);
+                const daysAgo = weeksAgo * 7 + (currentDOW - rowIndex);
 
                 let level = 0;
                 let totalHours = 0;
@@ -39,7 +40,7 @@ export default function ContributionGrid() {
 
                 if (daysAgo < 0) {
                     // Future day
-                    level = 0;
+                    level = -1;
                 } else if (daysAgo === 0) {
                     // Today
                     totalHours = Math.round((todayTotalTime / 60) * 10) / 10;
@@ -89,7 +90,7 @@ export default function ContributionGrid() {
     } | null>(null);
 
     const handleMouseEnter = (e: React.MouseEvent, data: CellData) => {
-        if (data.level === 0) return; // Skip empty cells
+        if (data.level <= 0) return; // Skip empty and future cells
         const rect = (e.target as HTMLElement).getBoundingClientRect();
         setHoveredCell({ data, rect });
     };
@@ -108,8 +109,9 @@ export default function ContributionGrid() {
                                 key={colIndex}
                                 className="contribution-cell"
                                 style={{
-                                    backgroundColor: cell.level === 0 ? 'var(--grid-base)' : 'var(--grid-active)',
-                                    opacity: cell.level === 0 ? 1 : [0, 0.30, 0.50, 0.72, 1.0][cell.level],
+                                    backgroundColor: cell.level <= 0 ? 'var(--grid-base)' : 'var(--grid-active)',
+                                    opacity: cell.level === -1 ? 0 : cell.level === 0 ? 1 : [0, 0.30, 0.50, 0.72, 1.0][cell.level],
+                                    pointerEvents: cell.level === -1 ? 'none' : 'auto'
                                 }}
                                 onMouseEnter={(e) => handleMouseEnter(e, cell)}
                             />
