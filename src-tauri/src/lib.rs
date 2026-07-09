@@ -1,9 +1,9 @@
 pub mod commands;
 
 use tauri::{
-    menu::{Menu, MenuItem},
+    menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::TrayIconBuilder,
-    Manager, WindowEvent,
+    Manager, WindowEvent, Emitter
 };
 use tauri_plugin_sql::{Migration, MigrationKind};
 
@@ -93,15 +93,56 @@ pub fn run() {
                 disable_rounded_corners(window);
             }
 
-            let toggle_i = MenuItem::with_id(app, "toggle", "Toggle Window", true, None::<&str>)?;
+            let focus_25 = MenuItem::with_id(app, "focus_25", "Start Focus: 25m", true, None::<&str>)?;
+            let focus_50 = MenuItem::with_id(app, "focus_50", "Start Focus: 50m", true, None::<&str>)?;
+            let break_5 = MenuItem::with_id(app, "break_5", "Start Break: 5m", true, None::<&str>)?;
+            let break_15 = MenuItem::with_id(app, "break_15", "Start Break: 15m", true, None::<&str>)?;
+            let sep = PredefinedMenuItem::separator(app)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&toggle_i, &quit_i])?;
+            
+            let menu = Menu::with_items(app, &[&focus_25, &focus_50, &break_5, &break_15, &sep, &quit_i])?;
 
             let _tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
-                .on_menu_event(|app, event| match event.id.as_ref() {
-                    "toggle" => {
+                .show_menu_on_left_click(false)
+                .on_menu_event(|app, event| {
+                    match event.id.as_ref() {
+                        "focus_25" | "focus_50" | "break_5" | "break_15" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.hide();
+                            }
+                            if let Some(window) = app.get_webview_window("mini") {
+                                let _ = window.show();
+                            }
+                            
+                            let duration = match event.id.as_ref() {
+                                "focus_25" => 25 * 60,
+                                "focus_50" => 50 * 60,
+                                "break_5" => 5 * 60,
+                                "break_15" => 15 * 60,
+                                _ => 0,
+                            };
+                            let session_type = if event.id.as_ref().starts_with("focus") { "focus" } else { "break" };
+                            
+                            let _ = app.emit("tray-preset", serde_json::json!({
+                                "type": session_type,
+                                "duration": duration
+                            }));
+                        }
+                        "quit" => {
+                            std::process::exit(0);
+                        }
+                        _ => {}
+                    }
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let tauri::tray::TrayIconEvent::Click {
+                        button: tauri::tray::MouseButton::Left,
+                        button_state: tauri::tray::MouseButtonState::Up,
+                        ..
+                    } = event {
+                        let app = tray.app_handle();
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = if window.is_visible().unwrap_or(false) {
                                 window.hide()
@@ -110,10 +151,6 @@ pub fn run() {
                             };
                         }
                     }
-                    "quit" => {
-                        std::process::exit(0);
-                    }
-                    _ => {}
                 })
                 .build(app)?;
 

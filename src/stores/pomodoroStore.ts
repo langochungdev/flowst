@@ -302,6 +302,30 @@ usePomodoroStore.subscribe((state) => {
   }
 });
 
+// Listen to system tray presets
+listen<{type: SessionType, duration: number}>('tray-preset', (event) => {
+  const store = usePomodoroStore.getState();
+  const d = event.payload.duration;
+  
+  if (event.payload.type === "focus") {
+    store.startTimer(String(d / 60), "0", d, "");
+  } else if (event.payload.type === "break") {
+    // Manually initiate a break session since startTimer is for focus
+    usePomodoroStore.setState({
+      state: "break",
+      timeLeft: d,
+      sessionDuration: d,
+      isActive: true,
+      blocks: [d],
+      currentBlockIndex: 0,
+      totalSessionDuration: d,
+      elapsedSessionTime: 0,
+      breakDuration: d,
+      activeCategoryId: null
+    });
+  }
+}).catch(console.error);
+
 export const swapData = (toDebug: boolean) => {
   const currentState = usePomodoroStore.getState();
   if (toDebug) {
