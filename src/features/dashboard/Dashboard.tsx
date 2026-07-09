@@ -17,10 +17,11 @@ export default function Dashboard() {
         width: "100%",
         maxWidth: "600px",
         marginTop: "2rem",
-        padding: "1rem",
-        background: "var(--glass-bg)",
-        borderRadius: "16px",
+        padding: "24px",
+        background: "var(--bg-glass)",
+        borderRadius: "0",
         border: "1px solid var(--glass-border)",
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)"
       }}
     >
       <h3 style={{ marginBottom: "1rem", textAlign: "center" }}>Weekly Focus Time (Mins)</h3>
@@ -30,9 +31,9 @@ export default function Dashboard() {
             <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} />
             <YAxis stroke="var(--text-muted)" fontSize={12} />
             <Tooltip
-              contentStyle={{ background: "var(--bg-card)", border: "none", borderRadius: "8px" }}
+              contentStyle={{ background: "var(--bg-card)", border: "none", borderRadius: "0" }}
             />
-            <Bar dataKey="focus" fill="var(--accent)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="focus" fill="var(--accent)" radius={[0, 0, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

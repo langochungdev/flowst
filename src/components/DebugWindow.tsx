@@ -26,15 +26,15 @@ export default function DebugWindow() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontWeight: 'bold' }}>Logs</span>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={handleCopyLogs} style={{ background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--el-bg)', cursor: 'pointer', padding: '4px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <button onClick={handleCopyLogs} style={{ background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--el-bg)', cursor: 'pointer', padding: '4px 8px', borderRadius: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Copy size={12} /> Copy
               </button>
-              <button onClick={clearLogs} style={{ background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--el-bg)', cursor: 'pointer', padding: '4px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <button onClick={clearLogs} style={{ background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--el-bg)', cursor: 'pointer', padding: '4px 8px', borderRadius: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Trash2 size={12} /> Clear
               </button>
             </div>
           </div>
-          <div style={{ flex: 1, border: '1px solid var(--text-secondary)', borderRadius: '4px', overflowY: 'auto', padding: '8px', background: 'rgba(255,255,255,0.05)' }}>
+          <div style={{ flex: 1, border: '1px solid var(--text-secondary)', borderRadius: 0, overflowY: 'auto', padding: '8px', background: 'rgba(255,255,255,0.05)' }}>
             {logs.map(log => (
               <div key={log.id} style={{ marginBottom: '4px', color: log.level === 'error' ? 'red' : 'inherit', wordBreak: 'break-all' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>[{new Date(log.timestamp).toLocaleTimeString()}]</span>{' '}
@@ -53,7 +53,7 @@ export default function DebugWindow() {
           {/* Time Simulator */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ fontWeight: 'bold' }}>Time Simulator</span>
-            <div style={{ border: '1px solid var(--text-secondary)', padding: '12px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)' }}>
+            <div style={{ border: '1px solid var(--text-secondary)', padding: '12px', borderRadius: 0, background: 'rgba(255,255,255,0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span>Speed Multiplier: <span style={{ color: '#00FBFF' }}>{timeMultiplier}x</span></span>
               </div>
@@ -73,7 +73,7 @@ export default function DebugWindow() {
             </div>
 
             <span style={{ fontWeight: 'bold' }}>Date Simulator</span>
-            <div style={{ border: '1px solid var(--text-secondary)', padding: '12px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)' }}>
+            <div style={{ border: '1px solid var(--text-secondary)', padding: '12px', borderRadius: 0, background: 'rgba(255,255,255,0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span>Day Offset: <span style={{ color: dateOffsetDays !== 0 ? '#00FBFF' : 'var(--el-bg)' }}>{dateOffsetDays > 0 ? `+${dateOffsetDays}` : dateOffsetDays}</span></span>
                 <span style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>
@@ -94,7 +94,7 @@ export default function DebugWindow() {
           {/* State Viewer */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <span style={{ fontWeight: 'bold', marginBottom: '8px' }}>State Inspector</span>
-            <pre style={{ flex: 1, margin: 0, border: '1px solid var(--text-secondary)', borderRadius: '4px', padding: '8px', overflowY: 'auto', background: 'rgba(255,255,255,0.05)', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+            <pre style={{ flex: 1, margin: 0, border: '1px solid var(--text-secondary)', borderRadius: 0, padding: '8px', overflowY: 'auto', background: 'rgba(255,255,255,0.05)', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
               {JSON.stringify(pomodoroState, (_key, value) => {
                 if (typeof value === 'function') return '[Function]';
                 return value;

@@ -37,7 +37,7 @@ export default function CustomSelect({ options, value, onChange, onEditOption, w
       <div className="select-trigger" onClick={() => setIsOpen(!isOpen)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {selectedOption.color && (
-            <div style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: selectedOption.color }} />
+            <div style={{ width: '10px', height: '10px', borderRadius: 0, backgroundColor: selectedOption.color }} />
           )}
           <span>{selectedOption.label}</span>
         </div>
@@ -57,7 +57,7 @@ export default function CustomSelect({ options, value, onChange, onEditOption, w
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
                 {option.color && (
-                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: option.color, flexShrink: 0 }} />
+                  <div style={{ width: '10px', height: '10px', borderRadius: 0, backgroundColor: option.color, flexShrink: 0 }} />
                 )}
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{option.label}</span>
               </div>

@@ -232,7 +232,7 @@ export default function ClockPane() {
 
       {showCatPopup && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'var(--dropdown-bg)', border: '1px solid var(--el-border)', padding: '16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: 'var(--el-shadow)' }}>
+          <div style={{ background: 'var(--dropdown-bg)', border: '1px solid var(--el-border)', padding: '16px', borderRadius: 0, display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: 'var(--el-shadow)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>
                 {editingCatId ? 'Edit Category' : 'New Category'}
@@ -266,11 +266,11 @@ export default function ClockPane() {
                 onChange={(e) => setNewCatName(e.target.value)} 
                 placeholder="Category Name" 
                 autoFocus
-                style={{ background: 'transparent', border: '1px solid var(--divider)', color: 'var(--text-primary)', padding: '6px 8px', borderRadius: '6px', fontSize: '13px', outline: 'none' }} 
+                style={{ background: 'transparent', border: '1px solid var(--divider)', color: 'var(--text-primary)', padding: '6px 8px', borderRadius: 0, fontSize: '13px', outline: 'none' }} 
               />
             </div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-              <button onClick={() => setShowCatPopup(false)} style={{ background: 'transparent', border: '1px solid var(--divider)', padding: '4px 10px', borderRadius: '6px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+              <button onClick={() => setShowCatPopup(false)} style={{ background: 'transparent', border: '1px solid var(--divider)', padding: '4px 10px', borderRadius: 0, color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
               <button onClick={() => {
                 if (newCatName.trim()) {
                   if (editingCatId) {
@@ -282,7 +282,7 @@ export default function ClockPane() {
                   }
                   setShowCatPopup(false);
                 }
-              }} style={{ background: 'var(--text-primary)', border: 'none', padding: '4px 10px', borderRadius: '6px', color: 'var(--el-bg)', cursor: 'pointer', fontSize: '12px' }}>Save</button>
+              }} style={{ background: 'var(--text-primary)', border: 'none', padding: '4px 10px', borderRadius: 0, color: 'var(--el-bg)', cursor: 'pointer', fontSize: '12px' }}>Save</button>
             </div>
           </div>
         </div>

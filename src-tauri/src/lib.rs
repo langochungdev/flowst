@@ -3,16 +3,43 @@ pub mod commands;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
-    Manager,
-    WindowEvent,
+    Manager, WindowEvent,
 };
 use tauri_plugin_sql::{Migration, MigrationKind};
 
+#[cfg(target_os = "windows")]
+fn disable_rounded_corners(window: &tauri::WebviewWindow) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE};
+
+    if let Ok(hwnd) = window.hwnd() {
+        let hwnd = HWND(hwnd.0 as _);
+        // DWMWCP_DONOTROUND is 1
+        let pref: i32 = 1;
+        unsafe {
+            let _ = DwmSetWindowAttribute(
+                hwnd,
+                DWMWA_WINDOW_CORNER_PREFERENCE,
+                &pref as *const _ as *const core::ffi::c_void,
+                std::mem::size_of_val(&pref) as u32,
+            );
+        }
+    }
+}
+
 fn clamp_window_to_monitor(window: &tauri::Window) {
-    let Ok(pos) = window.outer_position() else { return };
-    let Ok(outer) = window.outer_size() else { return };
-    let Ok(inner) = window.inner_size() else { return };
-    let Some(monitor) = window.current_monitor().ok().flatten() else { return };
+    let Ok(pos) = window.outer_position() else {
+        return;
+    };
+    let Ok(outer) = window.outer_size() else {
+        return;
+    };
+    let Ok(inner) = window.inner_size() else {
+        return;
+    };
+    let Some(monitor) = window.current_monitor().ok().flatten() else {
+        return;
+    };
 
     // On Windows, transparent borderless windows have an invisible DWM border
     // Left/right shadow is split evenly. Top has NO shadow. Bottom gets all vertical shadow.
@@ -36,14 +63,12 @@ fn clamp_window_to_monitor(window: &tauri::Window) {
     }
 }
 
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![
-        Migration {
-            version: 1,
-            description: "create_sessions_table",
-            sql: "CREATE TABLE IF NOT EXISTS sessions (
+    let migrations = vec![Migration {
+        version: 1,
+        description: "create_sessions_table",
+        sql: "CREATE TABLE IF NOT EXISTS sessions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 type TEXT NOT NULL,
                 start_time INTEGER NOT NULL,
@@ -51,15 +76,23 @@ pub fn run() {
                 duration_actual INTEGER,
                 completed BOOLEAN NOT NULL DEFAULT 0
             );",
-            kind: MigrationKind::Up,
-        }
-    ];
+        kind: MigrationKind::Up,
+    }];
 
     tauri::Builder::default()
         .plugin(tauri_plugin_log::Builder::new().build())
-        .plugin(tauri_plugin_sql::Builder::default().add_migrations("sqlite:flowst.db", migrations).build())
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations("sqlite:flowst.db", migrations)
+                .build(),
+        )
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            #[cfg(target_os = "windows")]
+            for window in app.webview_windows().values() {
+                disable_rounded_corners(window);
+            }
+
             let toggle_i = MenuItem::with_id(app, "toggle", "Toggle Window", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&toggle_i, &quit_i])?;
