@@ -3,136 +3,153 @@ import { useDebugStore, getMockedDate } from '../stores/debugStore';
 import { usePomodoroStore } from '../stores/pomodoroStore';
 
 type CellData = {
-  level: number;
-  date: Date;
-  totalHours: number;
-  breakdown: { name: string; hours: number }[];
+    level: number;
+    date: Date;
+    totalHours: number;
+    breakdown: { name: string; hours: number }[];
 };
 
 export default function ContributionGrid() {
-  const days = 7;
-  const blocksPerDay = 30;
-  const dateOffsetDays = useDebugStore((state) => state.dateOffsetDays);
-  const todayTotalTime = usePomodoroStore(state => state.todayTotalTime);
+    const days = 7;
+    const blocksPerDay = 30;
+    const dateOffsetDays = useDebugStore((state) => state.dateOffsetDays);
+    const todayTotalTime = usePomodoroStore(state => state.todayTotalTime);
+    const todayCategoryBreakdown = usePomodoroStore(state => state.todayCategoryBreakdown);
+    const history = usePomodoroStore(state => state.history);
+    const categories = usePomodoroStore(state => state.categories);
 
-  // Generate stable mock data on mount
-  const grid = useMemo(() => {
-    const todayDate = getMockedDate();
-    const todayDOW = todayDate.getDay();
+    // Generate stable mock data on mount
+    const grid = useMemo(() => {
+        const todayDate = getMockedDate(); // we still use this if dateOffsetDays is used for testing, but let's base it on currentDateStr?
+        // Actually, getMockedDate applies offset to the real Date.
+        // But store's currentDate is just a string. Let's use getMockedDate so we can test the grid offset.
+        const todayDOW = todayDate.getDay();
 
-    return Array.from({ length: days }, (_, rowIndex) =>
-      Array.from({ length: blocksPerDay }, (_, colIndex) => {
-        const weeksAgo = (blocksPerDay - 1) - colIndex;
-        const daysAgo = weeksAgo * 7 + (todayDOW - rowIndex);
-        
-        let level = 0;
-        let totalHours = 0;
-        let breakdown: { name: string; hours: number }[] = [];
-        
-        const date = new Date(todayDate);
-        date.setDate(date.getDate() - daysAgo);
+        return Array.from({ length: days }, (_, rowIndex) =>
+            Array.from({ length: blocksPerDay }, (_, colIndex) => {
+                const weeksAgo = (blocksPerDay - 1) - colIndex;
+                const daysAgo = weeksAgo * 7 + (todayDOW - rowIndex);
 
-        if (daysAgo < 0) {
-          // Future day
-          level = 0;
-        } else if (daysAgo === 0) {
-          // Today
-          totalHours = Math.round((todayTotalTime / 60) * 10) / 10;
-          if (totalHours <= 0) level = 0;
-          else if (totalHours <= 1) level = 1;
-          else if (totalHours <= 3) level = 2;
-          else if (totalHours <= 5) level = 3;
-          else level = 4;
-          
-          if (totalHours > 0) {
-            breakdown.push({ name: 'Session', hours: totalHours });
-          }
-        } else {
-          // Past days mock
-          const seed = date.getFullYear() * 10000 + (date.getMonth()+1) * 100 + date.getDate();
-          const rand = Math.abs(Math.sin(seed));
-          level = rand < 0.45 ? 0 : rand < 0.62 ? 1 : rand < 0.78 ? 2 : rand < 0.91 ? 3 : 4;
-          if (level > 0) {
-            totalHours = Math.floor(rand * 4) + level;
-            const codeHours = Math.floor(totalHours * 0.6);
-            const readHours = totalHours - codeHours;
-            if (codeHours > 0) breakdown.push({ name: 'Code', hours: codeHours });
-            if (readHours > 0) breakdown.push({ name: 'Read', hours: readHours });
-          }
-        }
+                let level = 0;
+                let totalHours = 0;
+                let breakdown: { name: string; hours: number }[] = [];
 
-        return { level, date, totalHours, breakdown };
-      })
-    );
-  }, [dateOffsetDays, todayTotalTime]);
+                const date = new Date(todayDate);
+                date.setDate(date.getDate() - daysAgo);
 
-  const [hoveredCell, setHoveredCell] = useState<{
-    data: CellData;
-    rect: DOMRect;
-  } | null>(null);
+                if (daysAgo < 0) {
+                    // Future day
+                    level = 0;
+                } else if (daysAgo === 0) {
+                    // Today
+                    totalHours = Math.round((todayTotalTime / 60) * 10) / 10;
+                    if (totalHours <= 0) level = 0;
+                    else if (totalHours <= 1) level = 1;
+                    else if (totalHours <= 3) level = 2;
+                    else if (totalHours <= 5) level = 3;
+                    else level = 4;
 
-  const handleMouseEnter = (e: React.MouseEvent, data: CellData) => {
-    if (data.level === 0) return; // Skip empty cells
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    setHoveredCell({ data, rect });
-  };
+                    for (const [catId, mins] of Object.entries(todayCategoryBreakdown)) {
+                        const cat = categories.find(c => c.id === catId);
+                        if (cat && mins > 0) {
+                            breakdown.push({ name: cat.name, hours: Math.round((mins / 60) * 10) / 10 });
+                        }
+                    }
+                } else {
+                    // Past days real history
+                    const dateString = date.toISOString().split('T')[0];
+                    const historicalData = history[dateString];
+                    if (historicalData && historicalData.totalHours > 0) {
+                        totalHours = Math.round(historicalData.totalHours * 10) / 10;
+                        if (totalHours <= 0) level = 0;
+                        else if (totalHours <= 1) level = 1;
+                        else if (totalHours <= 3) level = 2;
+                        else if (totalHours <= 5) level = 3;
+                        else level = 4;
 
-  const handleMouseLeave = () => {
-    setHoveredCell(null);
-  };
+                        for (const [catId, hours] of Object.entries(historicalData.breakdown || {})) {
+                            const cat = categories.find(c => c.id === catId);
+                            if (cat && hours > 0) {
+                                breakdown.push({ name: cat.name, hours: Math.round(hours * 10) / 10 });
+                            }
+                        }
+                    } else {
+                        level = 0;
+                    }
+                }
 
-  return (
-    <>
-      <div className="contribution-grid" onMouseLeave={handleMouseLeave}>
-        {grid.map((row, rowIndex) => (
-          <div key={rowIndex} className="contribution-row">
-            {row.map((cell, colIndex) => (
-              <div
-                key={colIndex}
-                className="contribution-cell"
-                style={{
-                  backgroundColor: cell.level === 0 ? 'var(--grid-base)' : 'var(--grid-active)',
-                  opacity: cell.level === 0 ? 1 : [0, 0.30, 0.50, 0.72, 1.0][cell.level],
-                }}
-                onMouseEnter={(e) => handleMouseEnter(e, cell)}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {hoveredCell && (() => {
-        const tooltipWidth = 140; // Approximate width based on min-width 120 + padding
-        const center = hoveredCell.rect.left + hoveredCell.rect.width / 2;
-        // Clamp the left position to keep tooltip within the window's 300px width
-        const left = Math.max(10, Math.min(center - tooltipWidth / 2, window.innerWidth - tooltipWidth - 10));
-
-        return (
-          <div 
-            className="contribution-tooltip"
-            style={{
-              position: 'fixed',
-              left: left,
-              top: hoveredCell.rect.top - 8,
-            }}
-          >
-          <div className="tooltip-date">
-            {`${hoveredCell.data.date.getDate()}/${hoveredCell.data.date.getMonth() + 1}/${hoveredCell.data.date.getFullYear() % 100}`}
-          </div>
-          <div className="tooltip-total">{hoveredCell.data.totalHours}h</div>
-          {hoveredCell.data.breakdown.length > 0 && (
-            <div className="tooltip-breakdown">
-              {hoveredCell.data.breakdown.map(b => (
-                <div key={b.name} className="tooltip-b-item">
-                  <span className="tooltip-b-hours">{b.hours}h</span>
-                  <span className="tooltip-b-name">{b.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          </div>
+                return { level, date, totalHours, breakdown };
+            })
         );
-      })()}
-    </>
-  );
+    }, [dateOffsetDays, todayTotalTime, todayCategoryBreakdown, history, categories]);
+
+    const [hoveredCell, setHoveredCell] = useState<{
+        data: CellData;
+        rect: DOMRect;
+    } | null>(null);
+
+    const handleMouseEnter = (e: React.MouseEvent, data: CellData) => {
+        if (data.level === 0) return; // Skip empty cells
+        const rect = (e.target as HTMLElement).getBoundingClientRect();
+        setHoveredCell({ data, rect });
+    };
+
+    const handleMouseLeave = () => {
+        setHoveredCell(null);
+    };
+
+    return (
+        <>
+            <div className="contribution-grid" onMouseLeave={handleMouseLeave}>
+                {grid.map((row, rowIndex) => (
+                    <div key={rowIndex} className="contribution-row">
+                        {row.map((cell, colIndex) => (
+                            <div
+                                key={colIndex}
+                                className="contribution-cell"
+                                style={{
+                                    backgroundColor: cell.level === 0 ? 'var(--grid-base)' : 'var(--grid-active)',
+                                    opacity: cell.level === 0 ? 1 : [0, 0.30, 0.50, 0.72, 1.0][cell.level],
+                                }}
+                                onMouseEnter={(e) => handleMouseEnter(e, cell)}
+                            />
+                        ))}
+                    </div>
+                ))}
+            </div>
+
+            {hoveredCell && (() => {
+                const tooltipWidth = 140; // Approximate width based on min-width 120 + padding
+                const center = hoveredCell.rect.left + hoveredCell.rect.width / 2;
+                // Clamp the left position to keep tooltip within the window's 300px width
+                const left = Math.max(10, Math.min(center - tooltipWidth / 2, window.innerWidth - tooltipWidth - 10));
+
+                return (
+                    <div
+                        className="contribution-tooltip"
+                        style={{
+                            position: 'fixed',
+                            left: left,
+                            top: hoveredCell.rect.top - 8,
+                        }}
+                    >
+                        <div className="tooltip-date">
+                            {`${hoveredCell.data.date.getDate()}/${hoveredCell.data.date.getMonth() + 1}/${hoveredCell.data.date.getFullYear() % 100}`}
+                        </div>
+                        <div className="tooltip-total">{hoveredCell.data.totalHours}h</div>
+                        {hoveredCell.data.breakdown.length > 0 && (
+                            <div className="tooltip-breakdown">
+                                {hoveredCell.data.breakdown.map(b => (
+                                    <div key={b.name} className="tooltip-b-item">
+                                        <span className="tooltip-b-hours">{b.hours}h</span>
+                                        <span className="tooltip-b-name">{b.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
+        </>
+    );
 }

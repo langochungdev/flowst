@@ -9,6 +9,8 @@ export default function SettingsPane() {
   const setDailyTarget = usePomodoroStore((state) => state.setDailyTarget);
   const categories = usePomodoroStore((state) => state.categories);
   const todayTotalTime = usePomodoroStore((state) => state.todayTotalTime);
+  const todayCategoryBreakdown = usePomodoroStore((state) => state.todayCategoryBreakdown);
+  const history = usePomodoroStore((state) => state.history);
 
   const [localTarget, setLocalTarget] = useState(dailyTarget.toString());
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -214,6 +216,8 @@ export default function SettingsPane() {
                     dailyTarget: data.dailyTarget || dailyTarget,
                     soundOption: data.soundOption || soundOption,
                     todayTotalTime: data.todayTotalTime !== undefined ? data.todayTotalTime : todayTotalTime,
+                    todayCategoryBreakdown: data.todayCategoryBreakdown || todayCategoryBreakdown,
+                    history: data.history || history,
                   });
                   setLocalTarget((data.dailyTarget || dailyTarget).toString());
                   alert("Data imported successfully!");
@@ -228,7 +232,7 @@ export default function SettingsPane() {
           <button 
             className="action-btn-outline"
             onClick={() => {
-              const data = { categories, dailyTarget, soundOption, todayTotalTime };
+              const data = { categories, dailyTarget, soundOption, todayTotalTime, todayCategoryBreakdown, history };
               const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
@@ -280,6 +284,8 @@ export default function SettingsPane() {
                     ],
                     dailyTarget: 120,
                     todayTotalTime: 0,
+                    todayCategoryBreakdown: {},
+                    history: {},
                     soundOption: "victory"
                   });
                   setLocalTarget("120");

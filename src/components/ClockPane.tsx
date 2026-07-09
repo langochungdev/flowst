@@ -47,7 +47,7 @@ export default function ClockPane() {
 
   const handlePlayPause = () => {
     if (state === 'idle') {
-      startTimer(focusTime, breakTime, timeLeft);
+      startTimer(focusTime, breakTime, timeLeft, taskCategory);
     } else if (isActive) {
       pauseTimer();
     } else {

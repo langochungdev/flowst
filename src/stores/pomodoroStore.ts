@@ -10,6 +10,11 @@ export interface TaskCategory {
   color: string;
 }
 
+export interface HistoryDay {
+  totalHours: number;
+  breakdown: Record<string, number>;
+}
+
 interface PomodoroState {
   state: SessionType;
   timeLeft: number; // in seconds
@@ -22,7 +27,12 @@ interface PomodoroState {
   elapsedSessionTime: number;
   breakDuration: number;
 
-  startTimer: (focusTimeStr: string, breakTimeStr: string, customTimeLeft: number) => void;
+  currentDate: string;
+  activeCategoryId: string | null;
+  todayCategoryBreakdown: Record<string, number>; // in minutes
+  history: Record<string, HistoryDay>;
+
+  startTimer: (focusTimeStr: string, breakTimeStr: string, customTimeLeft: number, categoryId: string) => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
   stopTimer: () => void;
@@ -52,9 +62,14 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   elapsedSessionTime: 0,
   breakDuration: 0,
 
+  currentDate: new Date().toISOString().split('T')[0],
+  activeCategoryId: null,
+  todayCategoryBreakdown: {},
+  history: {},
+
   soundOption: "victory",
   dailyTarget: 120,
-  todayTotalTime: 60, // MOCKED at 50% for preview
+  todayTotalTime: 0, 
   categories: [
     { id: "study", name: "Study", color: "#808080" },
     { id: "work", name: "Work", color: "#00FBFF" }
@@ -81,7 +96,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     audio.play().catch(e => console.error("Error playing sound:", e));
   },
 
-  startTimer: (focusTimeStr, breakTimeStr, customTimeLeft) => {
+  startTimer: (focusTimeStr, breakTimeStr, customTimeLeft, categoryId) => {
     const B = parseInt(breakTimeStr) || 0;
     let T = customTimeLeft; 
     
@@ -149,6 +164,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
       breakDuration: B * 60,
       totalSessionDuration,
       elapsedSessionTime: 0,
+      activeCategoryId: categoryId,
       isActive: true 
     });
   },
@@ -170,19 +186,50 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   },
 
   tick: () => {
-    const { isActive, timeLeft, stopTimer, state, blocks, currentBlockIndex, breakDuration } = get();
+    const { isActive, timeLeft, stopTimer, state, blocks, currentBlockIndex, breakDuration, currentDate, todayTotalTime, todayCategoryBreakdown, activeCategoryId } = get();
     if (!isActive) return;
+
+    const todayDateString = new Date().toISOString().split('T')[0];
+    if (todayDateString !== currentDate) {
+      // Rollover
+      const archivedTotalHours = todayTotalTime / 60;
+      const archivedBreakdown: Record<string, number> = {};
+      for (const [cat, mins] of Object.entries(todayCategoryBreakdown)) {
+        archivedBreakdown[cat] = mins / 60;
+      }
+      
+      set((s) => ({
+        history: {
+          ...s.history,
+          [currentDate]: {
+            totalHours: archivedTotalHours,
+            breakdown: archivedBreakdown
+          }
+        },
+        currentDate: todayDateString,
+        todayTotalTime: 0,
+        todayCategoryBreakdown: {}
+      }));
+    }
 
     const multiplier = useDebugStore.getState().timeMultiplier;
 
     if (timeLeft > 0) {
       if (state === 'focus') {
-        set((s) => ({ 
-          elapsedSessionTime: s.elapsedSessionTime + multiplier,
-          todayTotalTime: s.todayTotalTime + multiplier / 60
-        }));
+        const addedMinutes = multiplier / 60;
+        set((s) => {
+          const breakdown = { ...s.todayCategoryBreakdown };
+          if (activeCategoryId) {
+            breakdown[activeCategoryId] = (breakdown[activeCategoryId] || 0) + addedMinutes;
+          }
+          return {
+            elapsedSessionTime: s.elapsedSessionTime + multiplier,
+            todayTotalTime: s.todayTotalTime + addedMinutes,
+            todayCategoryBreakdown: breakdown
+          };
+        });
       }
-      set({ timeLeft: Math.max(0, timeLeft - multiplier) });
+      set((s) => ({ timeLeft: Math.max(0, s.timeLeft - multiplier) }));
     } else {
       get().playSound();
       
