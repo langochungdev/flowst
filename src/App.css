@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=VT323&display=swap');
 
 /* ─────────────────────────────────────────────
    Design System: Frosted-glass floating card
@@ -112,7 +112,12 @@ button svg, .play-pause-btn svg, .stop-btn svg {
   cursor: grabbing !important;
 }
 
-
+.clock-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+}
 
 /* ───── Mini window ───── */
 .mini-window-container {
@@ -218,8 +223,104 @@ button svg, .play-pause-btn svg, .stop-btn svg {
 }
 .mini-progress-bar-fill {
   height: 100%;
-  background: var(--grid-active);
-  transition: width 1s linear;
+  background: var(--grid-base);
+}
+
+/* ───── Goal Tracker ───── */
+.goal-tracker-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto;
+  margin-bottom: auto;
+  min-height: 40px;
+  transform: translateY(-16px);
+  width: 100%;
+}
+
+.goal-empty-state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 12px;
+  border: 1px dashed var(--divider);
+  transition: all 0.2s;
+}
+
+.goal-empty-state:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.goal-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 6px;
+  position: relative;
+  box-sizing: border-box;
+}
+.goal-display:hover {
+  background: var(--el-bg-hover);
+}
+
+.goal-countdown {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 1s linear;
+}
+
+.goal-text-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.goal-text {
+  font-family: 'VT323', monospace;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 500;
+  padding-right: 12px;
+  padding-left: 4px;
+  background: linear-gradient(to right, var(--active-color) var(--progress), var(--text-secondary) var(--progress));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  transition: all 1s linear;
+  display: inline-block;
+}
+
+.goal-edit-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.goal-display:hover .goal-edit-btn {
+  opacity: 1;
+}
+
+.goal-edit-btn:hover {
+  color: var(--text-primary);
 }
 
 .corner-btn-group {

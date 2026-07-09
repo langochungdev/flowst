@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Square, Trash2 } from 'lucide-react';
+import { Play, Pause, Square, Trash2, Pen } from 'lucide-react';
 import ContributionGrid from './ContributionGrid';
 import { usePomodoroStore } from '../stores/pomodoroStore';
 import CustomSelect from './CustomSelect';
@@ -20,6 +20,193 @@ function formatTotalTime(minutes: number) {
   const mins = m % 60;
   if (mins === 0) return `${hrs}h`;
   return `${hrs}h${mins}m`;
+}
+
+function GoalTrackerView() {
+  const goal = usePomodoroStore(state => state.goal);
+  const setGoal = usePomodoroStore(state => state.setGoal);
+  
+  const [showPopup, setShowPopup] = useState(false);
+  const [text, setText] = useState("");
+  const [day, setDay] = useState("");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
+  const [displayUnit, setDisplayUnit] = useState<"hours"|"days"|"weeks"|"months">("days");
+  
+  const [now, setNow] = useState(Date.now());
+  
+  useEffect(() => {
+    if (!goal) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [goal]);
+  
+  const handleOpenPopup = () => {
+    if (goal) {
+      setText(goal.text);
+      const d = new Date(goal.targetDate);
+      setDay(d.getDate().toString().padStart(2, '0'));
+      setMonth((d.getMonth() + 1).toString().padStart(2, '0'));
+      setYear((d.getFullYear() % 100).toString().padStart(2, '0'));
+      setDisplayUnit(goal.displayUnit);
+    } else {
+      setText("");
+      setDay("");
+      setMonth("");
+      setYear("");
+      setDisplayUnit("days");
+    }
+    setShowPopup(true);
+  };
+  
+  const handleSave = () => {
+    if (!text.trim() || !day || !month || !year) return;
+    const dd = parseInt(day);
+    const mm = parseInt(month);
+    const yy = parseInt(year);
+    if (isNaN(dd) || isNaN(mm) || isNaN(yy)) return;
+    
+    // Set to end of the selected day
+    const targetDateObj = new Date(2000 + yy, mm - 1, dd, 23, 59, 59);
+    const targetMs = targetDateObj.getTime();
+    if (isNaN(targetMs)) return;
+    
+    setGoal({
+      text: text.trim().substring(0, 19),
+      targetDate: targetMs,
+      createdDate: goal && goal.targetDate === targetMs ? goal.createdDate : Date.now(),
+      displayUnit
+    });
+    setShowPopup(false);
+  };
+
+  const renderGoalDisplay = () => {
+    if (!goal) {
+      return (
+        <div className="goal-empty-state" onClick={handleOpenPopup}>
+           <Pen size={12} /> <span>Set a goal or deadline</span>
+        </div>
+      );
+    }
+    
+    let timeRemainingMs = goal.targetDate - now;
+    if (timeRemainingMs < 0) timeRemainingMs = 0;
+    
+    const totalDuration = goal.targetDate - goal.createdDate;
+    const elapsed = now - goal.createdDate;
+    let progressPercent = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 100;
+    progressPercent = Math.max(0, Math.min(100, progressPercent));
+    
+    let timeString = "";
+    if (goal.displayUnit === "hours") {
+      timeString = Math.round(timeRemainingMs / (1000 * 60 * 60)) + " hours left";
+    } else if (goal.displayUnit === "days") {
+      timeString = Math.round(timeRemainingMs / (1000 * 60 * 60 * 24)) + " days left";
+    } else if (goal.displayUnit === "weeks") {
+      timeString = Math.round(timeRemainingMs / (1000 * 60 * 60 * 24 * 7)) + " weeks left";
+    } else {
+      timeString = Math.round(timeRemainingMs / (1000 * 60 * 60 * 24 * 30)) + " months left";
+    }
+    
+    // Green (120) to Red (0)
+    const hue = 120 - (progressPercent / 100) * 120;
+    const color = `hsl(${hue}, 100%, 65%)`;
+    
+    return (
+      <div className="goal-display" onClick={handleOpenPopup}>
+         <div className="goal-countdown" style={{ color }}>{timeString}</div>
+         <div className="goal-text-wrapper">
+           <div className="goal-text" style={{ 
+              '--progress': `${progressPercent}%`,
+              '--active-color': color 
+           } as React.CSSProperties}>
+             {goal.text}
+           </div>
+         </div>
+         <button className="goal-edit-btn" onClick={(e) => { e.stopPropagation(); handleOpenPopup(); }}>
+           <Pen size={12} />
+         </button>
+      </div>
+    );
+  };
+  
+  return (
+    <>
+      <div className="goal-tracker-container">
+        {renderGoalDisplay()}
+      </div>
+      
+      {showPopup && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 150 }}>
+          <div style={{ background: 'var(--dropdown-bg)', border: '1px solid var(--el-border)', padding: '16px', borderRadius: 0, display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: 'var(--el-shadow)', width: '220px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
+              Goal Tracker
+              {goal && (
+                 <button 
+                   onClick={() => { setGoal(null); setShowPopup(false); }}
+                   style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}
+                 >
+                   <Trash2 size={14} />
+                 </button>
+              )}
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <input 
+                type="text" 
+                value={text} 
+                onChange={(e) => setText(e.target.value)} 
+                placeholder="What's your goal?" 
+                maxLength={19}
+                style={{ background: 'transparent', border: '1px solid var(--divider)', color: 'var(--text-primary)', padding: '6px 8px', borderRadius: 0, fontSize: '12px', outline: 'none', width: '100%', boxSizing: 'border-box' }} 
+              />
+              
+              <div style={{ display: 'flex', gap: '6px', width: '100%', boxSizing: 'border-box' }}>
+                <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
+                  <input 
+                    type="text" 
+                    value={day} 
+                    onChange={(e) => setDay(e.target.value.replace(/[^0-9]/g, '').substring(0, 2))}
+                    placeholder="DD"
+                    style={{ background: 'transparent', border: '1px solid var(--divider)', color: 'var(--text-primary)', padding: '4px 0', borderRadius: 0, fontSize: '11px', outline: 'none', flex: 1, boxSizing: 'border-box', textAlign: 'center', width: '100%' }}
+                  />
+                  <input 
+                    type="text" 
+                    value={month} 
+                    onChange={(e) => setMonth(e.target.value.replace(/[^0-9]/g, '').substring(0, 2))}
+                    placeholder="MM"
+                    style={{ background: 'transparent', border: '1px solid var(--divider)', color: 'var(--text-primary)', padding: '4px 0', borderRadius: 0, fontSize: '11px', outline: 'none', flex: 1, boxSizing: 'border-box', textAlign: 'center', width: '100%' }}
+                  />
+                  <input 
+                    type="text" 
+                    value={year} 
+                    onChange={(e) => setYear(e.target.value.replace(/[^0-9]/g, '').substring(0, 2))}
+                    placeholder="YY"
+                    style={{ background: 'transparent', border: '1px solid var(--divider)', color: 'var(--text-primary)', padding: '4px 0', borderRadius: 0, fontSize: '11px', outline: 'none', flex: 1, boxSizing: 'border-box', textAlign: 'center', width: '100%' }}
+                  />
+                </div>
+                <select 
+                  value={displayUnit} 
+                  onChange={(e) => setDisplayUnit(e.target.value as any)}
+                  style={{ background: 'var(--el-bg)', border: '1px solid var(--divider)', color: 'var(--text-primary)', padding: '4px', borderRadius: 0, fontSize: '11px', outline: 'none', cursor: 'pointer', flex: 1 }}
+                >
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
+                  <option value="weeks">Weeks</option>
+                  <option value="months">Months</option>
+                </select>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
+              <button onClick={() => setShowPopup(false)} style={{ background: 'transparent', border: '1px solid var(--divider)', padding: '4px 10px', borderRadius: 0, color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+              <button onClick={handleSave} style={{ background: 'var(--text-primary)', border: 'none', padding: '4px 10px', borderRadius: 0, color: 'var(--el-bg)', cursor: 'pointer', fontSize: '12px' }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default function ClockPane() {
@@ -222,6 +409,8 @@ export default function ClockPane() {
           )}
         </div>
       </div>
+
+      <GoalTrackerView />
 
       <div style={{ position: 'relative', marginTop: 'auto' }}>
         <div style={{ position: 'absolute', bottom: '100%', left: '-24px', right: '-24px', paddingBottom: '12px' }}>

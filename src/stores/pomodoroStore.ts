@@ -15,6 +15,13 @@ export interface HistoryDay {
   breakdown: Record<string, number>;
 }
 
+export interface GoalTracker {
+  text: string;
+  targetDate: number; // timestamp
+  createdDate: number; // timestamp
+  displayUnit: "hours" | "days" | "weeks" | "months";
+}
+
 interface PomodoroState {
   state: SessionType;
   timeLeft: number; // in seconds
@@ -50,6 +57,8 @@ interface PomodoroState {
   todayTotalTime: number; // in minutes
   gridColor: string;
   setGridColor: (color: string) => void;
+  goal: GoalTracker | null;
+  setGoal: (goal: GoalTracker | null) => void;
 }
 
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
@@ -73,6 +82,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   dailyTarget: 120,
   todayTotalTime: 0, 
   gridColor: "#00FBFF",
+  goal: null,
   categories: [
     { id: "study", name: "Study", color: "#808080" },
     { id: "work", name: "Work", color: "#00FBFF" }
@@ -91,6 +101,8 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   setDailyTarget: (minutes) => set({ dailyTarget: minutes }),
   
   setGridColor: (color) => set({ gridColor: color }),
+
+  setGoal: (goal) => set({ goal }),
 
   setSoundOption: (option) => set({ soundOption: option }),
 
