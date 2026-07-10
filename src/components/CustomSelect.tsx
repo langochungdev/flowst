@@ -48,17 +48,9 @@ export default function CustomSelect({
     >
       <div className="select-trigger" onClick={() => !disabled && setIsOpen(!isOpen)}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          {selectedOption.color && (
-            <div
-              style={{
-                width: "10px",
-                height: "10px",
-                borderRadius: 0,
-                backgroundColor: selectedOption.color,
-              }}
-            />
-          )}
-          <span>{selectedOption.label}</span>
+          <span style={{ color: selectedOption.color || "inherit" }}>
+            {selectedOption.label}
+          </span>
         </div>
         <ChevronDown size={14} />
       </div>
@@ -77,19 +69,13 @@ export default function CustomSelect({
               <div
                 style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}
               >
-                {option.color && (
-                  <div
-                    style={{
-                      width: "10px",
-                      height: "10px",
-                      borderRadius: 0,
-                      backgroundColor: option.color,
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
                 <span
-                  style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    color: option.color || "inherit",
+                  }}
                 >
                   {option.label}
                 </span>

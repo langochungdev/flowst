@@ -28,6 +28,13 @@ function App() {
         debugState.setDebugMode(false);
       }
     }
+
+    import("@tauri-apps/api/window").then(({ getCurrentWindow, Effect }) => {
+      const win = getCurrentWindow();
+      if (windowLabel === "main" || windowLabel === "mini" || windowLabel === "settings") {
+        win.setEffects({ effects: [Effect.Acrylic, Effect.Blur] }).catch(console.error);
+      }
+    });
   }, [windowLabel]);
 
   useEffect(() => {

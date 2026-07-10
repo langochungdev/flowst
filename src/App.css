@@ -121,10 +121,12 @@ input[type="number"] {
   background-color: transparent;
 }
 
-/* Main window: transparent bg, only layout padding */
+/* Main window: Dark Glass */
 .main-window {
   padding: 32px 14px 2px;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   box-sizing: border-box;
 }
 
@@ -148,11 +150,14 @@ input[type="number"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: transparent;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-sizing: border-box;
+  overflow: hidden;
   transition: all 150ms ease;
   position: relative;
   border-radius: 0;
-  box-sizing: border-box;
 }
 .mini-window-container.hovered {
   border: 1px solid var(--el-border);
