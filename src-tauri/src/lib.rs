@@ -104,8 +104,96 @@ fn clamp_window_to_monitor(window: &tauri::Window) {
     }
 }
 
+/// Registers the AUMID in the Windows Registry to allow toast notifications
+/// to show the correct app name and icon even in dev mode (unpackaged).
+#[cfg(target_os = "windows")]
+fn register_notification_aumid() {
+    use windows::core::{PCWSTR, w};
+    use windows::Win32::System::Registry::{
+        RegCreateKeyExW, RegSetValueExW, RegCloseKey,
+        HKEY, HKEY_CURRENT_USER, REG_SZ, REG_EXPAND_SZ, KEY_READ, KEY_WRITE, REG_OPTION_NON_VOLATILE,
+    };
+    use windows::Win32::UI::Shell::SetCurrentProcessExplicitAppUserModelID;
+    
+    let aumid_str = "com.langochungdev.flowst";
+    let aumid = w!("com.langochungdev.flowst");
+    
+    unsafe {
+        // Must be called BEFORE any notification is sent
+        let _ = SetCurrentProcessExplicitAppUserModelID(aumid);
+    }
+    
+    let key_path = format!("Software\\Classes\\AppUserModelId\\{}\0", aumid_str);
+    let key_path_wide: Vec<u16> = key_path.encode_utf16().collect();
+    
+    let exe_path = std::env::current_exe().unwrap_or_default();
+    let mut icon_path = exe_path.parent()
+        .and_then(|p| p.parent())
+        .and_then(|p| p.parent())
+        .unwrap_or(std::path::Path::new("."))
+        .join("icons")
+        .join("icon.png");
+        
+    if !icon_path.exists() {
+        icon_path = exe_path.clone();
+    }
+    
+    let icon_str = format!("{}\0", icon_path.to_string_lossy());
+    let icon_wide: Vec<u16> = icon_str.encode_utf16().collect();
+    
+    let display_name = "Flowst\0";
+    let display_name_wide: Vec<u16> = display_name.encode_utf16().collect();
+    
+    unsafe {
+        let mut hkey: HKEY = HKEY::default();
+        let status = RegCreateKeyExW(
+            HKEY_CURRENT_USER,
+            PCWSTR(key_path_wide.as_ptr()),
+            0,
+            None,
+            REG_OPTION_NON_VOLATILE,
+            KEY_READ | KEY_WRITE,
+            None,
+            &mut hkey,
+            None,
+        );
+        
+        if status.is_ok() {
+            let _ = RegSetValueExW(
+                hkey,
+                w!("DisplayName"),
+                0,
+                REG_SZ,
+                Some(std::slice::from_raw_parts(
+                    display_name_wide.as_ptr() as *const u8,
+                    display_name_wide.len() * 2,
+                )),
+            );
+            
+            let _ = RegSetValueExW(
+                hkey,
+                w!("IconUri"),
+                0,
+                REG_EXPAND_SZ,
+                Some(std::slice::from_raw_parts(
+                    icon_wide.as_ptr() as *const u8,
+                    icon_wide.len() * 2,
+                )),
+            );
+            
+            let _ = RegCloseKey(hkey);
+            log::info!("Registered AUMID in registry with icon: {:?}", icon_path);
+        } else {
+            log::error!("Failed to register AUMID in registry, status: {:?}", status);
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(target_os = "windows")]
+    register_notification_aumid();
+
     let migrations = vec![Migration {
         version: 1,
         description: "create_sessions_table",

@@ -20,6 +20,7 @@ interface DebugState {
   clearLogs: () => void;
   setTimeMultiplier: (multiplier: number) => void;
   setDateOffsetDays: (days: number) => void;
+  setDebugMode: (mode: boolean) => void;
   toggleDebugMode: () => void;
   resetDebug: () => void;
 }
@@ -50,6 +51,14 @@ export const useDebugStore = create<DebugState>()(
 
       setTimeMultiplier: (multiplier) => set({ timeMultiplier: multiplier }),
       setDateOffsetDays: (days) => set({ dateOffsetDays: days }),
+
+      setDebugMode: (mode: boolean) => {
+        const { isDebugMode } = get();
+        if (isDebugMode !== mode) {
+          swapData(mode);
+          set({ isDebugMode: mode });
+        }
+      },
 
       toggleDebugMode: () => {
         const { isDebugMode } = get();

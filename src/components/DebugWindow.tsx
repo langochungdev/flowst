@@ -2,17 +2,16 @@ import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore, getMockedDate } from "../stores/debugStore";
 import { Trash2, Copy, X } from "lucide-react";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { useEffect } from "react";
 
 export default function DebugWindow() {
   const {
     logs,
     timeMultiplier,
     dateOffsetDays,
-    isDebugMode,
     clearLogs,
     setTimeMultiplier,
     setDateOffsetDays,
-    toggleDebugMode,
     resetDebug,
   } = useDebugStore();
   const pomodoroState = usePomodoroStore();
@@ -107,451 +106,317 @@ export default function DebugWindow() {
     usePomodoroStore.setState({ history, categories: newCats, goal });
   };
 
-  return (
-    <div
-      className="glass-window debug-window"
-      style={{
-        width: "100vw",
-        height: "100vh",
-        color: "var(--text-primary)",
-        display: "flex",
-        flexDirection: "column",
-        fontFamily: "monospace",
-        fontSize: "12px",
-        padding: "16px",
-        boxSizing: "border-box",
-        overflow: "hidden",
-      }}
-    >
-      {/* Header */}
-      <div
-        data-tauri-drag-region
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "16px",
-          borderBottom: "1px solid var(--text-secondary)",
-          paddingBottom: "8px",
-        }}
-      >
-        <h2
-          data-tauri-drag-region
-          style={{
-            margin: 0,
-            fontSize: "16px",
-            color: isDebugMode ? "#e81123" : "#00FBFF",
-            display: "flex",
-            gap: "6px",
-          }}
-        >
-          Debug Console{" "}
-          <span style={{ opacity: isDebugMode ? 1 : 0, transition: "opacity 0.2s" }}>
-            (SANDBOX)
-          </span>
-        </h2>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              color: isDebugMode ? "#e81123" : "inherit",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={isDebugMode}
-              onChange={toggleDebugMode}
-              style={{ cursor: "pointer" }}
-            />
-            Sandbox Mode
-          </label>
-          <button
-            className="action-btn-outline"
-            onClick={() => getCurrentWebviewWindow()?.hide()}
-            title="Close Debug Window"
-            style={{ padding: "4px", border: "none" }}
-          >
-            <X size={16} />
-          </button>
-        </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button
-            onClick={resetDebug}
-            disabled={!isDebugMode}
-            style={{
-              background: "var(--text-secondary)",
-              border: "none",
-              color: "var(--el-bg)",
-              cursor: !isDebugMode ? "not-allowed" : "pointer",
-              padding: "4px 12px",
-              borderRadius: 0,
-              fontWeight: "bold",
-              opacity: !isDebugMode ? 0.5 : 1,
-            }}
-          >
-            Reset Time/Date
-          </button>
-          <button
-            onClick={handleClearAppData}
-            disabled={!isDebugMode}
-            style={{
-              background: "#e81123",
-              border: "none",
-              color: "white",
-              cursor: !isDebugMode ? "not-allowed" : "pointer",
-              padding: "4px 12px",
-              borderRadius: 0,
-              fontWeight: "bold",
-              opacity: !isDebugMode ? 0.5 : 1,
-            }}
-          >
-            Clear App Data
-          </button>
-        </div>
-      </div>
+  const debugStyles = `
+    .debug-window-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0f0f0f;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 12px;
+      padding: 12px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .debug-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 8px;
+      flex-shrink: 0;
+    }
+    .debug-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .debug-panel {
+      background: #181818;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .debug-panel-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #fff;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2a2a2a;
+      padding-bottom: 6px;
+      margin-bottom: 4px;
+    }
+    .debug-btn {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      color: #e0e0e0;
+      cursor: pointer;
+      padding: 6px 4px;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: all 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 11px;
+      flex: 1;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .debug-btn:hover:not(:disabled) {
+      background: #333;
+      border-color: #555;
+      color: #fff;
+    }
+    .debug-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+    .debug-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .debug-btn.primary {
+      background: rgba(0, 251, 255, 0.1);
+      border-color: rgba(0, 251, 255, 0.3);
+      color: #00FBFF;
+    }
+    .debug-btn.primary:hover:not(:disabled) {
+      background: rgba(0, 251, 255, 0.2);
+    }
+    .debug-btn.danger {
+      background: rgba(232, 17, 35, 0.1);
+      border-color: rgba(232, 17, 35, 0.3);
+      color: #ff4444;
+    }
+    .debug-btn.danger:hover:not(:disabled) {
+      background: rgba(232, 17, 35, 0.2);
+    }
+    .debug-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      border-radius: 2px;
+      background: #000;
+      border: 1px solid #222;
+      padding: 8px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 11px;
+    }
+    .debug-scroll-area::-webkit-scrollbar {
+      width: 6px;
+    }
+    .debug-scroll-area::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 3px;
+    }
+    .log-entry {
+      margin-bottom: 4px;
+      word-break: break-all;
+      line-height: 1.3;
+    }
+    .log-time { color: #888; }
+    .log-info { color: #00FBFF; font-weight: 600; }
+    .log-error { color: #ff4444; font-weight: 600; }
+    .btn-group {
+      display: flex;
+      gap: 4px;
+      width: 100%;
+    }
+    .sim-value {
+      color: #00FBFF;
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: normal;
+    }
+  `;
 
-      <div style={{ display: "flex", gap: "16px", height: "calc(100% - 40px)" }}>
-        {/* Left Column: Logs */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "8px",
-            }}
+  const setDebugMode = useDebugStore((state) => state.setDebugMode);
+
+  // Auto-enable sandbox when debug window is active
+  useEffect(() => {
+    setDebugMode(true);
+    // Cleanup is handled by the close button, or if window is destroyed natively.
+    return () => {
+      setDebugMode(false);
+    };
+  }, [setDebugMode]);
+
+  return (
+    <>
+      <style>{debugStyles}</style>
+      <div className="debug-window-container">
+        {/* Header */}
+        <div className="debug-header" data-tauri-drag-region>
+          <h2
+            className="debug-title"
+            data-tauri-drag-region
+            style={{ color: "#ff4444" }}
           >
-            <span style={{ fontWeight: "bold" }}>Logs</span>
+            Debug Console
+            <span style={{ fontSize: "12px", background: "rgba(255,0,0,0.2)", padding: "2px 6px", borderRadius: "4px" }}>
+              SANDBOX
+            </span>
+          </h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <div style={{ display: "flex", gap: "8px" }}>
               <button
-                onClick={handleCopyLogs}
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--text-secondary)",
-                  color: "var(--el-bg)",
-                  cursor: "pointer",
-                  padding: "4px 8px",
-                  borderRadius: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
+                className="debug-btn"
+                onClick={resetDebug}
+                style={{ flex: "none" }}
               >
-                <Copy size={12} /> Copy
+                Reset Time/Date
               </button>
               <button
-                onClick={clearLogs}
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--text-secondary)",
-                  color: "var(--el-bg)",
-                  cursor: "pointer",
-                  padding: "4px 8px",
-                  borderRadius: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
+                className="debug-btn danger"
+                onClick={handleClearAppData}
+                style={{ flex: "none" }}
               >
-                <Trash2 size={12} /> Clear
+                Clear App Data
+              </button>
+              <button
+                className="debug-btn"
+                onClick={() => {
+                  getCurrentWebviewWindow()?.hide();
+                  setDebugMode(false);
+                }}
+                title="Close"
+                style={{ flex: "none", padding: "8px" }}
+              >
+                <X size={16} />
               </button>
             </div>
-          </div>
-          <div
-            style={{
-              flex: 1,
-              border: "1px solid var(--text-secondary)",
-              borderRadius: 0,
-              overflowY: "auto",
-              padding: "8px",
-              background: "rgba(255,255,255,0.05)",
-            }}
-          >
-            {logs.map((log) => (
-              <div
-                key={log.id}
-                style={{
-                  marginBottom: "4px",
-                  color: log.level === "error" ? "red" : "inherit",
-                  wordBreak: "break-all",
-                }}
-              >
-                <span style={{ color: "var(--text-secondary)" }}>
-                  [{new Date(log.timestamp).toLocaleTimeString()}]
-                </span>{" "}
-                <span style={{ color: log.level === "error" ? "red" : "#00FBFF" }}>
-                  {log.level.toUpperCase()}
-                </span>{" "}
-                {log.message}{" "}
-                {log.args.length > 0 && (
-                  <span style={{ opacity: 0.7 }}>{JSON.stringify(log.args)}</span>
-                )}
-              </div>
-            ))}
-            {logs.length === 0 && (
-              <div style={{ color: "var(--text-secondary)" }}>No logs yet...</div>
-            )}
           </div>
         </div>
 
-        {/* Right Column: State & Time */}
-        <div
-          style={{ flex: 1, display: "flex", flexDirection: "column", gap: "16px", minWidth: 0 }}
-        >
-          {/* Simulators */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-              opacity: isDebugMode ? 1 : 0.5,
-              pointerEvents: isDebugMode ? "auto" : "none",
-            }}
-          >
-            <span style={{ fontWeight: "bold" }}>Time Simulator</span>
-            <div
-              style={{
-                border: "1px solid var(--text-secondary)",
-                padding: "12px",
-                borderRadius: 0,
-                background: "rgba(255,255,255,0.05)",
-              }}
-            >
-              <div
-                style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}
-              >
-                <span>
-                  Speed Multiplier:{" "}
-                  <span style={{ color: "#00FBFF" }}>
-                    {timeMultiplier === 0 ? "Stopped" : `${timeMultiplier}x`}
-                  </span>
-                </span>
-              </div>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  onClick={() => setTimeMultiplier(Math.max(1, timeMultiplier - 1))}
-                  disabled={timeMultiplier <= 1}
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "1px solid var(--text-secondary)",
-                    color: timeMultiplier <= 1 ? "var(--text-secondary)" : "var(--el-bg)",
-                    cursor: timeMultiplier <= 1 ? "not-allowed" : "pointer",
-                    padding: "4px",
-                  }}
-                >
-                  - Slower
-                </button>
-                <button
-                  onClick={() => setTimeMultiplier(timeMultiplier === 0 ? 1 : 0)}
-                  style={{
-                    flex: 1,
-                    background: timeMultiplier === 0 ? "#00FBFF" : "var(--text-secondary)",
-                    border:
-                      "1px solid " + (timeMultiplier === 0 ? "#00FBFF" : "var(--text-secondary)"),
-                    color: timeMultiplier === 0 ? "#111" : "var(--el-bg)",
-                    cursor: "pointer",
-                    padding: "4px",
-                    fontWeight: timeMultiplier === 0 ? "bold" : "normal",
-                  }}
-                >
-                  {timeMultiplier === 0 ? "Play" : "Stop"}
-                </button>
-                <button
-                  onClick={() =>
-                    setTimeMultiplier(Math.min(60, timeMultiplier === 0 ? 1 : timeMultiplier + 1))
-                  }
-                  disabled={timeMultiplier >= 60}
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "1px solid var(--text-secondary)",
-                    color: timeMultiplier >= 60 ? "var(--text-secondary)" : "var(--el-bg)",
-                    cursor: timeMultiplier >= 60 ? "not-allowed" : "pointer",
-                    padding: "4px",
-                  }}
-                >
-                  + Faster
-                </button>
-                <button
-                  onClick={() =>
-                    setTimeMultiplier(Math.min(60, timeMultiplier === 0 ? 2 : timeMultiplier * 2))
-                  }
-                  disabled={timeMultiplier >= 60}
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "1px solid var(--text-secondary)",
-                    color: timeMultiplier >= 60 ? "var(--text-secondary)" : "#00FBFF",
-                    cursor: timeMultiplier >= 60 ? "not-allowed" : "pointer",
-                    padding: "4px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  x2 Faster
-                </button>
-              </div>
-            </div>
-
-            <span style={{ fontWeight: "bold" }}>Date Simulator</span>
-            <div
-              style={{
-                border: "1px solid var(--text-secondary)",
-                padding: "12px",
-                borderRadius: 0,
-                background: "rgba(255,255,255,0.05)",
-              }}
-            >
-              <div
-                style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}
-              >
-                <span>
-                  Day Offset:{" "}
-                  <span style={{ color: dateOffsetDays !== 0 ? "#00FBFF" : "var(--el-bg)" }}>
-                    {dateOffsetDays > 0 ? `+${dateOffsetDays}` : dateOffsetDays}
-                  </span>
-                </span>
-                <span style={{ color: "var(--text-secondary)", fontSize: "10px" }}>
-                  {(() => {
-                    const d = getMockedDate();
-                    return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
-                  })()}
-                </span>
-              </div>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  onClick={() => setDateOffsetDays(dateOffsetDays - 1)}
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "1px solid var(--text-secondary)",
-                    color: "var(--el-bg)",
-                    cursor: "pointer",
-                    padding: "4px",
-                  }}
-                >
-                  -1 Day
-                </button>
-                <button
-                  onClick={() => setDateOffsetDays(0)}
-                  style={{
-                    flex: 1,
-                    background: "var(--text-secondary)",
-                    border: "none",
-                    color: "var(--el-bg)",
-                    cursor: "pointer",
-                    padding: "4px",
-                  }}
-                >
-                  Today
-                </button>
-                <button
-                  onClick={() => setDateOffsetDays(dateOffsetDays + 1)}
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "1px solid var(--text-secondary)",
-                    color: "var(--el-bg)",
-                    cursor: "pointer",
-                    padding: "4px",
-                  }}
-                >
-                  +1 Day
-                </button>
-              </div>
-            </div>
-
-            <span style={{ fontWeight: "bold" }}>Mock Data Generator</span>
-            <div
-              style={{
-                border: "1px solid var(--text-secondary)",
-                padding: "12px",
-                borderRadius: 0,
-                background: "rgba(255,255,255,0.05)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-              }}
-            >
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  onClick={() => handleGenerateMockData("year-random")}
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "1px solid var(--text-secondary)",
-                    color: "var(--el-bg)",
-                    cursor: "pointer",
-                    padding: "4px",
-                    fontSize: "10px",
-                  }}
-                >
-                  1 Year (Random)
-                </button>
-                <button
-                  onClick={() => handleGenerateMockData("month-consistent")}
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "1px solid var(--text-secondary)",
-                    color: "var(--el-bg)",
-                    cursor: "pointer",
-                    padding: "4px",
-                    fontSize: "10px",
-                  }}
-                >
-                  1 Month (Consistent)
-                </button>
-                <button
-                  onClick={() => handleGenerateMockData("month-random")}
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "1px solid var(--text-secondary)",
-                    color: "var(--el-bg)",
-                    cursor: "pointer",
-                    padding: "4px",
-                    fontSize: "10px",
-                  }}
-                >
-                  1 Month (Extreme)
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* State Viewer */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-            <span style={{ fontWeight: "bold", marginBottom: "8px" }}>State Inspector</span>
-            <pre
-              style={{
-                flex: 1,
-                margin: 0,
-                border: "1px solid var(--text-secondary)",
-                borderRadius: 0,
-                padding: "8px",
-                overflowY: "auto",
-                background: "rgba(255,255,255,0.05)",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-all",
-              }}
-            >
+        <div style={{ display: "flex", gap: "12px", height: "calc(100% - 40px)", overflow: "hidden" }}>
+          {/* Left Column: State Viewer */}
+          <div className="debug-panel" style={{ flex: 1.2, minWidth: 0, padding: 0, overflow: "hidden" }}>
+            <div className="debug-panel-title" style={{ padding: "12px 12px 0 12px", marginBottom: "8px" }}>State Inspector</div>
+            <pre className="debug-scroll-area" style={{ margin: "0 12px 12px 12px" }}>
               {JSON.stringify(
                 pomodoroState,
                 (_key, value) => {
-                  if (typeof value === "function") return "[Function]";
+                  if (typeof value === "function") return "[Fn]";
                   return value;
                 },
                 2,
               )}
             </pre>
           </div>
+
+          {/* Right Column: Simulators & Logs */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, overflow: "hidden" }}>
+            {/* Simulators */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: "none" }}>
+              
+              <div className="debug-panel" style={{ padding: "8px" }}>
+                <div className="debug-panel-title">
+                  Time Simulator
+                  <span className="sim-value">{timeMultiplier === 0 ? "Stopped" : `${timeMultiplier}x`}</span>
+                </div>
+                <div className="btn-group">
+                  <button className="debug-btn" onClick={() => setTimeMultiplier(Math.max(1, timeMultiplier - 1))} disabled={timeMultiplier <= 1}>
+                    -1x
+                  </button>
+                  <button className={`debug-btn ${timeMultiplier === 0 ? "primary" : ""}`} onClick={() => setTimeMultiplier(timeMultiplier === 0 ? 1 : 0)}>
+                    {timeMultiplier === 0 ? "Play" : "Pause"}
+                  </button>
+                  <button className="debug-btn" onClick={() => setTimeMultiplier(Math.min(60, timeMultiplier === 0 ? 1 : timeMultiplier + 1))} disabled={timeMultiplier >= 60}>
+                    +1x
+                  </button>
+                  <button className="debug-btn primary" onClick={() => setTimeMultiplier(Math.min(60, timeMultiplier === 0 ? 2 : timeMultiplier * 2))} disabled={timeMultiplier >= 60}>
+                    x2
+                  </button>
+                </div>
+              </div>
+
+              <div className="debug-panel" style={{ padding: "8px" }}>
+                <div className="debug-panel-title">
+                  Date Simulator
+                  <span className="sim-value" style={{ color: dateOffsetDays !== 0 ? "#00FBFF" : "inherit" }}>
+                    {dateOffsetDays > 0 ? `+${dateOffsetDays}` : dateOffsetDays} Days
+                  </span>
+                </div>
+                <div style={{ color: "#888", fontSize: "10px", marginTop: "-4px", textAlign: "right" }}>
+                  Mock Date: {(() => {
+                    const d = getMockedDate();
+                    return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
+                  })()}
+                </div>
+                <div className="btn-group" style={{ marginTop: "4px" }}>
+                  <button className="debug-btn" onClick={() => setDateOffsetDays(dateOffsetDays - 1)}>
+                    -1 Day
+                  </button>
+                  <button className="debug-btn primary" onClick={() => setDateOffsetDays(0)}>
+                    Today
+                  </button>
+                  <button className="debug-btn" onClick={() => setDateOffsetDays(dateOffsetDays + 1)}>
+                    +1 Day
+                  </button>
+                </div>
+              </div>
+
+              <div className="debug-panel" style={{ padding: "8px" }}>
+                <div className="debug-panel-title">Mock Data Generator</div>
+                <div className="btn-group">
+                  <button className="debug-btn" onClick={() => handleGenerateMockData("year-random")}>
+                    1 Year (Rnd)
+                  </button>
+                  <button className="debug-btn" onClick={() => handleGenerateMockData("month-consistent")}>
+                    1 Mo (Sync)
+                  </button>
+                  <button className="debug-btn" onClick={() => handleGenerateMockData("month-random")}>
+                    1 Mo (Ext)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* System Logs */}
+            <div className="debug-panel" style={{ flex: 1, padding: "8px", overflow: "hidden" }}>
+              <div className="debug-panel-title" style={{ padding: "0 0 8px 0", marginBottom: "4px" }}>
+                <span>System Logs</span>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button className="debug-btn" onClick={handleCopyLogs} style={{ padding: "4px 8px", flex: "none" }}>
+                    <Copy size={12} /> Copy
+                  </button>
+                  <button className="debug-btn" onClick={clearLogs} style={{ padding: "4px 8px", flex: "none" }}>
+                    <Trash2 size={12} /> Clear
+                  </button>
+                </div>
+              </div>
+              <div className="debug-scroll-area" style={{ margin: 0 }}>
+                {logs.map((log) => (
+                  <div key={log.id} className="log-entry" style={{ color: log.level === "error" ? "#ff4444" : "inherit" }}>
+                    <span className="log-time">[{new Date(log.timestamp).toLocaleTimeString()}]</span>{" "}
+                    <span className={log.level === "error" ? "log-error" : "log-info"}>
+                      {log.level.toUpperCase()}
+                    </span>{" "}
+                    {log.message}{" "}
+                    {log.args.length > 0 && <span style={{ opacity: 0.7 }}>{JSON.stringify(log.args)}</span>}
+                  </div>
+                ))}
+                {logs.length === 0 && <div style={{ color: "#888" }}>No logs yet...</div>}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

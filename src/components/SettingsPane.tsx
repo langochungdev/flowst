@@ -1,4 +1,5 @@
 import { usePomodoroStore } from "../stores/pomodoroStore";
+import { useDebugStore } from "../stores/debugStore";
 import { Play, Pause, ChevronDown, Minus, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
@@ -251,9 +252,11 @@ export default function SettingsPane() {
                                 const isVisible = await debugWin.isVisible();
                                 if (isVisible) {
                                     await debugWin.hide();
+                                    useDebugStore.getState().setDebugMode(false);
                                 } else {
                                     await debugWin.show();
                                     await debugWin.setFocus();
+                                    useDebugStore.getState().setDebugMode(true);
                                 }
                             } else {
                                 debugWin = new WebviewWindow("debug", {
@@ -266,6 +269,7 @@ export default function SettingsPane() {
                                 debugWin.once("tauri://created", async () => {
                                     await debugWin?.show();
                                     await debugWin?.setFocus();
+                                    useDebugStore.getState().setDebugMode(true);
                                 });
                             }
                         } catch (e) {
