@@ -1,5 +1,11 @@
-## [0.5.0] - 2026-07-10
+## [0.6.0] - 2026-07-10
 ### Features
+- feat: add automated release script to handle version bumping and changelog generation
+
+## [0.5.0] - 2026-07-10
+
+### Features
+
 - feat: implement ClockPane component and add pre-push verification script
 - feat: add pre-push hook script to automate code quality checks and generate AI-ready error reports
 - feat: add GoalTrackerView component for tracking progress toward custom deadlines
