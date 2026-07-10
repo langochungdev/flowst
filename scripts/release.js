@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 import fs from "fs";
 
 function run(cmd) {
@@ -88,10 +88,15 @@ try {
   run(`git commit -m "chore(release): v${nextVersion}"`);
   console.log("Release commit created successfully.");
 
-  // 6. Push the release commit automatically
-  console.log("Pushing release commit...");
-  run("git push --no-verify");
-  console.log("Release commit pushed successfully.");
+  // 6. Push the release commit automatically in the background
+  console.log("Scheduling background push for release commit...");
+  const pushScript = `setTimeout(() => { const { execSync } = require('child_process'); try { execSync('git push --no-verify'); } catch (e) {} }, 3000);`;
+  const child = spawn("node", ["-e", pushScript], {
+    detached: true,
+    stdio: "ignore",
+  });
+  child.unref();
+  console.log("Release commit will be pushed shortly.");
 } catch (error) {
   console.log("Release script error or skipped:", error.message);
 }
