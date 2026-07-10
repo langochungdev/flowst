@@ -87,6 +87,11 @@ try {
   run("git add package.json src-tauri/tauri.conf.json CHANGELOG.md");
   run(`git commit -m "chore(release): v${nextVersion}"`);
   console.log("Release commit created successfully.");
+
+  // 6. Push the release commit automatically
+  console.log("Pushing release commit...");
+  run("git push --no-verify");
+  console.log("Release commit pushed successfully.");
 } catch (error) {
   console.log("Release script error or skipped:", error.message);
 }
