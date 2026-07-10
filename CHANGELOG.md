@@ -1,5 +1,7 @@
 ## [0.11.0] - 2026-07-10
+
 ### Features
+
 - feat: add pre-push hook to automate formatting, linting, and validation with error reporting
 
 ## [0.10.0] - 2026-07-10

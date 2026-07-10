@@ -18,7 +18,7 @@ try {
     execSync("git add -u", { stdio: "pipe", encoding: "utf-8" });
     execSync('git commit -m "chore: auto-format code"', { stdio: "pipe", encoding: "utf-8" });
     console.log("Auto-format commit created successfully.\n");
-    
+
     // Đẩy commit format lên ngay sau khi tiến trình push hiện tại hoàn tất
     console.log("Scheduling background push for auto-format commit...");
     const pushScript = `setTimeout(() => { const { execSync } = require('child_process'); try { execSync('git push --no-verify'); } catch (e) {} }, 3000);`;
