@@ -21,7 +21,7 @@
         "decorations": false,
         "transparent": true,
         "resizable": false,
-        "alwaysOnTop": false,
+        "alwaysOnTop": true,
         "visible": false,
         "skipTaskbar": true,
         "url": "index.html"
@@ -58,6 +58,7 @@
         "height": 600,
         "decorations": true,
         "transparent": false,
+        "alwaysOnTop": true,
         "visible": false,
         "resizable": true,
         "url": "index.html"
