@@ -1,5 +1,23 @@
-## [0.7.0] - 2026-07-10
+## [0.8.0] - 2026-07-10
 ### Features
+- feat: implement CustomSelect component and global design system styles
+- feat: implement pomodoroStore with timer management, category tracking, and Tauri notification support
+- feat: implement core pomodoro logic, state management, and multi-window application routing
+- feat: initialize core project structure, tray menu, database integration, and window management logic
+- feat: initialize project backend with Tauri v2, SQLite persistence, and system tray integration
+- feat: implement pomodoro store, multi-window configuration, and core Tauri system features
+- feat: initialize Tauri configuration with multi-window setup and application metadata
+- feat: implement main window UI and Tauri backend lifecycle management including tray integration and window positioning
+- feat: initialize Tauri application with SQLite database, system tray menu, and custom window management logic
+- feat: implement debug console, mini window, settings pane, and pomodoro store with capability configuration
+- feat: implement goal tracker component and state management for countdown tracking
+- feat: initialize Tauri backend with tray menu, window management, and filesystem/dialog plugins
+- feat: implement settings pane for sound selection, grid color, daily focus targets, and debug window management
+
+## [0.7.0] - 2026-07-10
+
+### Features
+
 - feat: add automated release script to handle version bumping and changelog updates
 
 ## [0.6.0] - 2026-07-10
