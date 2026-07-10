@@ -2,6 +2,8 @@ import { usePomodoroStore } from "../stores/pomodoroStore";
 import { Play, Pause, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { save, open } from "@tauri-apps/plugin-dialog";
+import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 
 export default function SettingsPane() {
     const soundOption = usePomodoroStore((state) => state.soundOption);
@@ -16,7 +18,6 @@ export default function SettingsPane() {
     const setGridColor = usePomodoroStore((state) => state.setGridColor);
 
     const [localTarget, setLocalTarget] = useState(dailyTarget.toString());
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const [isSoundDropdownOpen, setIsSoundDropdownOpen] = useState(false);
     const soundDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -247,18 +248,45 @@ export default function SettingsPane() {
             <div className="setting-item-col">
                 <span className="setting-label">Data Management</span>
                 <div style={{ display: "flex", gap: "6px" }}>
-                    <input
-                        type="file"
-                        accept=".json"
-                        style={{ display: "none" }}
-                        ref={fileInputRef}
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                                try {
-                                    const data = JSON.parse(event.target?.result as string);
+                    <button
+                        className="action-btn-outline"
+                        onClick={async () => {
+                            try {
+                                const data = {
+                                    categories,
+                                    dailyTarget,
+                                    soundOption,
+                                    todayTotalTime,
+                                    todayCategoryBreakdown,
+                                    history,
+                                    gridColor,
+                                };
+                                const path = await save({
+                                    filters: [{ name: 'JSON', extensions: ['json'] }],
+                                    defaultPath: `flowst-backup-${new Date().toISOString().split("T")[0]}.json`,
+                                });
+                                if (path) {
+                                    await writeTextFile(path, JSON.stringify(data, null, 2));
+                                }
+                            } catch (e) {
+                                console.error(e);
+                                alert("Export failed");
+                            }
+                        }}
+                    >
+                        Export
+                    </button>
+                    <button 
+                        className="action-btn-outline" 
+                        onClick={async () => {
+                            try {
+                                const path = await open({
+                                    multiple: false,
+                                    filters: [{ name: 'JSON', extensions: ['json'] }]
+                                });
+                                if (path && typeof path === 'string') {
+                                    const content = await readTextFile(path);
+                                    const data = JSON.parse(content);
                                     usePomodoroStore.setState({
                                         categories: data.categories || categories,
                                         dailyTarget: data.dailyTarget || dailyTarget,
@@ -270,41 +298,13 @@ export default function SettingsPane() {
                                         gridColor: data.gridColor || gridColor,
                                     });
                                     setLocalTarget((data.dailyTarget || dailyTarget).toString());
-                                    alert("Data imported successfully!");
-                                } catch {
-                                    alert("Invalid backup file.");
                                 }
-                                if (fileInputRef.current) fileInputRef.current.value = "";
-                            };
-                            reader.readAsText(file);
-                        }}
-                    />
-                    <button
-                        className="action-btn-outline"
-                        onClick={() => {
-                            const data = {
-                                categories,
-                                dailyTarget,
-                                soundOption,
-                                todayTotalTime,
-                                todayCategoryBreakdown,
-                                history,
-                                gridColor,
-                            };
-                            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement("a");
-                            a.href = url;
-                            a.download = `flowst-backup-${new Date().toISOString().split("T")[0]}.json`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
+                            } catch (e) {
+                                console.error(e);
+                                alert("Import failed or invalid file.");
+                            }
                         }}
                     >
-                        Export
-                    </button>
-                    <button className="action-btn-outline" onClick={() => fileInputRef.current?.click()}>
                         Import
                     </button>
                     <button
