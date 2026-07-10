@@ -460,18 +460,23 @@ export default function ClockPane() {
     updateCategory,
     deleteCategory,
     todayTotalTime,
+    todayCategoryBreakdown,
     dailyTarget,
     blocks,
     currentBlockIndex,
+    selectedFocusTime: focusTime,
+    setSelectedFocusTime: setFocusTime,
+    selectedBreakTime: breakTime,
+    setSelectedBreakTime: setBreakTime,
+    selectedTaskCategory: taskCategory,
+    setSelectedTaskCategory: setTaskCategory,
   } = usePomodoroStore();
-  const [focusTime, setFocusTime] = useState("25");
-  const [breakTime, setBreakTime] = useState("5");
-  const [taskCategory, setTaskCategory] = useState("work");
 
   const [showCatPopup, setShowCatPopup] = useState(false);
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [newCatName, setNewCatName] = useState("");
   const [newCatColor, setNewCatColor] = useState("");
+  const [newCatTarget, setNewCatTarget] = useState("");
 
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingCustom, setIsEditingCustom] = useState(false);
@@ -597,6 +602,7 @@ export default function ClockPane() {
                   .padStart(6, "0");
               setNewCatColor(randomColor);
               setNewCatName("");
+              setNewCatTarget("");
               setEditingCatId(null);
               setShowCatPopup(true);
             } else {
@@ -608,6 +614,7 @@ export default function ClockPane() {
             if (cat) {
               setNewCatName(cat.name);
               setNewCatColor(cat.color);
+              setNewCatTarget(cat.dailyTarget ? cat.dailyTarget.toString() : "");
               setEditingCatId(cat.id);
               setShowCatPopup(true);
             }
@@ -698,35 +705,89 @@ export default function ClockPane() {
             paddingBottom: "12px",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "0 24px",
-              fontSize: "10px",
-              color: "var(--text-secondary)",
-              marginBottom: "4px",
-              fontWeight: 500,
-            }}
-          >
-            <span>{formatTotalTime(todayTotalTime)}</span>
-            <span>
-              {todayTotalTime >= dailyTarget
-                ? `+${formatTotalTime(todayTotalTime - dailyTarget)} over`
-                : `${formatTotalTime(dailyTarget - todayTotalTime)} left`}
-            </span>
-          </div>
-          <div style={{ height: "1px", background: "var(--grid-base)" }}>
+          {(() => {
+            const currentCat = categories.find(c => c.id === taskCategory);
+            const activeTarget = currentCat?.dailyTarget || dailyTarget;
+            const activeTime = currentCat ? (todayCategoryBreakdown[currentCat.id] || 0) : todayTotalTime;
+            const activeColor = currentCat ? currentCat.color : "var(--grid-active)";
+
+            return (
+              <>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "0 24px",
+                    fontSize: "10px",
+                    color: "var(--text-secondary)",
+                    marginBottom: "4px",
+                    fontWeight: 500,
+                  }}
+                >
+                  <span>{formatTotalTime(activeTime)}</span>
+                  <span>
+                    {activeTime >= activeTarget
+                      ? `+${formatTotalTime(activeTime - activeTarget)} over`
+                      : `${formatTotalTime(activeTarget - activeTime)} left`}
+                  </span>
+                </div>
+                <div style={{ height: "1px", background: "var(--grid-base)" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      background: activeColor,
+                      width: `${Math.min((activeTime / (activeTarget || 1)) * 100, 100)}%`,
+                      transition: "width 0.5s ease, background-color 0.5s ease",
+                    }}
+                  />
+                </div>
+              </>
+            );
+          })()}
+        </div>
+
+        {/* Top clock over ContributionGrid */}
+        {(() => {
+          const totalHours = Math.round((todayTotalTime / 60) * 10) / 10;
+          let level = 0;
+          if (totalHours <= 0) level = 0;
+          else if (totalHours <= 1) level = 1;
+          else if (totalHours <= 3) level = 2;
+          else if (totalHours <= 5) level = 3;
+          else level = 4;
+          
+          const color = level <= 0 ? "var(--grid-base)" : "var(--grid-active)";
+          const opacity = level <= 0 ? 1 : [0, 0.3, 0.5, 0.72, 1.0][level];
+
+          return (
             <div
               style={{
-                height: "100%",
-                background: "var(--grid-active)",
-                width: `${Math.min((todayTotalTime / (dailyTarget || 1)) * 100, 100)}%`,
-                transition: "width 0.5s ease",
+                position: "absolute",
+                bottom: "100%",
+                left: 0,
+                right: 0,
+                display: "flex",
+                justifyContent: "center",
+                pointerEvents: "none",
+                zIndex: 10,
               }}
-            />
-          </div>
-        </div>
+            >
+              <div
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  color: color,
+                  opacity: opacity,
+                  padding: "0 6px",
+                  lineHeight: 1,
+                }}
+              >
+                {formatTotalTime(todayTotalTime)}
+              </div>
+            </div>
+          );
+        })()}
+
         <ContributionGrid />
       </div>
 
@@ -756,6 +817,9 @@ export default function ClockPane() {
               flexDirection: "column",
               gap: "12px",
               boxShadow: "var(--el-shadow)",
+              width: "240px",
+              maxWidth: "calc(100vw - 32px)",
+              boxSizing: "border-box",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -785,26 +849,47 @@ export default function ClockPane() {
                 </button>
               )}
             </div>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <input
+                  type="color"
+                  value={newCatColor}
+                  onChange={(e) => setNewCatColor(e.target.value)}
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    padding: 0,
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                />
+                <input
+                  type="text"
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  placeholder="Category Name"
+                  autoFocus
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--divider)",
+                    color: "var(--text-primary)",
+                    padding: "6px 8px",
+                    borderRadius: 0,
+                    fontSize: "13px",
+                    outline: "none",
+                    flex: 1,
+                    minWidth: 0,
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
               <input
-                type="color"
-                value={newCatColor}
-                onChange={(e) => setNewCatColor(e.target.value)}
-                style={{
-                  width: "28px",
-                  height: "28px",
-                  padding: 0,
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                }}
-              />
-              <input
-                type="text"
-                value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                placeholder="Category Name"
-                autoFocus
+                type="number"
+                value={newCatTarget}
+                onChange={(e) => setNewCatTarget(e.target.value)}
+                placeholder="Daily Target (mins, e.g. 120)"
                 style={{
                   background: "transparent",
                   border: "1px solid var(--divider)",
@@ -813,6 +898,8 @@ export default function ClockPane() {
                   borderRadius: 0,
                   fontSize: "13px",
                   outline: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
                 }}
               />
             </div>
@@ -836,11 +923,13 @@ export default function ClockPane() {
               <button
                 onClick={() => {
                   if (newCatName.trim()) {
+                    const targetVal = newCatTarget.trim() ? parseInt(newCatTarget.trim()) : undefined;
+                    const finalTarget = (targetVal !== undefined && !isNaN(targetVal)) ? targetVal : undefined;
                     if (editingCatId) {
-                      updateCategory(editingCatId, newCatName.trim(), newCatColor);
+                      updateCategory(editingCatId, newCatName.trim(), newCatColor, finalTarget);
                     } else {
                       const id = "cat_" + Date.now();
-                      addCategory({ id, name: newCatName.trim(), color: newCatColor });
+                      addCategory({ id, name: newCatName.trim(), color: newCatColor, dailyTarget: finalTarget });
                       setTaskCategory(id);
                     }
                     setShowCatPopup(false);

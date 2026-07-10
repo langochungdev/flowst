@@ -9,6 +9,7 @@ export interface TaskCategory {
   id: string;
   name: string;
   color: string;
+  dailyTarget?: number;
 }
 
 export interface HistoryDay {
@@ -57,7 +58,7 @@ interface PomodoroState {
   playSound: () => void;
   categories: TaskCategory[];
   addCategory: (category: TaskCategory) => void;
-  updateCategory: (id: string, name: string, color: string) => void;
+  updateCategory: (id: string, name: string, color: string, dailyTarget?: number) => void;
   deleteCategory: (id: string) => void;
   dailyTarget: number;
   setDailyTarget: (minutes: number) => void;
@@ -66,6 +67,12 @@ interface PomodoroState {
   setGridColor: (color: string) => void;
   goal: GoalTracker | null;
   setGoal: (goal: GoalTracker | null) => void;
+  selectedTaskCategory: string;
+  setSelectedTaskCategory: (categoryId: string) => void;
+  selectedFocusTime: string;
+  setSelectedFocusTime: (time: string) => void;
+  selectedBreakTime: string;
+  setSelectedBreakTime: (time: string) => void;
 }
 
 export const usePomodoroStore = create<PomodoroState>()(
@@ -88,20 +95,23 @@ export const usePomodoroStore = create<PomodoroState>()(
       history: {},
 
       soundOption: "victory",
-      dailyTarget: 120,
+      dailyTarget: 240,
       todayTotalTime: 0,
       gridColor: "#00FBFF",
       goal: null,
+      selectedTaskCategory: "study",
+      selectedFocusTime: "25",
+      selectedBreakTime: "5",
       categories: [
-        { id: "study", name: "Study", color: "#808080" },
-        { id: "work", name: "Work", color: "#00FBFF" },
+        { id: "study", name: "Study", color: "#00FBFF" },
+        { id: "work", name: "Work", color: "#00FF66" },
       ],
 
       addCategory: (category) => set((state) => ({ categories: [...state.categories, category] })),
 
-      updateCategory: (id, name, color) =>
+      updateCategory: (id, name, color, dailyTarget) =>
         set((state) => ({
-          categories: state.categories.map((c) => (c.id === id ? { ...c, name, color } : c)),
+          categories: state.categories.map((c) => (c.id === id ? { ...c, name, color, dailyTarget } : c)),
         })),
 
       deleteCategory: (id) =>
@@ -114,6 +124,10 @@ export const usePomodoroStore = create<PomodoroState>()(
       setGridColor: (color) => set({ gridColor: color }),
 
       setGoal: (goal) => set({ goal }),
+
+      setSelectedTaskCategory: (categoryId) => set({ selectedTaskCategory: categoryId }),
+      setSelectedFocusTime: (time) => set({ selectedFocusTime: time }),
+      setSelectedBreakTime: (time) => set({ selectedBreakTime: time }),
 
       setSoundOption: (option) => set({ soundOption: option }),
 
@@ -344,6 +358,9 @@ export const usePomodoroStore = create<PomodoroState>()(
         gridColor: state.gridColor,
         goal: state.goal,
         soundOption: state.soundOption,
+        selectedTaskCategory: state.selectedTaskCategory,
+        selectedFocusTime: state.selectedFocusTime,
+        selectedBreakTime: state.selectedBreakTime,
       }),
     },
   ),
