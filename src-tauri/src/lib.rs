@@ -62,6 +62,9 @@ fn clamp_window_to_monitor(window: &tauri::Window) {
     let Ok(pos) = window.outer_position() else {
         return;
     };
+    if pos.y < -10000 || pos.x < -10000 {
+        return; // Window is minimized or hidden by OS
+    }
     let Ok(outer) = window.outer_size() else {
         return;
     };
@@ -111,6 +114,7 @@ pub fn run() {
     }];
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         .manage(AppState {
             reposition_on_show: AtomicBool::new(true),
         })

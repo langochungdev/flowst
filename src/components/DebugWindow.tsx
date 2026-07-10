@@ -1,6 +1,7 @@
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore, getMockedDate } from "../stores/debugStore";
-import { Trash2, Copy } from "lucide-react";
+import { Trash2, Copy, X } from "lucide-react";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 export default function DebugWindow() {
   const {
@@ -108,11 +109,11 @@ export default function DebugWindow() {
 
   return (
     <div
+      className="glass-window debug-window"
       style={{
         width: "100vw",
         height: "100vh",
-        background: "var(--text-primary)",
-        color: "var(--el-bg)",
+        color: "var(--text-primary)",
         display: "flex",
         flexDirection: "column",
         fontFamily: "monospace",
@@ -124,6 +125,7 @@ export default function DebugWindow() {
     >
       {/* Header */}
       <div
+        data-tauri-drag-region
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -134,6 +136,7 @@ export default function DebugWindow() {
         }}
       >
         <h2
+          data-tauri-drag-region
           style={{
             margin: 0,
             fontSize: "16px",
@@ -166,6 +169,16 @@ export default function DebugWindow() {
             />
             Sandbox Mode
           </label>
+          <button
+            className="action-btn-outline"
+            onClick={() => getCurrentWebviewWindow()?.hide()}
+            title="Close Debug Window"
+            style={{ padding: "4px", border: "none" }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <div style={{ display: "flex", gap: "8px" }}>
           <button
             onClick={resetDebug}
             disabled={!isDebugMode}

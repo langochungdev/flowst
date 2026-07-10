@@ -55,8 +55,11 @@ interface PomodoroState {
   tick: () => void;
   checkRollover: () => void;
   setTimeLeft: (seconds: number) => void;
-  soundOption: "victory" | "trumpet";
-  setSoundOption: (option: "victory" | "trumpet") => void;
+  soundOption: "victory" | "trumpet" | "off";
+  setSoundOption: (option: "victory" | "trumpet" | "off") => void;
+  notificationsEnabled: boolean;
+  setNotificationsEnabled: (enabled: boolean) => void;
+  triggerNotification: (title: string, body: string) => void;
   playSound: () => void;
   categories: TaskCategory[];
   addCategory: (category: TaskCategory) => void;
@@ -97,6 +100,7 @@ export const usePomodoroStore = create<PomodoroState>()(
       history: {},
 
       soundOption: "victory",
+      notificationsEnabled: true,
       dailyTarget: 240,
       todayTotalTime: 0,
       gridColor: "#00FBFF",
@@ -132,12 +136,54 @@ export const usePomodoroStore = create<PomodoroState>()(
       setSelectedBreakTime: (time) => set({ selectedBreakTime: time }),
 
       setSoundOption: (option) => set({ soundOption: option }),
+      setNotificationsEnabled: (enabled) => {
+        set({ notificationsEnabled: enabled });
+        if (enabled) {
+          import('@tauri-apps/plugin-notification').then(({ isPermissionGranted, requestPermission }) => {
+            isPermissionGranted().then(granted => {
+              if (!granted) {
+                requestPermission().catch(console.error);
+              }
+            }).catch(console.error);
+          }).catch(console.error);
+        }
+      },
+
+      triggerNotification: (title: string, body: string) => {
+        const { notificationsEnabled } = get();
+        if (!notificationsEnabled) return;
+        
+        import('@tauri-apps/api/webviewWindow').then(({ WebviewWindow }) => {
+          WebviewWindow.getByLabel("mini").then(miniWin => {
+            if (miniWin) {
+              miniWin.isVisible().then(vis => {
+                if (!vis) {
+                  import('@tauri-apps/plugin-notification').then(({ isPermissionGranted, requestPermission, sendNotification }) => {
+                    isPermissionGranted().then(granted => {
+                      if (!granted) {
+                        return requestPermission();
+                      }
+                      return 'granted';
+                    }).then(permission => {
+                      if (permission === 'granted') {
+                        // In dev mode, we pass icon: "icon.png" to see if Tauri picks it up from public/ or assets
+                        sendNotification({ title, body, icon: "icon.png" });
+                      }
+                    }).catch(console.error);
+                  }).catch(console.error);
+                }
+              }).catch(console.error);
+            }
+          }).catch(console.error);
+        }).catch(console.error);
+      },
 
       playSound: () => {
+        const { soundOption } = get();
+        if (soundOption === "off") return;
         const now = Date.now();
         if (now - lastSoundTime < 500) return;
         lastSoundTime = now;
-        const { soundOption } = get();
         const soundFile =
           soundOption === "trumpet" ? "success-fanfare-trumpets.mp3" : "victory-chime.mp3";
         const audio = new Audio(`/sounds/${soundFile}`);
@@ -325,6 +371,7 @@ export const usePomodoroStore = create<PomodoroState>()(
             const nextIndex = currentBlockIndex + 1;
             if (nextIndex < blocks.length) {
               if (breakDuration > 0) {
+                get().triggerNotification("Break Time", `${breakDuration / 60} min`);
                 set({
                   state: "break",
                   timeLeft: breakDuration,
@@ -332,6 +379,7 @@ export const usePomodoroStore = create<PomodoroState>()(
                   currentBlockIndex: nextIndex,
                 });
               } else {
+                get().triggerNotification("Focus Time", `${Math.round(blocks[nextIndex] / 60)} min`);
                 set({
                   state: "focus",
                   timeLeft: blocks[nextIndex],
@@ -340,9 +388,11 @@ export const usePomodoroStore = create<PomodoroState>()(
                 });
               }
             } else {
+              get().triggerNotification("All Done", "Session complete");
               stopTimer();
             }
           } else if (state === "break") {
+            get().triggerNotification("Focus Time", `${Math.round(blocks[currentBlockIndex] / 60)} min`);
             set({
               state: "focus",
               timeLeft: blocks[currentBlockIndex],

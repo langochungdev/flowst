@@ -8,6 +8,8 @@ import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 export default function SettingsPane() {
     const soundOption = usePomodoroStore((state) => state.soundOption);
     const setSoundOption = usePomodoroStore((state) => state.setSoundOption);
+    const notificationsEnabled = usePomodoroStore((state) => state.notificationsEnabled);
+    const setNotificationsEnabled = usePomodoroStore((state) => state.setNotificationsEnabled);
     const dailyTarget = usePomodoroStore((state) => state.dailyTarget);
     const setDailyTarget = usePomodoroStore((state) => state.setDailyTarget);
     const categories = usePomodoroStore((state) => state.categories);
@@ -36,8 +38,9 @@ export default function SettingsPane() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handlePlayPreview = (soundName: "victory" | "trumpet", e: React.MouseEvent) => {
+    const handlePlayPreview = (soundName: "victory" | "trumpet" | "off", e: React.MouseEvent) => {
         e.stopPropagation();
+        if (soundName === "off") return;
 
         if (playingSoundId === soundName && audioRef.current) {
             audioRef.current.pause();
@@ -67,7 +70,10 @@ export default function SettingsPane() {
     };
 
     const getSoundLabel = (val: string) => {
-        return val === "trumpet" ? "Success Fanfare Trumpets" : "Victory Chime";
+        if (val === "victory") return "Victory Chime";
+        if (val === "trumpet") return "Fanfare Trumpets";
+        if (val === "off") return "Off";
+        return val;
     };
 
     return (
@@ -127,6 +133,22 @@ export default function SettingsPane() {
                                     {playingSoundId === "trumpet" ? <Pause size={10} /> : <Play size={10} />}
                                 </button>
                             </div>
+                            <div
+                                className={`sound-option ${soundOption === "off" ? "selected" : ""}`}
+                                onClick={() => {
+                                    setSoundOption("off");
+                                    setIsSoundDropdownOpen(false);
+                                    if (playingSoundId) {
+                                        audioRef.current?.pause();
+                                        setPlayingSoundId(null);
+                                    }
+                                }}
+                                style={{ padding: "6px 10px", marginTop: "4px" }}
+                            >
+                                <div className="sound-option-name" style={{ fontSize: "12px" }}>
+                                    Off
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -147,6 +169,18 @@ export default function SettingsPane() {
                         cursor: "pointer",
                     }}
                 />
+            </div>
+
+            <div className="setting-item-row">
+                <span className="setting-label" title="Show OS notification when timer finishes, if Mini View is hidden">Desktop Notifications</span>
+                <label className="switch">
+                    <input
+                        type="checkbox"
+                        checked={notificationsEnabled}
+                        onChange={(e) => setNotificationsEnabled(e.target.checked)}
+                    />
+                    <span className="slider round"></span>
+                </label>
             </div>
 
             <div className="setting-item-row">
