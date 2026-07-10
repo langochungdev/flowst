@@ -57,7 +57,7 @@ export default function MiniWindow() {
         selectedFocusTime || "25",
         selectedBreakTime || "5",
         timeLeft,
-        selectedTaskCategory || ""
+        selectedTaskCategory || "",
       );
     } else if (isActive) {
       pauseTimer();

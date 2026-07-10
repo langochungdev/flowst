@@ -262,23 +262,22 @@ export default function DebugWindow() {
       <div className="debug-window-container">
         {/* Header */}
         <div className="debug-header" data-tauri-drag-region>
-          <h2
-            className="debug-title"
-            data-tauri-drag-region
-            style={{ color: "#ff4444" }}
-          >
+          <h2 className="debug-title" data-tauri-drag-region style={{ color: "#ff4444" }}>
             Debug Console
-            <span style={{ fontSize: "12px", background: "rgba(255,0,0,0.2)", padding: "2px 6px", borderRadius: "4px" }}>
+            <span
+              style={{
+                fontSize: "12px",
+                background: "rgba(255,0,0,0.2)",
+                padding: "2px 6px",
+                borderRadius: "4px",
+              }}
+            >
               SANDBOX
             </span>
           </h2>
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button
-                className="debug-btn"
-                onClick={resetDebug}
-                style={{ flex: "none" }}
-              >
+              <button className="debug-btn" onClick={resetDebug} style={{ flex: "none" }}>
                 Reset Time/Date
               </button>
               <button
@@ -303,10 +302,20 @@ export default function DebugWindow() {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "12px", height: "calc(100% - 40px)", overflow: "hidden" }}>
+        <div
+          style={{ display: "flex", gap: "12px", height: "calc(100% - 40px)", overflow: "hidden" }}
+        >
           {/* Left Column: State Viewer */}
-          <div className="debug-panel" style={{ flex: 1.2, minWidth: 0, padding: 0, overflow: "hidden" }}>
-            <div className="debug-panel-title" style={{ padding: "12px 12px 0 12px", marginBottom: "8px" }}>State Inspector</div>
+          <div
+            className="debug-panel"
+            style={{ flex: 1.2, minWidth: 0, padding: 0, overflow: "hidden" }}
+          >
+            <div
+              className="debug-panel-title"
+              style={{ padding: "12px 12px 0 12px", marginBottom: "8px" }}
+            >
+              State Inspector
+            </div>
             <pre className="debug-scroll-area" style={{ margin: "0 12px 12px 12px" }}>
               {JSON.stringify(
                 pomodoroState,
@@ -320,26 +329,55 @@ export default function DebugWindow() {
           </div>
 
           {/* Right Column: Simulators & Logs */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, overflow: "hidden" }}>
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              minWidth: 0,
+              overflow: "hidden",
+            }}
+          >
             {/* Simulators */}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: "none" }}>
-              
               <div className="debug-panel" style={{ padding: "8px" }}>
                 <div className="debug-panel-title">
                   Time Simulator
-                  <span className="sim-value">{timeMultiplier === 0 ? "Stopped" : `${timeMultiplier}x`}</span>
+                  <span className="sim-value">
+                    {timeMultiplier === 0 ? "Stopped" : `${timeMultiplier}x`}
+                  </span>
                 </div>
                 <div className="btn-group">
-                  <button className="debug-btn" onClick={() => setTimeMultiplier(Math.max(1, timeMultiplier - 1))} disabled={timeMultiplier <= 1}>
+                  <button
+                    className="debug-btn"
+                    onClick={() => setTimeMultiplier(Math.max(1, timeMultiplier - 1))}
+                    disabled={timeMultiplier <= 1}
+                  >
                     -1x
                   </button>
-                  <button className={`debug-btn ${timeMultiplier === 0 ? "primary" : ""}`} onClick={() => setTimeMultiplier(timeMultiplier === 0 ? 1 : 0)}>
+                  <button
+                    className={`debug-btn ${timeMultiplier === 0 ? "primary" : ""}`}
+                    onClick={() => setTimeMultiplier(timeMultiplier === 0 ? 1 : 0)}
+                  >
                     {timeMultiplier === 0 ? "Play" : "Pause"}
                   </button>
-                  <button className="debug-btn" onClick={() => setTimeMultiplier(Math.min(60, timeMultiplier === 0 ? 1 : timeMultiplier + 1))} disabled={timeMultiplier >= 60}>
+                  <button
+                    className="debug-btn"
+                    onClick={() =>
+                      setTimeMultiplier(Math.min(60, timeMultiplier === 0 ? 1 : timeMultiplier + 1))
+                    }
+                    disabled={timeMultiplier >= 60}
+                  >
                     +1x
                   </button>
-                  <button className="debug-btn primary" onClick={() => setTimeMultiplier(Math.min(60, timeMultiplier === 0 ? 2 : timeMultiplier * 2))} disabled={timeMultiplier >= 60}>
+                  <button
+                    className="debug-btn primary"
+                    onClick={() =>
+                      setTimeMultiplier(Math.min(60, timeMultiplier === 0 ? 2 : timeMultiplier * 2))
+                    }
+                    disabled={timeMultiplier >= 60}
+                  >
                     x2
                   </button>
                 </div>
@@ -348,24 +386,36 @@ export default function DebugWindow() {
               <div className="debug-panel" style={{ padding: "8px" }}>
                 <div className="debug-panel-title">
                   Date Simulator
-                  <span className="sim-value" style={{ color: dateOffsetDays !== 0 ? "#00FBFF" : "inherit" }}>
+                  <span
+                    className="sim-value"
+                    style={{ color: dateOffsetDays !== 0 ? "#00FBFF" : "inherit" }}
+                  >
                     {dateOffsetDays > 0 ? `+${dateOffsetDays}` : dateOffsetDays} Days
                   </span>
                 </div>
-                <div style={{ color: "#888", fontSize: "10px", marginTop: "-4px", textAlign: "right" }}>
-                  Mock Date: {(() => {
+                <div
+                  style={{ color: "#888", fontSize: "10px", marginTop: "-4px", textAlign: "right" }}
+                >
+                  Mock Date:{" "}
+                  {(() => {
                     const d = getMockedDate();
                     return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
                   })()}
                 </div>
                 <div className="btn-group" style={{ marginTop: "4px" }}>
-                  <button className="debug-btn" onClick={() => setDateOffsetDays(dateOffsetDays - 1)}>
+                  <button
+                    className="debug-btn"
+                    onClick={() => setDateOffsetDays(dateOffsetDays - 1)}
+                  >
                     -1 Day
                   </button>
                   <button className="debug-btn primary" onClick={() => setDateOffsetDays(0)}>
                     Today
                   </button>
-                  <button className="debug-btn" onClick={() => setDateOffsetDays(dateOffsetDays + 1)}>
+                  <button
+                    className="debug-btn"
+                    onClick={() => setDateOffsetDays(dateOffsetDays + 1)}
+                  >
                     +1 Day
                   </button>
                 </div>
@@ -374,13 +424,22 @@ export default function DebugWindow() {
               <div className="debug-panel" style={{ padding: "8px" }}>
                 <div className="debug-panel-title">Mock Data Generator</div>
                 <div className="btn-group">
-                  <button className="debug-btn" onClick={() => handleGenerateMockData("year-random")}>
+                  <button
+                    className="debug-btn"
+                    onClick={() => handleGenerateMockData("year-random")}
+                  >
                     1 Year (Rnd)
                   </button>
-                  <button className="debug-btn" onClick={() => handleGenerateMockData("month-consistent")}>
+                  <button
+                    className="debug-btn"
+                    onClick={() => handleGenerateMockData("month-consistent")}
+                  >
                     1 Mo (Sync)
                   </button>
-                  <button className="debug-btn" onClick={() => handleGenerateMockData("month-random")}>
+                  <button
+                    className="debug-btn"
+                    onClick={() => handleGenerateMockData("month-random")}
+                  >
                     1 Mo (Ext)
                   </button>
                 </div>
@@ -389,26 +448,45 @@ export default function DebugWindow() {
 
             {/* System Logs */}
             <div className="debug-panel" style={{ flex: 1, padding: "8px", overflow: "hidden" }}>
-              <div className="debug-panel-title" style={{ padding: "0 0 8px 0", marginBottom: "4px" }}>
+              <div
+                className="debug-panel-title"
+                style={{ padding: "0 0 8px 0", marginBottom: "4px" }}
+              >
                 <span>System Logs</span>
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <button className="debug-btn" onClick={handleCopyLogs} style={{ padding: "4px 8px", flex: "none" }}>
+                  <button
+                    className="debug-btn"
+                    onClick={handleCopyLogs}
+                    style={{ padding: "4px 8px", flex: "none" }}
+                  >
                     <Copy size={12} /> Copy
                   </button>
-                  <button className="debug-btn" onClick={clearLogs} style={{ padding: "4px 8px", flex: "none" }}>
+                  <button
+                    className="debug-btn"
+                    onClick={clearLogs}
+                    style={{ padding: "4px 8px", flex: "none" }}
+                  >
                     <Trash2 size={12} /> Clear
                   </button>
                 </div>
               </div>
               <div className="debug-scroll-area" style={{ margin: 0 }}>
                 {logs.map((log) => (
-                  <div key={log.id} className="log-entry" style={{ color: log.level === "error" ? "#ff4444" : "inherit" }}>
-                    <span className="log-time">[{new Date(log.timestamp).toLocaleTimeString()}]</span>{" "}
+                  <div
+                    key={log.id}
+                    className="log-entry"
+                    style={{ color: log.level === "error" ? "#ff4444" : "inherit" }}
+                  >
+                    <span className="log-time">
+                      [{new Date(log.timestamp).toLocaleTimeString()}]
+                    </span>{" "}
                     <span className={log.level === "error" ? "log-error" : "log-info"}>
                       {log.level.toUpperCase()}
                     </span>{" "}
                     {log.message}{" "}
-                    {log.args.length > 0 && <span style={{ opacity: 0.7 }}>{JSON.stringify(log.args)}</span>}
+                    {log.args.length > 0 && (
+                      <span style={{ opacity: 0.7 }}>{JSON.stringify(log.args)}</span>
+                    )}
                   </div>
                 ))}
                 {logs.length === 0 && <div style={{ color: "#888" }}>No logs yet...</div>}

@@ -38,7 +38,7 @@ function App() {
   }, [windowLabel]);
 
   useEffect(() => {
-    if (windowLabel === "main") {      
+    if (windowLabel === "main") {
       const timer = setInterval(
         () => {
           tick();

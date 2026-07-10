@@ -706,9 +706,11 @@ export default function ClockPane() {
           }}
         >
           {(() => {
-            const currentCat = categories.find(c => c.id === taskCategory);
+            const currentCat = categories.find((c) => c.id === taskCategory);
             const activeTarget = currentCat?.dailyTarget || dailyTarget;
-            const activeTime = currentCat ? (todayCategoryBreakdown[currentCat.id] || 0) : todayTotalTime;
+            const activeTime = currentCat
+              ? todayCategoryBreakdown[currentCat.id] || 0
+              : todayTotalTime;
             const activeColor = currentCat ? currentCat.color : "var(--grid-active)";
 
             return (
@@ -755,7 +757,7 @@ export default function ClockPane() {
           else if (totalHours <= 3) level = 2;
           else if (totalHours <= 5) level = 3;
           else level = 4;
-          
+
           const color = level <= 0 ? "var(--grid-base)" : "var(--grid-active)";
           const opacity = level <= 0 ? 1 : [0, 0.3, 0.5, 0.72, 1.0][level];
 
@@ -923,13 +925,21 @@ export default function ClockPane() {
               <button
                 onClick={() => {
                   if (newCatName.trim()) {
-                    const targetVal = newCatTarget.trim() ? parseInt(newCatTarget.trim()) : undefined;
-                    const finalTarget = (targetVal !== undefined && !isNaN(targetVal)) ? targetVal : undefined;
+                    const targetVal = newCatTarget.trim()
+                      ? parseInt(newCatTarget.trim())
+                      : undefined;
+                    const finalTarget =
+                      targetVal !== undefined && !isNaN(targetVal) ? targetVal : undefined;
                     if (editingCatId) {
                       updateCategory(editingCatId, newCatName.trim(), newCatColor, finalTarget);
                     } else {
                       const id = "cat_" + Date.now();
-                      addCategory({ id, name: newCatName.trim(), color: newCatColor, dailyTarget: finalTarget });
+                      addCategory({
+                        id,
+                        name: newCatName.trim(),
+                        color: newCatColor,
+                        dailyTarget: finalTarget,
+                      });
                       setTaskCategory(id);
                     }
                     setShowCatPopup(false);

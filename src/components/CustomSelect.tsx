@@ -48,9 +48,7 @@ export default function CustomSelect({
     >
       <div className="select-trigger" onClick={() => !disabled && setIsOpen(!isOpen)}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ color: selectedOption.color || "inherit" }}>
-            {selectedOption.label}
-          </span>
+          <span style={{ color: selectedOption.color || "inherit" }}>{selectedOption.label}</span>
         </div>
         <ChevronDown size={14} />
       </div>

@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification';
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from "@tauri-apps/plugin-notification";
 import { useDebugStore, getMockedDate } from "./debugStore";
 import { emit, listen } from "@tauri-apps/api/event";
 
@@ -119,7 +123,9 @@ export const usePomodoroStore = create<PomodoroState>()(
 
       updateCategory: (id, name, color, dailyTarget) =>
         set((state) => ({
-          categories: state.categories.map((c) => (c.id === id ? { ...c, name, color, dailyTarget } : c)),
+          categories: state.categories.map((c) =>
+            c.id === id ? { ...c, name, color, dailyTarget } : c,
+          ),
         })),
 
       deleteCategory: (id) =>
@@ -141,38 +147,40 @@ export const usePomodoroStore = create<PomodoroState>()(
       setNotificationsEnabled: (enabled) => {
         set({ notificationsEnabled: enabled });
         if (enabled) {
-          isPermissionGranted().then(granted => {
-            if (!granted) {
-              requestPermission().catch(console.error);
-            }
-          }).catch(console.error);
+          isPermissionGranted()
+            .then((granted) => {
+              if (!granted) {
+                requestPermission().catch(console.error);
+              }
+            })
+            .catch(console.error);
         }
       },
 
       triggerNotification: (title: string, body: string) => {
         const { notificationsEnabled } = get();
         if (!notificationsEnabled) return;
-        
+
         const checkVis = async () => {
           const mainWin = await WebviewWindow.getByLabel("main");
           const mainVis = mainWin ? await mainWin.isVisible() : false;
-          
+
           const miniWin = await WebviewWindow.getByLabel("mini");
           const miniVis = miniWin ? await miniWin.isVisible() : false;
-          
+
           // Only show notification if BOTH main and mini views are hidden
           if (!mainVis && !miniVis) {
             let granted = await isPermissionGranted();
             if (!granted) {
               const permission = await requestPermission();
-              granted = permission === 'granted';
+              granted = permission === "granted";
             }
             if (granted) {
               sendNotification({ title, body, icon: "icon.png" });
             }
           }
         };
-        
+
         checkVis().catch(console.error);
       },
 
@@ -379,7 +387,10 @@ export const usePomodoroStore = create<PomodoroState>()(
                   currentBlockIndex: nextIndex,
                 });
               } else {
-                get().triggerNotification("Focus Time", `${Math.round(blocks[nextIndex] / 60)} min`);
+                get().triggerNotification(
+                  "Focus Time",
+                  `${Math.round(blocks[nextIndex] / 60)} min`,
+                );
                 set({
                   state: "focus",
                   timeLeft: blocks[nextIndex],
@@ -392,7 +403,10 @@ export const usePomodoroStore = create<PomodoroState>()(
               stopTimer();
             }
           } else if (state === "break") {
-            get().triggerNotification("Focus Time", `${Math.round(blocks[currentBlockIndex] / 60)} min`);
+            get().triggerNotification(
+              "Focus Time",
+              `${Math.round(blocks[currentBlockIndex] / 60)} min`,
+            );
             set({
               state: "focus",
               timeLeft: blocks[currentBlockIndex],
@@ -445,7 +459,10 @@ usePomodoroStore.subscribe((state) => {
       if (syncTimeout) clearTimeout(syncTimeout);
       syncTimeout = setTimeout(() => {
         lastSyncTime = Date.now();
-        emit("pomodoro-state-sync", { senderId: storeWindowId, state: usePomodoroStore.getState() }).catch(console.error);
+        emit("pomodoro-state-sync", {
+          senderId: storeWindowId,
+          state: usePomodoroStore.getState(),
+        }).catch(console.error);
       }, 100);
     }
   }
