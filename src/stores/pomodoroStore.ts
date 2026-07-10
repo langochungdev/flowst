@@ -346,8 +346,7 @@ export const usePomodoroStore = create<PomodoroState>()(
         const multiplier = debugState.isDebugMode ? debugState.timeMultiplier : 1;
 
         if (timeLeft > 0) {
-          const toSubtract = multiplier === 0 ? 0 : 1;
-          const actualSubtracted = Math.min(toSubtract, timeLeft);
+          const actualSubtracted = Math.min(multiplier, timeLeft);
           if (actualSubtracted > 0) {
             if (state === "focus") {
               const addedMinutes = actualSubtracted / 60;
