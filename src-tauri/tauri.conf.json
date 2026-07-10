@@ -23,6 +23,7 @@
         "resizable": false,
         "alwaysOnTop": false,
         "visible": false,
+        "skipTaskbar": true,
         "url": "index.html"
       },
       {

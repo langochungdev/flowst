@@ -14,7 +14,7 @@ export default function MainWindow() {
 
   const handleMinimize = () => {
     const appWindow = getCurrentWebviewWindow();
-    if (appWindow) appWindow.minimize();
+    if (appWindow) appWindow.hide();
   };
 
   const handleClose = () => {

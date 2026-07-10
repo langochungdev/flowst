@@ -27,6 +27,16 @@ fn disable_rounded_corners(window: &tauri::WebviewWindow) {
     }
 }
 
+#[tauri::command]
+fn update_tray_tooltip(app_handle: tauri::AppHandle, tooltip: String) {
+    let app_handle_clone = app_handle.clone();
+    let _ = app_handle.run_on_main_thread(move || {
+        if let Some(tray) = app_handle_clone.tray_by_id("main") {
+            let _ = tray.set_tooltip(Some(tooltip));
+        }
+    });
+}
+
 fn clamp_window_to_monitor(window: &tauri::Window) {
     let Ok(pos) = window.outer_position() else {
         return;
@@ -80,7 +90,9 @@ pub fn run() {
     }];
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(tauri_plugin_log::Builder::new()
+            .level(log::LevelFilter::Info)
+            .build())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:flowst.db", migrations)
@@ -104,7 +116,7 @@ pub fn run() {
             
             let menu = Menu::with_items(app, &[&focus_25, &focus_50, &break_5, &break_15, &sep, &quit_i])?;
 
-            let tray = TrayIconBuilder::new()
+            let tray = TrayIconBuilder::with_id("main")
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
                 .show_menu_on_left_click(false)
@@ -147,7 +159,10 @@ pub fn run() {
                     } = event {
                         let app = tray.app_handle();
                         if let Some(window) = app.get_webview_window("main") {
-                            let _ = if window.is_visible().unwrap_or(false) {
+                            let is_visible = window.is_visible().unwrap_or(false);
+                            let is_minimized = window.is_minimized().unwrap_or(false);
+                            
+                            let _ = if is_visible && !is_minimized {
                                 window.hide()
                             } else {
                                 if let Ok(window_size) = window.outer_size() {
@@ -164,6 +179,7 @@ pub fn run() {
                                     let y = tray_y - window_size.height as i32 - 10;
                                     let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
                                 }
+                                let _ = window.unminimize();
                                 window.show().and_then(|_| window.set_focus())
                             };
                         }
@@ -203,7 +219,8 @@ pub fn run() {
             commands::window::open_settings_window,
             commands::settings::load_settings,
             commands::settings::save_settings,
-            commands::sys::get_memory_usage
+            commands::sys::get_memory_usage,
+            update_tray_tooltip
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
