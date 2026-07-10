@@ -262,12 +262,20 @@ function GoalTrackerView() {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         document.getElementById("goal-month-input")?.focus();
-                      } else if ((e.key === "Backspace" || e.key === "Delete") && (day === "" || (e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0))) {
+                      } else if (
+                        (e.key === "Backspace" || e.key === "Delete") &&
+                        (day === "" ||
+                          (e.currentTarget.selectionStart === 0 &&
+                            e.currentTarget.selectionEnd === 0))
+                      ) {
                         e.preventDefault();
                         const prev = document.getElementById("goal-text-input") as HTMLInputElement;
                         if (prev) {
                           prev.focus();
-                          setTimeout(() => { prev.selectionStart = prev.value.length; prev.selectionEnd = prev.value.length; }, 0);
+                          setTimeout(() => {
+                            prev.selectionStart = prev.value.length;
+                            prev.selectionEnd = prev.value.length;
+                          }, 0);
                         }
                       }
                     }}
@@ -297,12 +305,20 @@ function GoalTrackerView() {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         document.getElementById("goal-year-input")?.focus();
-                      } else if ((e.key === "Backspace" || e.key === "Delete") && (month === "" || (e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0))) {
+                      } else if (
+                        (e.key === "Backspace" || e.key === "Delete") &&
+                        (month === "" ||
+                          (e.currentTarget.selectionStart === 0 &&
+                            e.currentTarget.selectionEnd === 0))
+                      ) {
                         e.preventDefault();
                         const prev = document.getElementById("goal-day-input") as HTMLInputElement;
                         if (prev) {
                           prev.focus();
-                          setTimeout(() => { prev.selectionStart = prev.value.length; prev.selectionEnd = prev.value.length; }, 0);
+                          setTimeout(() => {
+                            prev.selectionStart = prev.value.length;
+                            prev.selectionEnd = prev.value.length;
+                          }, 0);
                         }
                       }
                     }}
@@ -330,12 +346,22 @@ function GoalTrackerView() {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         handleSave();
-                      } else if ((e.key === "Backspace" || e.key === "Delete") && (year === "" || (e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0))) {
+                      } else if (
+                        (e.key === "Backspace" || e.key === "Delete") &&
+                        (year === "" ||
+                          (e.currentTarget.selectionStart === 0 &&
+                            e.currentTarget.selectionEnd === 0))
+                      ) {
                         e.preventDefault();
-                        const prev = document.getElementById("goal-month-input") as HTMLInputElement;
+                        const prev = document.getElementById(
+                          "goal-month-input",
+                        ) as HTMLInputElement;
                         if (prev) {
                           prev.focus();
-                          setTimeout(() => { prev.selectionStart = prev.value.length; prev.selectionEnd = prev.value.length; }, 0);
+                          setTimeout(() => {
+                            prev.selectionStart = prev.value.length;
+                            prev.selectionEnd = prev.value.length;
+                          }, 0);
                         }
                       }
                     }}

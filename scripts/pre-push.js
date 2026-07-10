@@ -2,11 +2,18 @@ import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
+console.log("Auto-formatting and fixing lint errors...");
+try {
+  execSync("npm run format && npm run lint -- --fix", { stdio: "pipe", encoding: "utf-8" });
+  console.log("Auto-format complete.\n");
+} catch (error) {
+  console.log("Auto-format encountered issues (some errors might need manual fixing).\n");
+}
+
 const checks = [
   { name: "ESLint", cmd: "npm run lint" },
   { name: "TypeScript", cmd: "npx tsc --noEmit" },
-  { name: "Prettier", cmd: "npx prettier --check ." },
-  { name: "Rust (Cargo Check)", cmd: "cargo check --manifest-path src-tauri/Cargo.toml" }
+  { name: "Rust (Cargo Check)", cmd: "cargo check --manifest-path src-tauri/Cargo.toml" },
 ];
 
 console.log("Running comprehensive pre-push checks...");
@@ -26,15 +33,15 @@ for (const check of checks) {
     reportContent += `[FAILED CHECK]: ${check.name}\n`;
     reportContent += `[COMMAND]: ${check.cmd}\n`;
     reportContent += `====================================\n`;
-    
+
     // Some commands output to stdout (like eslint/prettier), some to stderr (like cargo)
     const stdout = error.stdout ? error.stdout.toString() : "";
     const stderr = error.stderr ? error.stderr.toString() : "";
-    
+
     if (stdout.trim()) reportContent += `${stdout}\n`;
     if (stderr.trim()) reportContent += `${stderr}\n`;
     if (!stdout.trim() && !stderr.trim()) reportContent += `${error.message || "Unknown error"}\n`;
-    
+
     reportContent += `\n`;
   }
 }

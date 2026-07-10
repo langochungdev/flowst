@@ -1,5 +1,7 @@
 ## [0.4.0] - 2026-07-10
+
 ### Features
+
 - feat: implement App root component with window-specific rendering and timer logic
 - feat: implement multi-window architecture with debug and pomodoro state management
 - feat: initialize tauri configuration with multi-window setup
