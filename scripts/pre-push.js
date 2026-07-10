@@ -18,7 +18,9 @@ try {
     execSync("git add -u", { stdio: "pipe", encoding: "utf-8" });
     execSync('git commit -m "chore: auto-format code"', { stdio: "pipe", encoding: "utf-8" });
     console.log("Auto-format commit created successfully.\n");
-    console.log("⚠️ LƯU Ý: Git push sẽ không bao gồm commit auto-format này (vì hook chạy sau khi git lấy danh sách). Nó sẽ được đẩy lên ở lần push tiếp theo.\n");
+    console.log(
+      "⚠️ LƯU Ý: Git push sẽ không bao gồm commit auto-format này (vì hook chạy sau khi git lấy danh sách). Nó sẽ được đẩy lên ở lần push tiếp theo.\n",
+    );
   }
 } catch (e) {
   console.error("Failed to check or commit formatted files", e);

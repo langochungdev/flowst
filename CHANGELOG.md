@@ -1,5 +1,7 @@
 ## [0.9.0] - 2026-07-10
+
 ### Features
+
 - feat: implement Pomodoro settings, state management, and supporting UI components
 
 ## [0.8.0] - 2026-07-10
