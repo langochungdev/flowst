@@ -1,7 +1,7 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from "react";
 
 interface WheelPickerProps {
-  value: number; 
+  value: number;
   onChange: (value: number) => void;
   onClose: () => void;
   minTime?: number;
@@ -9,7 +9,14 @@ interface WheelPickerProps {
 
 const options = [
   ...Array.from({ length: 12 }, (_, i) => (i + 1) * 5 * 60), // 5m to 60m
-  90 * 60, 120 * 60, 150 * 60, 180 * 60, 210 * 60, 240 * 60, 270 * 60, 300 * 60 // 1h30 to 5h
+  90 * 60,
+  120 * 60,
+  150 * 60,
+  180 * 60,
+  210 * 60,
+  240 * 60,
+  270 * 60,
+  300 * 60, // 1h30 to 5h
 ];
 
 function formatEditTime(seconds: number) {
@@ -27,8 +34,8 @@ function formatEditTime(seconds: number) {
 
 export default function WheelPicker({ value, onChange, onClose, minTime }: WheelPickerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const itemHeight = 36; 
-  const availableOptions = minTime ? options.filter(o => o >= minTime) : options;
+  const itemHeight = 36;
+  const availableOptions = minTime ? options.filter((o) => o >= minTime) : options;
   const [activeIndex, setActiveIndex] = useState(() => availableOptions.indexOf(value));
 
   useEffect(() => {
@@ -38,14 +45,15 @@ export default function WheelPicker({ value, onChange, onClose, minTime }: Wheel
         scrollRef.current.scrollTop = index * itemHeight;
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isDragging = useRef(false);
   const hasMoved = useRef(false);
   const startY = useRef(0);
   const startScrollTop = useRef(0);
-  const clickTimeoutRef = useRef<any>(null);
-  
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const lastY = useRef(0);
   const lastTime = useRef(0);
   const velocity = useRef(0);
@@ -71,10 +79,10 @@ export default function WheelPicker({ value, onChange, onClose, minTime }: Wheel
     lastY.current = e.clientY;
     lastTime.current = performance.now();
     startScrollTop.current = scrollRef.current!.scrollTop;
-    
-    const item = (e.target as HTMLElement).closest('.wheel-item');
+
+    const item = (e.target as HTMLElement).closest(".wheel-item");
     if (item) {
-      clickedOptRef.current = Number(item.getAttribute('data-value'));
+      clickedOptRef.current = Number(item.getAttribute("data-value"));
     } else {
       clickedOptRef.current = null;
     }
@@ -88,7 +96,7 @@ export default function WheelPicker({ value, onChange, onClose, minTime }: Wheel
     if (Math.abs(dy) > 5) {
       hasMoved.current = true;
     }
-    
+
     const now = performance.now();
     const dt = now - lastTime.current;
     if (dt > 0) {
@@ -104,7 +112,9 @@ export default function WheelPicker({ value, onChange, onClose, minTime }: Wheel
     isDragging.current = false;
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch (err) {}
+    } catch {
+      // ignore
+    }
 
     // Handle click if we didn't move
     if (!hasMoved.current && clickedOptRef.current !== null) {
@@ -127,21 +137,21 @@ export default function WheelPicker({ value, onChange, onClose, minTime }: Wheel
     if (hasMoved.current && Math.abs(velocity.current) > 0.1) {
       let v = velocity.current;
       let lastFrameTime = performance.now();
-      
+
       if (scrollRef.current) {
-        scrollRef.current.style.scrollSnapType = 'none';
+        scrollRef.current.style.scrollSnapType = "none";
       }
 
       const step = (time: number) => {
         if (!scrollRef.current) return;
         const dt = time - lastFrameTime;
         lastFrameTime = time;
-        
+
         scrollRef.current.scrollTop -= v * dt;
         v *= Math.pow(0.995, dt);
 
         if (Math.abs(v) < 0.05) {
-          scrollRef.current.style.scrollSnapType = 'y mandatory';
+          scrollRef.current.style.scrollSnapType = "y mandatory";
           scrollRef.current.scrollTop += 1;
           scrollRef.current.scrollTop -= 1;
           return;
@@ -155,20 +165,20 @@ export default function WheelPicker({ value, onChange, onClose, minTime }: Wheel
   useEffect(() => {
     const handleDocumentClick = (e: PointerEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest('.wheel-container') && !target.closest('.time-text')) {
+      if (!target.closest(".wheel-container") && !target.closest(".time-text")) {
         onClose();
       }
     };
-    document.addEventListener('pointerdown', handleDocumentClick);
-    return () => document.removeEventListener('pointerdown', handleDocumentClick);
+    document.addEventListener("pointerdown", handleDocumentClick);
+    return () => document.removeEventListener("pointerdown", handleDocumentClick);
   }, [onClose]);
 
   return (
     <div className="wheel-container">
       <div className="wheel-highlight" />
-      <div 
-        className="wheel-list" 
-        ref={scrollRef} 
+      <div
+        className="wheel-list"
+        ref={scrollRef}
         onScroll={() => {
           if (scrollRef.current) {
             const index = Math.round(scrollRef.current.scrollTop / itemHeight);
@@ -179,13 +189,13 @@ export default function WheelPicker({ value, onChange, onClose, minTime }: Wheel
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        style={{ userSelect: 'none', touchAction: 'none' }}
+        style={{ userSelect: "none", touchAction: "none" }}
       >
         <div style={{ height: itemHeight }} />
         {availableOptions.map((opt, i) => (
-          <div 
-            key={opt} 
-            className={`wheel-item ${i === activeIndex ? 'active' : ''}`} 
+          <div
+            key={opt}
+            className={`wheel-item ${i === activeIndex ? "active" : ""}`}
             style={{ height: itemHeight }}
             data-value={opt}
           >

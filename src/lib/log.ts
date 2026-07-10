@@ -2,7 +2,7 @@ import { useDebugStore } from "../stores/debugStore";
 
 const isDev = import.meta.env.DEV;
 
-function formatMsg(args: unknown[]): { msg: string, rest: unknown[] } {
+function formatMsg(args: unknown[]): { msg: string; rest: unknown[] } {
   if (args.length === 0) return { msg: "", rest: [] };
   if (typeof args[0] === "string") return { msg: args[0], rest: args.slice(1) };
   return { msg: "Log:", rest: args };
@@ -31,4 +31,3 @@ export const log = {
     }
   },
 };
-

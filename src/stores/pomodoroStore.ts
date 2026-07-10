@@ -28,7 +28,7 @@ interface PomodoroState {
   timeLeft: number; // in seconds
   sessionDuration: number; // in seconds
   isActive: boolean;
-  
+
   blocks: number[];
   currentBlockIndex: number;
   totalSessionDuration: number;
@@ -40,7 +40,12 @@ interface PomodoroState {
   todayCategoryBreakdown: Record<string, number>; // in minutes
   history: Record<string, HistoryDay>;
 
-  startTimer: (focusTimeStr: string, breakTimeStr: string, customTimeLeft: number, categoryId: string) => void;
+  startTimer: (
+    focusTimeStr: string,
+    breakTimeStr: string,
+    customTimeLeft: number,
+    categoryId: string,
+  ) => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
   stopTimer: () => void;
@@ -67,229 +72,265 @@ export const usePomodoroStore = create<PomodoroState>()(
   persist(
     (set, get) => ({
       state: "idle",
-  timeLeft: 25 * 60,
-  sessionDuration: 25 * 60,
-  isActive: false,
-  
-  blocks: [],
-  currentBlockIndex: 0,
-  totalSessionDuration: 0,
-  elapsedSessionTime: 0,
-  breakDuration: 0,
+      timeLeft: 25 * 60,
+      sessionDuration: 25 * 60,
+      isActive: false,
 
-  currentDate: new Date().toISOString().split('T')[0],
-  activeCategoryId: null,
-  todayCategoryBreakdown: {},
-  history: {},
+      blocks: [],
+      currentBlockIndex: 0,
+      totalSessionDuration: 0,
+      elapsedSessionTime: 0,
+      breakDuration: 0,
 
-  soundOption: "victory",
-  dailyTarget: 120,
-  todayTotalTime: 0, 
-  gridColor: "#00FBFF",
-  goal: null,
-  categories: [
-    { id: "study", name: "Study", color: "#808080" },
-    { id: "work", name: "Work", color: "#00FBFF" }
-  ],
+      currentDate: new Date().toISOString().split("T")[0],
+      activeCategoryId: null,
+      todayCategoryBreakdown: {},
+      history: {},
 
-  addCategory: (category) => set((state) => ({ categories: [...state.categories, category] })),
-  
-  updateCategory: (id, name, color) => set((state) => ({
-    categories: state.categories.map(c => c.id === id ? { ...c, name, color } : c)
-  })),
+      soundOption: "victory",
+      dailyTarget: 120,
+      todayTotalTime: 0,
+      gridColor: "#00FBFF",
+      goal: null,
+      categories: [
+        { id: "study", name: "Study", color: "#808080" },
+        { id: "work", name: "Work", color: "#00FBFF" },
+      ],
 
-  deleteCategory: (id) => set((state) => ({
-    categories: state.categories.filter(c => c.id !== id)
-  })),
+      addCategory: (category) => set((state) => ({ categories: [...state.categories, category] })),
 
-  setDailyTarget: (minutes) => set({ dailyTarget: minutes }),
-  
-  setGridColor: (color) => set({ gridColor: color }),
+      updateCategory: (id, name, color) =>
+        set((state) => ({
+          categories: state.categories.map((c) => (c.id === id ? { ...c, name, color } : c)),
+        })),
 
-  setGoal: (goal) => set({ goal }),
+      deleteCategory: (id) =>
+        set((state) => ({
+          categories: state.categories.filter((c) => c.id !== id),
+        })),
 
-  setSoundOption: (option) => set({ soundOption: option }),
+      setDailyTarget: (minutes) => set({ dailyTarget: minutes }),
 
-  playSound: () => {
-    const { soundOption } = get();
-    const soundFile = soundOption === "trumpet" ? "success-fanfare-trumpets.mp3" : "victory-chime.mp3";
-    const audio = new Audio(`/sounds/${soundFile}`);
-    audio.play().catch(e => console.error("Error playing sound:", e));
-  },
+      setGridColor: (color) => set({ gridColor: color }),
 
-  startTimer: (focusTimeStr, breakTimeStr, customTimeLeft, categoryId) => {
-    const B = parseInt(breakTimeStr) || 0;
-    let T = customTimeLeft; 
-    
-    let totalSessionDuration = 0;
-    let blocks: number[] = [];
+      setGoal: (goal) => set({ goal }),
 
-    if (focusTimeStr === 'auto') {
-      const T_minutes = Math.floor(T / 60);
-      totalSessionDuration = T; // Full inputted time including breaks
-      if (B === 0) {
-        blocks = [T];
-      } else {
-        let bestN = 1;
-        let bestDiff = Infinity;
-        let validNs = [];
+      setSoundOption: (option) => set({ soundOption: option }),
 
-        for (let n = 1; n <= Math.max(1, Math.ceil(T_minutes / 15)); n++) {
-          const blockTime = T_minutes / n;
-          if (blockTime >= 15 && blockTime <= 30) {
-            validNs.push(n);
-            const diff = Math.abs(blockTime - 25);
-            if (diff < bestDiff) {
-              bestDiff = diff;
-              bestN = n;
+      playSound: () => {
+        const { soundOption } = get();
+        const soundFile =
+          soundOption === "trumpet" ? "success-fanfare-trumpets.mp3" : "victory-chime.mp3";
+        const audio = new Audio(`/sounds/${soundFile}`);
+        audio.play().catch((e) => console.error("Error playing sound:", e));
+      },
+
+      startTimer: (focusTimeStr, breakTimeStr, customTimeLeft, categoryId) => {
+        const B = parseInt(breakTimeStr) || 0;
+        const T = customTimeLeft;
+
+        let totalSessionDuration = 0;
+        let blocks: number[] = [];
+
+        if (focusTimeStr === "auto") {
+          const T_minutes = Math.floor(T / 60);
+          totalSessionDuration = T; // Full inputted time including breaks
+          if (B === 0) {
+            blocks = [T];
+          } else {
+            let bestN = 1;
+            let bestDiff = Infinity;
+            const validNs = [];
+
+            for (let n = 1; n <= Math.max(1, Math.ceil(T_minutes / 15)); n++) {
+              const blockTime = T_minutes / n;
+              if (blockTime >= 15 && blockTime <= 30) {
+                validNs.push(n);
+                const diff = Math.abs(blockTime - 25);
+                if (diff < bestDiff) {
+                  bestDiff = diff;
+                  bestN = n;
+                }
+              }
+            }
+
+            if (validNs.length === 0) {
+              blocks = [T];
+            } else {
+              const totalFocusSeconds = T_minutes * 60;
+              const baseBlockSeconds = Math.floor(totalFocusSeconds / bestN);
+              const remainderSeconds = totalFocusSeconds % bestN;
+
+              blocks = Array(bestN).fill(baseBlockSeconds);
+              for (let i = 0; i < remainderSeconds; i++) {
+                blocks[i] += 1;
+              }
             }
           }
-        }
-
-        if (validNs.length === 0) {
-          blocks = [T];
         } else {
-          const totalFocusSeconds = T_minutes * 60;
-          const baseBlockSeconds = Math.floor(totalFocusSeconds / bestN);
-          const remainderSeconds = totalFocusSeconds % bestN;
+          const blockSeconds = (parseInt(focusTimeStr) || 25) * 60;
+          let remainingSeconds = T;
 
-          blocks = Array(bestN).fill(baseBlockSeconds);
-          for (let i = 0; i < remainderSeconds; i++) {
-            blocks[i] += 1;
+          while (remainingSeconds > 0) {
+            if (remainingSeconds >= blockSeconds) {
+              blocks.push(blockSeconds);
+              remainingSeconds -= blockSeconds;
+            } else {
+              blocks.push(remainingSeconds);
+              remainingSeconds = 0;
+            }
           }
+
+          totalSessionDuration = T;
         }
-      }
-    } else {
-      const blockSeconds = (parseInt(focusTimeStr) || 25) * 60;
-      let remainingSeconds = T;
-      
-      while (remainingSeconds > 0) {
-        if (remainingSeconds >= blockSeconds) {
-          blocks.push(blockSeconds);
-          remainingSeconds -= blockSeconds;
-        } else {
-          blocks.push(remainingSeconds);
-          remainingSeconds = 0;
-        }
-      }
-      
-      totalSessionDuration = T;
-    }
 
-    set({ 
-      state: 'focus', 
-      blocks,
-      currentBlockIndex: 0,
-      timeLeft: blocks[0], 
-      sessionDuration: blocks[0], 
-      breakDuration: B * 60,
-      totalSessionDuration,
-      elapsedSessionTime: 0,
-      activeCategoryId: categoryId,
-      isActive: true 
-    });
-  },
-
-  pauseTimer: () => {
-    set({ isActive: false });
-  },
-
-  resumeTimer: () => {
-    set({ isActive: true });
-  },
-
-  stopTimer: () => {
-    set({ state: "idle", timeLeft: 25 * 60, sessionDuration: 25 * 60, isActive: false, blocks: [], currentBlockIndex: 0, totalSessionDuration: 0, elapsedSessionTime: 0 });
-  },
-
-  setTimeLeft: (seconds) => {
-    set({ timeLeft: seconds });
-  },
-
-  checkRollover: () => {
-    const todayDateString = getMockedDate().toISOString().split('T')[0];
-    const { currentDate, todayTotalTime, todayCategoryBreakdown, history } = get();
-    
-    if (todayDateString !== currentDate) {
-      const archivedTotalHours = todayTotalTime / 60;
-      const archivedBreakdown: Record<string, number> = {};
-      for (const [cat, mins] of Object.entries(todayCategoryBreakdown || {})) {
-        archivedBreakdown[cat] = mins / 60;
-      }
-      
-      const newHistory = {
-        ...(history || {}),
-        [currentDate]: {
-          totalHours: archivedTotalHours,
-          breakdown: archivedBreakdown
-        }
-      };
-      
-      const targetDayHistory = newHistory[todayDateString];
-      let restoredTotalTime = 0;
-      const restoredBreakdown: Record<string, number> = {};
-      
-      if (targetDayHistory) {
-        restoredTotalTime = targetDayHistory.totalHours * 60;
-        for (const [cat, hrs] of Object.entries(targetDayHistory.breakdown || {})) {
-          restoredBreakdown[cat] = hrs * 60;
-        }
-      }
-
-      set({
-        history: newHistory,
-        currentDate: todayDateString,
-        todayTotalTime: restoredTotalTime,
-        todayCategoryBreakdown: restoredBreakdown
-      });
-    }
-  },
-
-  tick: () => {
-    const { isActive, timeLeft, stopTimer, state, blocks, currentBlockIndex, breakDuration, activeCategoryId, checkRollover } = get();
-    
-    checkRollover();
-    
-    if (!isActive) return;
-
-    const debugState = useDebugStore.getState();
-    const multiplier = debugState.isDebugMode ? debugState.timeMultiplier : 1;
-
-    if (timeLeft > 0) {
-      if (state === 'focus') {
-        const addedMinutes = multiplier / 60;
-        set((s) => {
-          const breakdown = { ...s.todayCategoryBreakdown };
-          if (activeCategoryId) {
-            breakdown[activeCategoryId] = (breakdown[activeCategoryId] || 0) + addedMinutes;
-          }
-          return {
-            elapsedSessionTime: s.elapsedSessionTime + multiplier,
-            todayTotalTime: s.todayTotalTime + addedMinutes,
-            todayCategoryBreakdown: breakdown
-          };
+        set({
+          state: "focus",
+          blocks,
+          currentBlockIndex: 0,
+          timeLeft: blocks[0],
+          sessionDuration: blocks[0],
+          breakDuration: B * 60,
+          totalSessionDuration,
+          elapsedSessionTime: 0,
+          activeCategoryId: categoryId,
+          isActive: true,
         });
-      }
-      set((s) => ({ timeLeft: Math.max(0, s.timeLeft - multiplier) }));
-    } else {
-      get().playSound();
-      
-      if (state === 'focus') {
-        const nextIndex = currentBlockIndex + 1;
-        if (nextIndex < blocks.length) {
-          if (breakDuration > 0) {
-            set({ state: 'break', timeLeft: breakDuration, sessionDuration: breakDuration, currentBlockIndex: nextIndex });
-          } else {
-            set({ state: 'focus', timeLeft: blocks[nextIndex], sessionDuration: blocks[nextIndex], currentBlockIndex: nextIndex });
+      },
+
+      pauseTimer: () => {
+        set({ isActive: false });
+      },
+
+      resumeTimer: () => {
+        set({ isActive: true });
+      },
+
+      stopTimer: () => {
+        set({
+          state: "idle",
+          timeLeft: 25 * 60,
+          sessionDuration: 25 * 60,
+          isActive: false,
+          blocks: [],
+          currentBlockIndex: 0,
+          totalSessionDuration: 0,
+          elapsedSessionTime: 0,
+        });
+      },
+
+      setTimeLeft: (seconds) => {
+        set({ timeLeft: seconds });
+      },
+
+      checkRollover: () => {
+        const todayDateString = getMockedDate().toISOString().split("T")[0];
+        const { currentDate, todayTotalTime, todayCategoryBreakdown, history } = get();
+
+        if (todayDateString !== currentDate) {
+          const archivedTotalHours = todayTotalTime / 60;
+          const archivedBreakdown: Record<string, number> = {};
+          for (const [cat, mins] of Object.entries(todayCategoryBreakdown || {})) {
+            archivedBreakdown[cat] = mins / 60;
           }
-        } else {
-          stopTimer();
+
+          const newHistory = {
+            ...(history || {}),
+            [currentDate]: {
+              totalHours: archivedTotalHours,
+              breakdown: archivedBreakdown,
+            },
+          };
+
+          const targetDayHistory = newHistory[todayDateString];
+          let restoredTotalTime = 0;
+          const restoredBreakdown: Record<string, number> = {};
+
+          if (targetDayHistory) {
+            restoredTotalTime = targetDayHistory.totalHours * 60;
+            for (const [cat, hrs] of Object.entries(targetDayHistory.breakdown || {})) {
+              restoredBreakdown[cat] = hrs * 60;
+            }
+          }
+
+          set({
+            history: newHistory,
+            currentDate: todayDateString,
+            todayTotalTime: restoredTotalTime,
+            todayCategoryBreakdown: restoredBreakdown,
+          });
         }
-      } else if (state === 'break') {
-        set({ state: 'focus', timeLeft: blocks[currentBlockIndex], sessionDuration: blocks[currentBlockIndex] });
-      }
-    }
-  },
+      },
+
+      tick: () => {
+        const {
+          isActive,
+          timeLeft,
+          stopTimer,
+          state,
+          blocks,
+          currentBlockIndex,
+          breakDuration,
+          activeCategoryId,
+          checkRollover,
+        } = get();
+
+        checkRollover();
+
+        if (!isActive) return;
+
+        const debugState = useDebugStore.getState();
+        const multiplier = debugState.isDebugMode ? debugState.timeMultiplier : 1;
+
+        if (timeLeft > 0) {
+          if (state === "focus") {
+            const addedMinutes = multiplier / 60;
+            set((s) => {
+              const breakdown = { ...s.todayCategoryBreakdown };
+              if (activeCategoryId) {
+                breakdown[activeCategoryId] = (breakdown[activeCategoryId] || 0) + addedMinutes;
+              }
+              return {
+                elapsedSessionTime: s.elapsedSessionTime + multiplier,
+                todayTotalTime: s.todayTotalTime + addedMinutes,
+                todayCategoryBreakdown: breakdown,
+              };
+            });
+          }
+          set((s) => ({ timeLeft: Math.max(0, s.timeLeft - multiplier) }));
+        } else {
+          get().playSound();
+
+          if (state === "focus") {
+            const nextIndex = currentBlockIndex + 1;
+            if (nextIndex < blocks.length) {
+              if (breakDuration > 0) {
+                set({
+                  state: "break",
+                  timeLeft: breakDuration,
+                  sessionDuration: breakDuration,
+                  currentBlockIndex: nextIndex,
+                });
+              } else {
+                set({
+                  state: "focus",
+                  timeLeft: blocks[nextIndex],
+                  sessionDuration: blocks[nextIndex],
+                  currentBlockIndex: nextIndex,
+                });
+              }
+            } else {
+              stopTimer();
+            }
+          } else if (state === "break") {
+            set({
+              state: "focus",
+              timeLeft: blocks[currentBlockIndex],
+              sessionDuration: blocks[currentBlockIndex],
+            });
+          }
+        }
+      },
     }),
     {
       name: "pomodoro-storage",
@@ -304,13 +345,13 @@ export const usePomodoroStore = create<PomodoroState>()(
         goal: state.goal,
         soundOption: state.soundOption,
       }),
-    }
-  )
+    },
+  ),
 );
 
 let isSyncing = false;
 
-listen('pomodoro-state-sync', (event: any) => {
+listen("pomodoro-state-sync", (event: { payload: PomodoroState }) => {
   isSyncing = true;
   usePomodoroStore.setState(event.payload);
   isSyncing = false;
@@ -318,15 +359,15 @@ listen('pomodoro-state-sync', (event: any) => {
 
 usePomodoroStore.subscribe((state) => {
   if (!isSyncing) {
-    emit('pomodoro-state-sync', state).catch(console.error);
+    emit("pomodoro-state-sync", state).catch(console.error);
   }
 });
 
 // Listen to system tray presets
-listen<{type: SessionType, duration: number}>('tray-preset', (event) => {
+listen<{ type: SessionType; duration: number }>("tray-preset", (event) => {
   const store = usePomodoroStore.getState();
   const d = event.payload.duration;
-  
+
   if (event.payload.type === "focus") {
     store.startTimer(String(d / 60), "0", d, "");
   } else if (event.payload.type === "break") {
@@ -341,7 +382,7 @@ listen<{type: SessionType, duration: number}>('tray-preset', (event) => {
       totalSessionDuration: d,
       elapsedSessionTime: 0,
       breakDuration: d,
-      activeCategoryId: null
+      activeCategoryId: null,
     });
   }
 }).catch(console.error);
@@ -363,22 +404,24 @@ export const swapData = (toDebug: boolean) => {
           timeLeft: 25 * 60,
           sessionDuration: 25 * 60,
           totalSessionDuration: 0,
-          elapsedSessionTime: 0
+          elapsedSessionTime: 0,
         });
-      } catch (e) {}
+      } catch {
+        // ignore JSON parse error
+      }
     } else {
       usePomodoroStore.setState({
-         history: {},
-         todayTotalTime: 0,
-         todayCategoryBreakdown: {},
-         goal: null,
-         blocks: [],
-         state: "idle",
-         isActive: false,
-         timeLeft: 25 * 60,
-         sessionDuration: 25 * 60,
-         totalSessionDuration: 0,
-         elapsedSessionTime: 0
+        history: {},
+        todayTotalTime: 0,
+        todayCategoryBreakdown: {},
+        goal: null,
+        blocks: [],
+        state: "idle",
+        isActive: false,
+        timeLeft: 25 * 60,
+        sessionDuration: 25 * 60,
+        totalSessionDuration: 0,
+        elapsedSessionTime: 0,
       });
     }
   } else {
@@ -396,9 +439,11 @@ export const swapData = (toDebug: boolean) => {
           timeLeft: 25 * 60,
           sessionDuration: 25 * 60,
           totalSessionDuration: 0,
-          elapsedSessionTime: 0
+          elapsedSessionTime: 0,
         });
-      } catch (e) {}
+      } catch {
+        // ignore JSON parse error
+      }
     }
   }
 };

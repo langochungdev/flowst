@@ -8,40 +8,39 @@ import { useDebugStore } from "./stores/debugStore";
 import "./App.css";
 
 function App() {
-  const [windowLabel, setWindowLabel] = useState<string | null>(null);
   const tick = usePomodoroStore((state) => state.tick);
-  const timeMultiplier = useDebugStore((state) => state.isDebugMode ? state.timeMultiplier : 1);
+  const timeMultiplier = useDebugStore((state) => (state.isDebugMode ? state.timeMultiplier : 1));
+
+  const [windowLabel] = useState<string | null>(() => {
+    try {
+      const appWindow = getCurrentWebviewWindow();
+      return appWindow ? appWindow.label : "main";
+    } catch {
+      return "main";
+    }
+  });
 
   useEffect(() => {
     if (windowLabel === "main") {
-      const timer = setInterval(() => {
-        tick();
-      }, 1000 / Math.max(0.1, timeMultiplier));
+      const timer = setInterval(
+        () => {
+          tick();
+        },
+        1000 / Math.max(0.1, timeMultiplier),
+      );
       return () => clearInterval(timer);
     }
   }, [windowLabel, tick, timeMultiplier]);
 
-  useEffect(() => {
-    try {
-      const appWindow = getCurrentWebviewWindow();
-      if (appWindow) {
-        setWindowLabel(appWindow.label);
-      } else {
-        setWindowLabel("main");
-      }
-    } catch {
-      console.warn("Not in Tauri environment, defaulting to main");
-      setWindowLabel("main");
-    }
-  }, []);
 
-  const gridColor = usePomodoroStore(state => state.gridColor);
+
+  const gridColor = usePomodoroStore((state) => state.gridColor);
 
   if (!windowLabel) return null;
 
   return (
     <>
-      <style>{`:root { --grid-active: ${gridColor || '#00FBFF'} !important; }`}</style>
+      <style>{`:root { --grid-active: ${gridColor || "#00FBFF"} !important; }`}</style>
       {windowLabel === "main" && <MainWindow />}
       {windowLabel === "mini" && <MiniWindow />}
       {windowLabel === "debug" && <DebugWindow />}

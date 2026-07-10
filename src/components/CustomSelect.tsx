@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Pencil } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, Pencil } from "lucide-react";
 
 interface Option {
   label: string;
@@ -17,7 +17,14 @@ interface CustomSelectProps {
   disabled?: boolean;
 }
 
-export default function CustomSelect({ options, value, onChange, onEditOption, width = '70px', disabled = false }: CustomSelectProps) {
+export default function CustomSelect({
+  options,
+  value,
+  onChange,
+  onEditOption,
+  width = "70px",
+  disabled = false,
+}: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -27,18 +34,29 @@ export default function CustomSelect({ options, value, onChange, onEditOption, w
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedOption = options.find(o => o.value === value) || options[0];
+  const selectedOption = options.find((o) => o.value === value) || options[0];
 
   return (
-    <div className="custom-select" ref={ref} style={{ width, opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? 'none' : 'auto' }}>
+    <div
+      className="custom-select"
+      ref={ref}
+      style={{ width, opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? "none" : "auto" }}
+    >
       <div className="select-trigger" onClick={() => !disabled && setIsOpen(!isOpen)}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           {selectedOption.color && (
-            <div style={{ width: '10px', height: '10px', borderRadius: 0, backgroundColor: selectedOption.color }} />
+            <div
+              style={{
+                width: "10px",
+                height: "10px",
+                borderRadius: 0,
+                backgroundColor: selectedOption.color,
+              }}
+            />
           )}
           <span>{selectedOption.label}</span>
         </div>
@@ -46,32 +64,53 @@ export default function CustomSelect({ options, value, onChange, onEditOption, w
       </div>
       {isOpen && (
         <div className="select-dropdown">
-          {options.map(option => (
-            <div 
-              key={option.value} 
-              className={`select-option ${option.value === value ? 'selected' : ''}`}
+          {options.map((option) => (
+            <div
+              key={option.value}
+              className={`select-option ${option.value === value ? "selected" : ""}`}
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              style={{ display: "flex", alignItems: "center", gap: "6px" }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}
+              >
                 {option.color && (
-                  <div style={{ width: '10px', height: '10px', borderRadius: 0, backgroundColor: option.color, flexShrink: 0 }} />
+                  <div
+                    style={{
+                      width: "10px",
+                      height: "10px",
+                      borderRadius: 0,
+                      backgroundColor: option.color,
+                      flexShrink: 0,
+                    }}
+                  />
                 )}
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{option.label}</span>
+                <span
+                  style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                >
+                  {option.label}
+                </span>
               </div>
               {option.editable && onEditOption && (
-                <div 
+                <div
                   onClick={(e) => {
                     e.stopPropagation();
                     onEditOption(option.value);
                     setIsOpen(false);
                   }}
-                  style={{ opacity: 0.5, cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px', marginLeft: '4px' }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+                  style={{
+                    opacity: 0.5,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px",
+                    marginLeft: "4px",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.5")}
                 >
                   <Pencil size={12} />
                 </div>

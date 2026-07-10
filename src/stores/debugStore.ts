@@ -8,7 +8,7 @@ export interface LogEntry {
   timestamp: number;
   level: "debug" | "error";
   message: string;
-  args: any[];
+  args: unknown[];
 }
 
 interface DebugState {
@@ -16,7 +16,7 @@ interface DebugState {
   timeMultiplier: number;
   dateOffsetDays: number;
   isDebugMode: boolean;
-  addLog: (level: "debug" | "error", message: string, ...args: any[]) => void;
+  addLog: (level: "debug" | "error", message: string, ...args: unknown[]) => void;
   clearLogs: () => void;
   setTimeMultiplier: (multiplier: number) => void;
   setDateOffsetDays: (days: number) => void;
@@ -31,39 +31,42 @@ export const useDebugStore = create<DebugState>()(
       timeMultiplier: 1,
       dateOffsetDays: 0,
       isDebugMode: false,
-  
-  addLog: (level, message, ...args) => set((state) => ({
-    logs: [...state.logs, {
-      id: Math.random().toString(36).substring(7),
-      timestamp: Date.now(),
-      level,
-      message,
-      args
-    }].slice(-500) // Keep max 500 logs
-  })),
-  
-  clearLogs: () => set({ logs: [] }),
-  
-  
-  setTimeMultiplier: (multiplier) => set({ timeMultiplier: multiplier }),
-  setDateOffsetDays: (days) => set({ dateOffsetDays: days }),
-  
-  toggleDebugMode: () => {
-    const { isDebugMode } = get();
-    swapData(!isDebugMode);
-    set({ isDebugMode: !isDebugMode });
-  },
-  
-  resetDebug: () => {
-    set({ timeMultiplier: 1, dateOffsetDays: 0, logs: [] });
-    // Clear debug backup from localStorage
-    localStorage.removeItem("flowst-debug-backup");
-  }
+
+      addLog: (level, message, ...args) =>
+        set((state) => ({
+          logs: [
+            ...state.logs,
+            {
+              id: Math.random().toString(36).substring(7),
+              timestamp: Date.now(),
+              level,
+              message,
+              args,
+            },
+          ].slice(-500), // Keep max 500 logs
+        })),
+
+      clearLogs: () => set({ logs: [] }),
+
+      setTimeMultiplier: (multiplier) => set({ timeMultiplier: multiplier }),
+      setDateOffsetDays: (days) => set({ dateOffsetDays: days }),
+
+      toggleDebugMode: () => {
+        const { isDebugMode } = get();
+        swapData(!isDebugMode);
+        set({ isDebugMode: !isDebugMode });
+      },
+
+      resetDebug: () => {
+        set({ timeMultiplier: 1, dateOffsetDays: 0, logs: [] });
+        // Clear debug backup from localStorage
+        localStorage.removeItem("flowst-debug-backup");
+      },
     }),
     {
       name: "flowst-debug-store",
-    }
-  )
+    },
+  ),
 );
 
 export const getMockedDate = () => {
@@ -73,7 +76,7 @@ export const getMockedDate = () => {
 
 let isDebugSyncing = false;
 
-listen("debug-state-sync", (event: any) => {
+listen("debug-state-sync", (event: { payload: DebugState }) => {
   isDebugSyncing = true;
   useDebugStore.setState(event.payload);
   isDebugSyncing = false;

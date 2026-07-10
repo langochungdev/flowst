@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { getCurrentWindow } from '@tauri-apps/api/window';
+import React, { useRef } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export function useWindowDrag() {
   const isDraggingRef = useRef(false);
@@ -9,7 +9,11 @@ export function useWindowDrag() {
   const startDrag = (e: React.PointerEvent) => {
     const target = e.target as HTMLElement;
     // Do not drag if clicking on inputs or wheel container
-    if (target.closest('input') || target.closest('.wheel-container') || target.closest('.wheel-list')) {
+    if (
+      target.closest("input") ||
+      target.closest(".wheel-container") ||
+      target.closest(".wheel-list")
+    ) {
       return;
     }
     isDraggingRef.current = true;
@@ -25,7 +29,9 @@ export function useWindowDrag() {
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
       isDraggingRef.current = false;
       dragOccurred.current = true;
-      getCurrentWindow().startDragging().catch(() => {});
+      getCurrentWindow()
+        .startDragging()
+        .catch(() => {});
     }
   };
 
@@ -44,13 +50,13 @@ export function useWindowDrag() {
     }
   };
 
-  return { 
+  return {
     startDrag,
     bind: {
       onPointerDown: startDrag,
       onPointerMove,
       onPointerUp,
       onClickCapture,
-    }
+    },
   };
 }

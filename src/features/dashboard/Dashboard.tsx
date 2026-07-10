@@ -21,7 +21,7 @@ export default function Dashboard() {
         background: "var(--bg-glass)",
         borderRadius: "0",
         border: "1px solid var(--glass-border)",
-        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)"
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
       }}
     >
       <h3 style={{ marginBottom: "1rem", textAlign: "center" }}>Weekly Focus Time (Mins)</h3>

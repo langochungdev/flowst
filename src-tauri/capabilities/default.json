@@ -4,8 +4,8 @@
   "description": "Capability for the main window",
   "windows": ["main", "mini", "settings", "debug"],
   "permissions": [
-    "core:default", 
-    "opener:default", 
+    "core:default",
+    "opener:default",
     "core:window:allow-start-dragging",
     "core:window:allow-show",
     "core:window:allow-hide",
