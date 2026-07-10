@@ -1,5 +1,7 @@
 ## [0.10.0] - 2026-07-10
+
 ### Features
+
 - feat: add pre-push script to automate formatting, linting, and comprehensive validation checks
 - feat: initialize App component with multi-window routing, timer logic, and system tray integration
 

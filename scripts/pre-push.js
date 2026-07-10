@@ -8,7 +8,7 @@ if (!process.env.IS_POPUP) {
   try {
     execSync(
       'start /wait cmd.exe /c "set IS_POPUP=1 && node scripts/pre-push.js || (echo. && echo [LỖI] Quy trinh kiem tra that bai! Nhan phim bat ky de dong... && pause >nul && exit 1)"',
-      { stdio: "inherit" }
+      { stdio: "inherit" },
     );
     process.exit(0);
   } catch (error) {
