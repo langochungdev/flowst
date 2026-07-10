@@ -1,5 +1,11 @@
-## [0.8.0] - 2026-07-10
+## [0.9.0] - 2026-07-10
 ### Features
+- feat: implement Pomodoro settings, state management, and supporting UI components
+
+## [0.8.0] - 2026-07-10
+
+### Features
+
 - feat: implement CustomSelect component and global design system styles
 - feat: implement pomodoroStore with timer management, category tracking, and Tauri notification support
 - feat: implement core pomodoro logic, state management, and multi-window application routing
