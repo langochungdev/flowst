@@ -90,7 +90,18 @@ try {
 
   // 6. Push the release commit automatically in the background
   console.log("Scheduling background push for release commit...");
-  const pushScript = `setTimeout(() => { const { execSync } = require('child_process'); try { execSync('git push --no-verify'); } catch (e) {} }, 3000);`;
+  const pushScript = `
+    const { execSync } = require('child_process');
+    let retries = 5;
+    const tryPush = () => {
+      try {
+        execSync('git push --no-verify', { stdio: 'ignore' });
+      } catch (e) {
+        if (retries-- > 0) setTimeout(tryPush, 4000);
+      }
+    };
+    setTimeout(tryPush, 4000);
+  `;
   const child = spawn("node", ["-e", pushScript], {
     detached: true,
     stdio: "ignore",
