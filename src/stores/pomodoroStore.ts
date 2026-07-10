@@ -297,15 +297,16 @@ export const usePomodoroStore = create<PomodoroState>()(
         const multiplier = debugState.isDebugMode ? debugState.timeMultiplier : 1;
 
         if (timeLeft > 0) {
+          const actualSubtracted = Math.min(multiplier, timeLeft);
           if (state === "focus") {
-            const addedMinutes = multiplier / 60;
+            const addedMinutes = actualSubtracted / 60;
             set((s) => {
               const breakdown = { ...s.todayCategoryBreakdown };
               if (activeCategoryId) {
                 breakdown[activeCategoryId] = (breakdown[activeCategoryId] || 0) + addedMinutes;
               }
               return {
-                elapsedSessionTime: s.elapsedSessionTime + multiplier,
+                elapsedSessionTime: s.elapsedSessionTime + actualSubtracted,
                 todayTotalTime: s.todayTotalTime + addedMinutes,
                 todayCategoryBreakdown: breakdown,
               };

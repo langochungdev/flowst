@@ -15,7 +15,7 @@ function formatTime(seconds: number) {
 }
 
 function formatTotalTime(minutes: number) {
-  const m = Math.floor(minutes);
+  const m = Math.round(minutes);
   if (m < 60) return `${m}m`;
   const hrs = Math.floor(m / 60);
   const mins = m % 60;
