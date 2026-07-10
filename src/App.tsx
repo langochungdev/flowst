@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { Effect } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import MainWindow from "./components/MainWindow";
 import MiniWindow from "./components/MiniWindow";
@@ -29,12 +30,12 @@ function App() {
       }
     }
 
-    import("@tauri-apps/api/window").then(({ getCurrentWindow, Effect }) => {
-      const win = getCurrentWindow();
-      if (windowLabel === "main" || windowLabel === "mini" || windowLabel === "settings") {
+    const win = getCurrentWebviewWindow();
+    if (windowLabel === "main" || windowLabel === "mini" || windowLabel === "settings") {
+      if (win) {
         win.setEffects({ effects: [Effect.Acrylic, Effect.Blur] }).catch(console.error);
       }
-    });
+    }
   }, [windowLabel]);
 
   useEffect(() => {
