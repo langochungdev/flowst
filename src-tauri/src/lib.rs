@@ -6,6 +6,11 @@ use tauri::{
     Manager, WindowEvent, Emitter
 };
 use tauri_plugin_sql::{Migration, MigrationKind};
+use std::sync::atomic::{AtomicBool, Ordering};
+
+struct AppState {
+    reposition_on_show: AtomicBool,
+}
 
 #[cfg(target_os = "windows")]
 fn disable_rounded_corners(window: &tauri::WebviewWindow) {
@@ -35,6 +40,22 @@ fn update_tray_tooltip(app_handle: tauri::AppHandle, tooltip: String) {
             let _ = tray.set_tooltip(Some(tooltip));
         }
     });
+}
+
+#[tauri::command]
+fn hide_main_window_minimize(app_handle: tauri::AppHandle) {
+    if let Some(window) = app_handle.get_webview_window("main") {
+        app_handle.state::<AppState>().reposition_on_show.store(false, Ordering::SeqCst);
+        let _ = window.hide();
+    }
+}
+
+#[tauri::command]
+fn hide_main_window_close(app_handle: tauri::AppHandle) {
+    if let Some(window) = app_handle.get_webview_window("main") {
+        app_handle.state::<AppState>().reposition_on_show.store(true, Ordering::SeqCst);
+        let _ = window.hide();
+    }
 }
 
 fn clamp_window_to_monitor(window: &tauri::Window) {
@@ -90,6 +111,9 @@ pub fn run() {
     }];
 
     tauri::Builder::default()
+        .manage(AppState {
+            reposition_on_show: AtomicBool::new(true),
+        })
         .plugin(tauri_plugin_log::Builder::new()
             .level(log::LevelFilter::Info)
             .build())
@@ -165,19 +189,21 @@ pub fn run() {
                             let _ = if is_visible && !is_minimized {
                                 window.hide()
                             } else {
-                                if let Ok(window_size) = window.outer_size() {
-                                    let (tray_x, tray_y) = match rect.position {
-                                        tauri::Position::Physical(p) => (p.x, p.y),
-                                        tauri::Position::Logical(p) => (p.x as i32, p.y as i32),
-                                    };
-                                    let (tray_w, _tray_h) = match rect.size {
-                                        tauri::Size::Physical(s) => (s.width as i32, s.height as i32),
-                                        tauri::Size::Logical(s) => (s.width as i32, s.height as i32),
-                                    };
+                                if app.state::<AppState>().reposition_on_show.load(Ordering::SeqCst) {
+                                    if let Ok(window_size) = window.outer_size() {
+                                        let (tray_x, tray_y) = match rect.position {
+                                            tauri::Position::Physical(p) => (p.x, p.y),
+                                            tauri::Position::Logical(p) => (p.x as i32, p.y as i32),
+                                        };
+                                        let (tray_w, _tray_h) = match rect.size {
+                                            tauri::Size::Physical(s) => (s.width as i32, s.height as i32),
+                                            tauri::Size::Logical(s) => (s.width as i32, s.height as i32),
+                                        };
 
-                                    let x = tray_x - window_size.width as i32 + tray_w;
-                                    let y = tray_y - window_size.height as i32 - 10;
-                                    let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
+                                        let x = tray_x - window_size.width as i32 + tray_w;
+                                        let y = tray_y - window_size.height as i32 - 10;
+                                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
+                                    }
                                 }
                                 let _ = window.unminimize();
                                 window.show().and_then(|_| window.set_focus())
@@ -220,7 +246,9 @@ pub fn run() {
             commands::settings::load_settings,
             commands::settings::save_settings,
             commands::sys::get_memory_usage,
-            update_tray_tooltip
+            update_tray_tooltip,
+            hide_main_window_minimize,
+            hide_main_window_close
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
