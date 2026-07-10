@@ -1,5 +1,11 @@
-## [0.6.0] - 2026-07-10
+## [0.7.0] - 2026-07-10
 ### Features
+- feat: add automated release script to handle version bumping and changelog updates
+
+## [0.6.0] - 2026-07-10
+
+### Features
+
 - feat: add automated release script to handle version bumping and changelog generation
 
 ## [0.5.0] - 2026-07-10
