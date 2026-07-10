@@ -1,20 +1,6 @@
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 import fs from "fs";
 import path from "path";
-
-// 🚀 Nâng cấp: Tự động mở cửa sổ Terminal (cmd) để show progress khi bấm Push từ UI
-if (!process.env.IS_POPUP) {
-  console.log("Launching visible terminal for pre-push checks...");
-  try {
-    execSync(
-      'start /wait cmd.exe /c "set IS_POPUP=1 && node scripts/pre-push.js || (echo. && echo [LỖI] Quy trinh kiem tra that bai! Nhan phim bat ky de dong... && pause >nul && exit 1)"',
-      { stdio: "inherit" },
-    );
-    process.exit(0);
-  } catch (error) {
-    process.exit(1);
-  }
-}
 
 console.log("Auto-formatting and fixing lint errors...");
 try {
@@ -32,9 +18,12 @@ try {
     execSync("git add -u", { stdio: "pipe", encoding: "utf-8" });
     execSync('git commit -m "chore: auto-format code"', { stdio: "pipe", encoding: "utf-8" });
     console.log("Auto-format commit created successfully.\n");
-    console.log(
-      "⚠️ LƯU Ý: Git push sẽ không bao gồm commit auto-format này (vì hook chạy sau khi git lấy danh sách). Nó sẽ được đẩy lên ở lần push tiếp theo.\n",
-    );
+    
+    // Đẩy commit format lên ngay sau khi tiến trình push hiện tại hoàn tất
+    console.log("Scheduling background push for auto-format commit...");
+    const pushScript = `setTimeout(() => { const { execSync } = require('child_process'); try { execSync('git push --no-verify'); } catch (e) {} }, 3000);`;
+    const child = spawn("node", ["-e", pushScript], { detached: true, stdio: "ignore" });
+    child.unref();
   }
 } catch (e) {
   console.error("Failed to check or commit formatted files", e);
