@@ -10,6 +10,20 @@ try {
   console.log("Auto-format encountered issues (some errors might need manual fixing).\n");
 }
 
+// Kiểm tra xem lệnh format có làm thay đổi file nào không
+try {
+  const changedFiles = execSync("git status -uno --porcelain", { encoding: "utf-8" });
+  if (changedFiles.trim()) {
+    console.log("Auto-format modified some files. Automatically committing them...");
+    execSync("git add -u", { stdio: "pipe", encoding: "utf-8" });
+    execSync('git commit -m "chore: auto-format code"', { stdio: "pipe", encoding: "utf-8" });
+    console.log("Auto-format commit created successfully.\n");
+    console.log("⚠️ LƯU Ý: Git push sẽ không bao gồm commit auto-format này (vì hook chạy sau khi git lấy danh sách). Nó sẽ được đẩy lên ở lần push tiếp theo.\n");
+  }
+} catch (e) {
+  console.error("Failed to check or commit formatted files", e);
+}
+
 const checks = [
   { name: "ESLint", cmd: "npm run lint" },
   { name: "TypeScript", cmd: "npx tsc --noEmit" },
