@@ -2,6 +2,20 @@ import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
+// 🚀 Nâng cấp: Tự động mở cửa sổ Terminal (cmd) để show progress khi bấm Push từ UI
+if (!process.env.IS_POPUP) {
+  console.log("Launching visible terminal for pre-push checks...");
+  try {
+    execSync(
+      'start /wait cmd.exe /c "set IS_POPUP=1 && node scripts/pre-push.js || (echo. && echo [LỖI] Quy trinh kiem tra that bai! Nhan phim bat ky de dong... && pause >nul && exit 1)"',
+      { stdio: "inherit" }
+    );
+    process.exit(0);
+  } catch (error) {
+    process.exit(1);
+  }
+}
+
 console.log("Auto-formatting and fixing lint errors...");
 try {
   execSync("npm run format && npm run lint -- --fix", { stdio: "pipe", encoding: "utf-8" });
