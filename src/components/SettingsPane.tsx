@@ -172,7 +172,7 @@ export default function SettingsPane() {
             </div>
 
             <div className="setting-item-row">
-                <span className="setting-label" title="Show OS notification when timer finishes, if Mini View is hidden">Desktop Notifications</span>
+                <span className="setting-label" title="Show OS notification when timer finishes (only if app is minimized/hidden)">Desktop Notifications</span>
                 <label className="switch">
                     <input
                         type="checkbox"

@@ -1,12 +1,13 @@
 pub mod commands;
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::TrayIconBuilder,
-    Manager, WindowEvent, Emitter
+    Emitter, Manager, WindowEvent,
 };
 use tauri_plugin_sql::{Migration, MigrationKind};
-use std::sync::atomic::{AtomicBool, Ordering};
+
 
 struct AppState {
     reposition_on_show: AtomicBool,
@@ -45,7 +46,10 @@ fn update_tray_tooltip(app_handle: tauri::AppHandle, tooltip: String) {
 #[tauri::command]
 fn hide_main_window_minimize(app_handle: tauri::AppHandle) {
     if let Some(window) = app_handle.get_webview_window("main") {
-        app_handle.state::<AppState>().reposition_on_show.store(false, Ordering::SeqCst);
+        app_handle
+            .state::<AppState>()
+            .reposition_on_show
+            .store(false, Ordering::SeqCst);
         let _ = window.hide();
     }
 }
@@ -53,7 +57,10 @@ fn hide_main_window_minimize(app_handle: tauri::AppHandle) {
 #[tauri::command]
 fn hide_main_window_close(app_handle: tauri::AppHandle) {
     if let Some(window) = app_handle.get_webview_window("main") {
-        app_handle.state::<AppState>().reposition_on_show.store(true, Ordering::SeqCst);
+        app_handle
+            .state::<AppState>()
+            .reposition_on_show
+            .store(true, Ordering::SeqCst);
         let _ = window.hide();
     }
 }
@@ -118,9 +125,11 @@ pub fn run() {
         .manage(AppState {
             reposition_on_show: AtomicBool::new(true),
         })
-        .plugin(tauri_plugin_log::Builder::new()
-            .level(log::LevelFilter::Info)
-            .build())
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Info)
+                .build(),
+        )
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:flowst.db", migrations)
@@ -135,48 +144,59 @@ pub fn run() {
                 disable_rounded_corners(window);
             }
 
-            let focus_25 = MenuItem::with_id(app, "focus_25", "Start Focus: 25m", true, None::<&str>)?;
-            let focus_50 = MenuItem::with_id(app, "focus_50", "Start Focus: 50m", true, None::<&str>)?;
+            let focus_25 =
+                MenuItem::with_id(app, "focus_25", "Start Focus: 25m", true, None::<&str>)?;
+            let focus_50 =
+                MenuItem::with_id(app, "focus_50", "Start Focus: 50m", true, None::<&str>)?;
             let break_5 = MenuItem::with_id(app, "break_5", "Start Break: 5m", true, None::<&str>)?;
-            let break_15 = MenuItem::with_id(app, "break_15", "Start Break: 15m", true, None::<&str>)?;
+            let break_15 =
+                MenuItem::with_id(app, "break_15", "Start Break: 15m", true, None::<&str>)?;
             let sep = PredefinedMenuItem::separator(app)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            
-            let menu = Menu::with_items(app, &[&focus_25, &focus_50, &break_5, &break_15, &sep, &quit_i])?;
+
+            let menu = Menu::with_items(
+                app,
+                &[&focus_25, &focus_50, &break_5, &break_15, &sep, &quit_i],
+            )?;
 
             let tray = TrayIconBuilder::with_id("main")
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
                 .show_menu_on_left_click(false)
-                .on_menu_event(|app, event| {
-                    match event.id.as_ref() {
-                        "focus_25" | "focus_50" | "break_5" | "break_15" => {
-                            if let Some(window) = app.get_webview_window("main") {
-                                let _ = window.hide();
-                            }
-                            if let Some(window) = app.get_webview_window("mini") {
-                                let _ = window.show();
-                            }
-                            
-                            let duration = match event.id.as_ref() {
-                                "focus_25" => 25 * 60,
-                                "focus_50" => 50 * 60,
-                                "break_5" => 5 * 60,
-                                "break_15" => 15 * 60,
-                                _ => 0,
-                            };
-                            let session_type = if event.id.as_ref().starts_with("focus") { "focus" } else { "break" };
-                            
-                            let _ = app.emit("tray-preset", serde_json::json!({
+                .on_menu_event(|app, event| match event.id.as_ref() {
+                    "focus_25" | "focus_50" | "break_5" | "break_15" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.hide();
+                        }
+                        if let Some(window) = app.get_webview_window("mini") {
+                            let _ = window.show();
+                        }
+
+                        let duration = match event.id.as_ref() {
+                            "focus_25" => 25 * 60,
+                            "focus_50" => 50 * 60,
+                            "break_5" => 5 * 60,
+                            "break_15" => 15 * 60,
+                            _ => 0,
+                        };
+                        let session_type = if event.id.as_ref().starts_with("focus") {
+                            "focus"
+                        } else {
+                            "break"
+                        };
+
+                        let _ = app.emit(
+                            "tray-preset",
+                            serde_json::json!({
                                 "type": session_type,
                                 "duration": duration
-                            }));
-                        }
-                        "quit" => {
-                            app.exit(0);
-                        }
-                        _ => {}
+                            }),
+                        );
                     }
+                    "quit" => {
+                        app.exit(0);
+                    }
+                    _ => {}
                 })
                 .on_tray_icon_event(|tray, event| {
                     if let tauri::tray::TrayIconEvent::Click {
@@ -184,29 +204,40 @@ pub fn run() {
                         button_state: tauri::tray::MouseButtonState::Up,
                         rect,
                         ..
-                    } = event {
+                    } = event
+                    {
                         let app = tray.app_handle();
                         if let Some(window) = app.get_webview_window("main") {
                             let is_visible = window.is_visible().unwrap_or(false);
                             let is_minimized = window.is_minimized().unwrap_or(false);
-                            
+
                             let _ = if is_visible && !is_minimized {
                                 window.hide()
                             } else {
-                                if app.state::<AppState>().reposition_on_show.load(Ordering::SeqCst) {
+                                if app
+                                    .state::<AppState>()
+                                    .reposition_on_show
+                                    .load(Ordering::SeqCst)
+                                {
                                     if let Ok(window_size) = window.outer_size() {
                                         let (tray_x, tray_y) = match rect.position {
                                             tauri::Position::Physical(p) => (p.x, p.y),
                                             tauri::Position::Logical(p) => (p.x as i32, p.y as i32),
                                         };
                                         let (tray_w, _tray_h) = match rect.size {
-                                            tauri::Size::Physical(s) => (s.width as i32, s.height as i32),
-                                            tauri::Size::Logical(s) => (s.width as i32, s.height as i32),
+                                            tauri::Size::Physical(s) => {
+                                                (s.width as i32, s.height as i32)
+                                            }
+                                            tauri::Size::Logical(s) => {
+                                                (s.width as i32, s.height as i32)
+                                            }
                                         };
 
                                         let x = tray_x - window_size.width as i32 + tray_w;
                                         let y = tray_y - window_size.height as i32 - 10;
-                                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
+                                        let _ = window.set_position(tauri::Position::Physical(
+                                            tauri::PhysicalPosition::new(x, y),
+                                        ));
                                     }
                                 }
                                 let _ = window.unminimize();
@@ -231,7 +262,9 @@ pub fn run() {
 
                         let x = tray_x - window_size.width as i32 + tray_w;
                         let y = tray_y - window_size.height as i32 - 10;
-                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
+                        let _ = window.set_position(tauri::Position::Physical(
+                            tauri::PhysicalPosition::new(x, y),
+                        ));
                     }
                 }
                 let _ = window.show();

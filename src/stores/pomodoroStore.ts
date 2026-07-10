@@ -154,27 +154,28 @@ export const usePomodoroStore = create<PomodoroState>()(
         if (!notificationsEnabled) return;
         
         import('@tauri-apps/api/webviewWindow').then(({ WebviewWindow }) => {
-          WebviewWindow.getByLabel("mini").then(miniWin => {
-            if (miniWin) {
-              miniWin.isVisible().then(vis => {
-                if (!vis) {
-                  import('@tauri-apps/plugin-notification').then(({ isPermissionGranted, requestPermission, sendNotification }) => {
-                    isPermissionGranted().then(granted => {
-                      if (!granted) {
-                        return requestPermission();
-                      }
-                      return 'granted';
-                    }).then(permission => {
-                      if (permission === 'granted') {
-                        // In dev mode, we pass icon: "icon.png" to see if Tauri picks it up from public/ or assets
-                        sendNotification({ title, body, icon: "icon.png" });
-                      }
-                    }).catch(console.error);
-                  }).catch(console.error);
-                }
-              }).catch(console.error);
+          const checkVis = async () => {
+            const mainWin = await WebviewWindow.getByLabel("main");
+            const mainVis = mainWin ? await mainWin.isVisible() : false;
+            
+            const miniWin = await WebviewWindow.getByLabel("mini");
+            const miniVis = miniWin ? await miniWin.isVisible() : false;
+            
+            // Only show notification if BOTH main and mini views are hidden
+            if (!mainVis && !miniVis) {
+              const { isPermissionGranted, requestPermission, sendNotification } = await import('@tauri-apps/plugin-notification');
+              let granted = await isPermissionGranted();
+              if (!granted) {
+                const permission = await requestPermission();
+                granted = permission === 'granted';
+              }
+              if (granted) {
+                sendNotification({ title, body, icon: "icon.png" });
+              }
             }
-          }).catch(console.error);
+          };
+          
+          checkVis().catch(console.error);
         }).catch(console.error);
       },
 
