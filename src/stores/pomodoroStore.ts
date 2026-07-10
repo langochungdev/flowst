@@ -176,7 +176,7 @@ export const usePomodoroStore = create<PomodoroState>()(
               granted = permission === "granted";
             }
             if (granted) {
-              sendNotification({ title, body, icon: "icon.png" });
+              sendNotification({ title, body });
             }
           }
         };

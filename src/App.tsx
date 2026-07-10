@@ -8,6 +8,7 @@ import MiniWindow from "./components/MiniWindow";
 import DebugWindow from "./components/DebugWindow";
 import { usePomodoroStore } from "./stores/pomodoroStore";
 import { useDebugStore } from "./stores/debugStore";
+import { onAction } from "@tauri-apps/plugin-notification";
 import "./App.css";
 
 function App() {
@@ -36,10 +37,25 @@ function App() {
       useDebugStore.getState().setDebugMode(false);
     });
 
+    let unlistenAction: any;
+    onAction(() => {
+      const win = getCurrentWebviewWindow();
+      if (win) {
+        win.unminimize().catch(console.error);
+        win.show().catch(console.error);
+        win.setFocus().catch(console.error);
+      }
+    }).then(listener => {
+      unlistenAction = listener;
+    }).catch(console.error);
+
     return () => {
       unlisten1.then((f) => f()).catch(console.error);
       unlisten2.then((f) => f()).catch(console.error);
       unlisten3.then((f) => f()).catch(console.error);
+      if (unlistenAction && typeof unlistenAction.unregister === 'function') {
+        unlistenAction.unregister().catch(console.error);
+      }
     };
   }, []);
 
