@@ -12,7 +12,13 @@
     "core:window:allow-set-focus",
     "core:window:allow-create",
     "core:window:allow-minimize",
+    "core:event:default",
     "dialog:default",
+    "dialog:allow-save",
+    "dialog:allow-open",
+    "dialog:allow-message",
+    "dialog:allow-ask",
+    "dialog:allow-confirm",
     "fs:default",
     "fs:allow-read-text-file",
     "fs:allow-write-text-file"

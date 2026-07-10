@@ -29,8 +29,8 @@ export default function DebugWindow() {
   const handleClearAppData = () => {
     usePomodoroStore.setState({
       categories: [
-        { id: "study", name: "Study", color: "#808080" },
-        { id: "work", name: "Work", color: "#00FBFF" },
+        { id: "study", name: "Study", color: "#00FBFF" },
+        { id: "work", name: "Work", color: "#00FF66" },
       ],
       dailyTarget: 240,
       todayTotalTime: 0,

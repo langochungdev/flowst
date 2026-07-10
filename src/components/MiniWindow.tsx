@@ -13,9 +13,29 @@ function formatTime(seconds: number) {
 }
 
 export default function MiniWindow() {
-  const { timeLeft, isActive, pauseTimer, resumeTimer, totalSessionDuration, elapsedSessionTime } =
-    usePomodoroStore();
+  const {
+    timeLeft,
+    isActive,
+    state,
+    pauseTimer,
+    resumeTimer,
+    startTimer,
+    totalSessionDuration,
+    elapsedSessionTime,
+    selectedFocusTime,
+    selectedBreakTime,
+    selectedTaskCategory,
+    categories,
+  } = usePomodoroStore();
   const { bind } = useWindowDrag();
+
+  const activeCategoryInfo = categories.find((c) => c.id === selectedTaskCategory);
+  const activeColor =
+    state === "idle"
+      ? "#3b3b3b"
+      : state === "focus"
+        ? activeCategoryInfo?.color || "#00fbff"
+        : "#00fbff";
 
   const closeWindow = () => {
     const appWindow = getCurrentWebviewWindow();
@@ -32,8 +52,18 @@ export default function MiniWindow() {
   };
 
   const handlePlayPause = () => {
-    if (isActive) pauseTimer();
-    else resumeTimer();
+    if (state === "idle") {
+      startTimer(
+        selectedFocusTime || "25",
+        selectedBreakTime || "5",
+        timeLeft,
+        selectedTaskCategory || ""
+      );
+    } else if (isActive) {
+      pauseTimer();
+    } else {
+      resumeTimer();
+    }
   };
 
   const progressPercent =
@@ -78,7 +108,10 @@ export default function MiniWindow() {
           </span>
         </div>
         <div className="mini-progress-bar-bg">
-          <div className="mini-progress-bar-fill" style={{ width: `${progressPercent}%` }} />
+          <div
+            className="mini-progress-bar-fill"
+            style={{ width: `${progressPercent}%`, backgroundColor: activeColor }}
+          />
         </div>
       </div>
     </div>

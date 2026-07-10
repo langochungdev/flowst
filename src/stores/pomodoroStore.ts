@@ -3,6 +3,8 @@ import { persist } from "zustand/middleware";
 import { useDebugStore, getMockedDate } from "./debugStore";
 import { emit, listen } from "@tauri-apps/api/event";
 
+let lastSoundTime = 0;
+
 export type SessionType = "focus" | "break" | "idle";
 
 export interface TaskCategory {
@@ -132,6 +134,9 @@ export const usePomodoroStore = create<PomodoroState>()(
       setSoundOption: (option) => set({ soundOption: option }),
 
       playSound: () => {
+        const now = Date.now();
+        if (now - lastSoundTime < 500) return;
+        lastSoundTime = now;
         const { soundOption } = get();
         const soundFile =
           soundOption === "trumpet" ? "success-fanfare-trumpets.mp3" : "victory-chime.mp3";

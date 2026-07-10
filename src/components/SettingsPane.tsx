@@ -1,5 +1,5 @@
 import { usePomodoroStore } from "../stores/pomodoroStore";
-import { Play, Pause, ChevronDown } from "lucide-react";
+import { Play, Pause, ChevronDown, Minus, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { save, open } from "@tauri-apps/plugin-dialog";
@@ -151,14 +151,34 @@ export default function SettingsPane() {
 
             <div className="setting-item-row">
                 <span className="setting-label">Daily Focus Target</span>
-                <div style={{ display: "flex", gap: "4px", width: "150px" }}>
+                <div style={{ display: "flex", gap: "4px", width: "160px", alignItems: "center" }}>
+                    <button
+                        className="action-btn-outline"
+                        style={{ width: "26px", height: "26px", padding: 0 }}
+                        onClick={() => {
+                            const val = parseInt(localTarget);
+                            if (!isNaN(val) && val > 5) setLocalTarget((val - 5).toString());
+                        }}
+                    >
+                        <Minus size={14} />
+                    </button>
                     <input
                         type="number"
                         value={localTarget}
                         onChange={(e) => setLocalTarget(e.target.value)}
                         className="modern-input"
-                        style={{ padding: "4px 8px", height: "26px" }}
+                        style={{ padding: "4px 8px", height: "26px", width: "50px", textAlign: "center" }}
                     />
+                    <button
+                        className="action-btn-outline"
+                        style={{ width: "26px", height: "26px", padding: 0 }}
+                        onClick={() => {
+                            const val = parseInt(localTarget);
+                            if (!isNaN(val)) setLocalTarget((val + 5).toString());
+                        }}
+                    >
+                        <Plus size={14} />
+                    </button>
                     <button
                         onClick={() => {
                             const val = parseInt(localTarget);
