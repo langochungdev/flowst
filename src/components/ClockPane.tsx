@@ -226,9 +226,16 @@ function GoalTrackerView() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <input
+                id="goal-text-input"
                 type="text"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    document.getElementById("goal-day-input")?.focus();
+                  }
+                }}
                 placeholder="What's your goal?"
                 maxLength={19}
                 style={{
@@ -247,9 +254,23 @@ function GoalTrackerView() {
               <div style={{ display: "flex", gap: "6px", width: "100%", boxSizing: "border-box" }}>
                 <div style={{ display: "flex", gap: "4px", flex: 1 }}>
                   <input
+                    id="goal-day-input"
                     type="text"
                     value={day}
                     onChange={(e) => setDay(e.target.value.replace(/[^0-9]/g, "").substring(0, 2))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        document.getElementById("goal-month-input")?.focus();
+                      } else if ((e.key === "Backspace" || e.key === "Delete") && (day === "" || (e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0))) {
+                        e.preventDefault();
+                        const prev = document.getElementById("goal-text-input") as HTMLInputElement;
+                        if (prev) {
+                          prev.focus();
+                          setTimeout(() => { prev.selectionStart = prev.value.length; prev.selectionEnd = prev.value.length; }, 0);
+                        }
+                      }
+                    }}
                     placeholder="DD"
                     style={{
                       background: "transparent",
@@ -266,11 +287,25 @@ function GoalTrackerView() {
                     }}
                   />
                   <input
+                    id="goal-month-input"
                     type="text"
                     value={month}
                     onChange={(e) =>
                       setMonth(e.target.value.replace(/[^0-9]/g, "").substring(0, 2))
                     }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        document.getElementById("goal-year-input")?.focus();
+                      } else if ((e.key === "Backspace" || e.key === "Delete") && (month === "" || (e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0))) {
+                        e.preventDefault();
+                        const prev = document.getElementById("goal-day-input") as HTMLInputElement;
+                        if (prev) {
+                          prev.focus();
+                          setTimeout(() => { prev.selectionStart = prev.value.length; prev.selectionEnd = prev.value.length; }, 0);
+                        }
+                      }
+                    }}
                     placeholder="MM"
                     style={{
                       background: "transparent",
@@ -287,9 +322,23 @@ function GoalTrackerView() {
                     }}
                   />
                   <input
+                    id="goal-year-input"
                     type="text"
                     value={year}
                     onChange={(e) => setYear(e.target.value.replace(/[^0-9]/g, "").substring(0, 2))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleSave();
+                      } else if ((e.key === "Backspace" || e.key === "Delete") && (year === "" || (e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0))) {
+                        e.preventDefault();
+                        const prev = document.getElementById("goal-month-input") as HTMLInputElement;
+                        if (prev) {
+                          prev.focus();
+                          setTimeout(() => { prev.selectionStart = prev.value.length; prev.selectionEnd = prev.value.length; }, 0);
+                        }
+                      }
+                    }}
                     placeholder="YY"
                     style={{
                       background: "transparent",
