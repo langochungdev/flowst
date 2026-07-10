@@ -346,22 +346,25 @@ export const usePomodoroStore = create<PomodoroState>()(
         const multiplier = debugState.isDebugMode ? debugState.timeMultiplier : 1;
 
         if (timeLeft > 0) {
-          const actualSubtracted = Math.min(multiplier, timeLeft);
-          if (state === "focus") {
-            const addedMinutes = actualSubtracted / 60;
-            set((s) => {
-              const breakdown = { ...s.todayCategoryBreakdown };
-              if (activeCategoryId) {
-                breakdown[activeCategoryId] = (breakdown[activeCategoryId] || 0) + addedMinutes;
-              }
-              return {
-                elapsedSessionTime: s.elapsedSessionTime + actualSubtracted,
-                todayTotalTime: s.todayTotalTime + addedMinutes,
-                todayCategoryBreakdown: breakdown,
-              };
-            });
+          const toSubtract = multiplier === 0 ? 0 : 1;
+          const actualSubtracted = Math.min(toSubtract, timeLeft);
+          if (actualSubtracted > 0) {
+            if (state === "focus") {
+              const addedMinutes = actualSubtracted / 60;
+              set((s) => {
+                const breakdown = { ...s.todayCategoryBreakdown };
+                if (activeCategoryId) {
+                  breakdown[activeCategoryId] = (breakdown[activeCategoryId] || 0) + addedMinutes;
+                }
+                return {
+                  elapsedSessionTime: s.elapsedSessionTime + actualSubtracted,
+                  todayTotalTime: s.todayTotalTime + addedMinutes,
+                  todayCategoryBreakdown: breakdown,
+                };
+              });
+            }
+            set((s) => ({ timeLeft: Math.max(0, s.timeLeft - actualSubtracted) }));
           }
-          set((s) => ({ timeLeft: Math.max(0, s.timeLeft - multiplier) }));
         } else {
           get().playSound();
 
@@ -421,16 +424,31 @@ export const usePomodoroStore = create<PomodoroState>()(
 );
 
 let isSyncing = false;
+const storeWindowId = Math.random().toString(36).substring(7);
 
-listen("pomodoro-state-sync", (event: { payload: PomodoroState }) => {
+listen("pomodoro-state-sync", (event: { payload: { senderId: string; state: PomodoroState } }) => {
+  if (event.payload.senderId === storeWindowId) return;
   isSyncing = true;
-  usePomodoroStore.setState(event.payload);
+  usePomodoroStore.setState(event.payload.state);
   isSyncing = false;
 }).catch(console.error);
 
+let lastSyncTime = 0;
+let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+
 usePomodoroStore.subscribe((state) => {
   if (!isSyncing) {
-    emit("pomodoro-state-sync", state).catch(console.error);
+    const now = Date.now();
+    if (now - lastSyncTime > 100) {
+      lastSyncTime = now;
+      emit("pomodoro-state-sync", { senderId: storeWindowId, state }).catch(console.error);
+    } else {
+      if (syncTimeout) clearTimeout(syncTimeout);
+      syncTimeout = setTimeout(() => {
+        lastSyncTime = Date.now();
+        emit("pomodoro-state-sync", { senderId: storeWindowId, state: usePomodoroStore.getState() }).catch(console.error);
+      }, 100);
+    }
   }
 });
 

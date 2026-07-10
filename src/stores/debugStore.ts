@@ -84,15 +84,17 @@ export const getMockedDate = () => {
 };
 
 let isDebugSyncing = false;
+const debugStoreWindowId = Math.random().toString(36).substring(7);
 
-listen("debug-state-sync", (event: { payload: DebugState }) => {
+listen("debug-state-sync", (event: { payload: { senderId: string; state: DebugState } }) => {
+  if (event.payload.senderId === debugStoreWindowId) return;
   isDebugSyncing = true;
-  useDebugStore.setState(event.payload);
+  useDebugStore.setState(event.payload.state);
   isDebugSyncing = false;
 }).catch(console.error);
 
 useDebugStore.subscribe((state) => {
   if (!isDebugSyncing) {
-    emit("debug-state-sync", state).catch(console.error);
+    emit("debug-state-sync", { senderId: debugStoreWindowId, state }).catch(console.error);
   }
 });

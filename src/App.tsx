@@ -23,6 +23,15 @@ function App() {
 
   useEffect(() => {
     if (windowLabel === "main") {
+      const debugState = useDebugStore.getState();
+      if (debugState.isDebugMode) {
+        debugState.setDebugMode(false);
+      }
+    }
+  }, [windowLabel]);
+
+  useEffect(() => {
+    if (windowLabel === "main") {      
       const timer = setInterval(
         () => {
           tick();
