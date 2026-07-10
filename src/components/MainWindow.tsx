@@ -5,6 +5,7 @@ import SettingsPane from './SettingsPane';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { invoke } from '@tauri-apps/api/core';
 import { useWindowDrag } from '../hooks/useWindowDrag';
+import { usePomodoroStore } from '../stores/pomodoroStore';
 
 export default function MainWindow() {
     const [isSettings, setIsSettings] = useState(false);
@@ -19,12 +20,10 @@ export default function MainWindow() {
     const handleClose = () => {
         const appWindow = getCurrentWebviewWindow();
         if (appWindow) {
-            import('../stores/pomodoroStore').then(({ usePomodoroStore }) => {
-                if (usePomodoroStore.getState().isActive) {
-                    usePomodoroStore.getState().stopTimer();
-                }
-                appWindow.hide();
-            });
+            if (usePomodoroStore.getState().isActive) {
+                usePomodoroStore.getState().stopTimer();
+            }
+            appWindow.hide();
         }
     };
 

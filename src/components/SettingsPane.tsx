@@ -1,6 +1,7 @@
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { Play, Pause, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 
 export default function SettingsPane() {
   const soundOption = usePomodoroStore((state) => state.soundOption);
@@ -154,7 +155,6 @@ export default function SettingsPane() {
         <button 
           onClick={async () => {
             try {
-              const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
               let debugWin = await WebviewWindow.getByLabel('debug');
               if (debugWin) {
                 const isVisible = await debugWin.isVisible();

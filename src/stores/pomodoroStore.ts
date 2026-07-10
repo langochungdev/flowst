@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { useDebugStore, getMockedDate } from "./debugStore";
 import { emit, listen } from "@tauri-apps/api/event";
 
@@ -62,8 +63,10 @@ interface PomodoroState {
   setGoal: (goal: GoalTracker | null) => void;
 }
 
-export const usePomodoroStore = create<PomodoroState>((set, get) => ({
-  state: "idle",
+export const usePomodoroStore = create<PomodoroState>()(
+  persist(
+    (set, get) => ({
+      state: "idle",
   timeLeft: 25 * 60,
   sessionDuration: 25 * 60,
   isActive: false,
@@ -287,7 +290,23 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
       }
     }
   },
-}));
+    }),
+    {
+      name: "pomodoro-storage",
+      partialize: (state) => ({
+        history: state.history,
+        todayTotalTime: state.todayTotalTime,
+        todayCategoryBreakdown: state.todayCategoryBreakdown,
+        currentDate: state.currentDate,
+        categories: state.categories,
+        dailyTarget: state.dailyTarget,
+        gridColor: state.gridColor,
+        goal: state.goal,
+        soundOption: state.soundOption,
+      }),
+    }
+  )
+);
 
 let isSyncing = false;
 
