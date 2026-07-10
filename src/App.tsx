@@ -32,8 +32,6 @@ function App() {
     }
   }, [windowLabel, tick, timeMultiplier]);
 
-
-
   const gridColor = usePomodoroStore((state) => state.gridColor);
 
   if (!windowLabel) return null;
