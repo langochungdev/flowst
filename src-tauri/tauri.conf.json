@@ -22,6 +22,7 @@
         "transparent": true,
         "resizable": false,
         "alwaysOnTop": false,
+        "visible": false,
         "url": "index.html"
       },
       {
