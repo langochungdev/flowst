@@ -3,6 +3,7 @@ import { Minimize2, Minus, X, Settings, Home } from "lucide-react";
 import ClockPane from "./ClockPane";
 import SettingsPane from "./SettingsPane";
 import { invoke } from "@tauri-apps/api/core";
+import { emit } from "@tauri-apps/api/event";
 import { useWindowDrag } from "../hooks/useWindowDrag";
 import { usePomodoroStore } from "../stores/pomodoroStore";
 
@@ -25,7 +26,8 @@ export default function MainWindow() {
 
   const handleCompact = () => {
     setIsSettings(false);
-    invoke("toggle_mini_window").catch(console.error);
+    invoke("toggle_mini_window", { toMini: true }).catch(console.error);
+    emit("ui-mode-changed", { mini: true }).catch(console.error);
   };
 
   return (

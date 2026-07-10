@@ -44,3 +44,9 @@ windows = { version = "0.58", features = [
     "Win32_Security",
 ] }
 
+[profile.release]
+opt-level = "s"
+lto = "thin"
+strip = true
+# codegen-units = 1
+panic = "abort"

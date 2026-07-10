@@ -3,6 +3,7 @@ import { useDebugStore } from "../stores/debugStore";
 import { Play, Pause, ChevronDown, Minus, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { invoke } from "@tauri-apps/api/core";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 
@@ -252,7 +253,7 @@ export default function SettingsPane() {
         <button
           onClick={async () => {
             try {
-              let debugWin = await WebviewWindow.getByLabel("debug");
+              const debugWin = await WebviewWindow.getByLabel("debug");
               if (debugWin) {
                 const isVisible = await debugWin.isVisible();
                 if (isVisible) {
@@ -264,18 +265,8 @@ export default function SettingsPane() {
                   useDebugStore.getState().setDebugMode(true);
                 }
               } else {
-                debugWin = new WebviewWindow("debug", {
-                  url: "index.html",
-                  title: "Debug Window",
-                  width: 500,
-                  height: 600,
-                  resizable: true,
-                });
-                debugWin.once("tauri://created", async () => {
-                  await debugWin?.show();
-                  await debugWin?.setFocus();
-                  useDebugStore.getState().setDebugMode(true);
-                });
+                await invoke("open_debug_window");
+                useDebugStore.getState().setDebugMode(true);
               }
             } catch (e) {
               console.error("Debug Window Error:", e);

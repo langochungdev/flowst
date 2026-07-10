@@ -1,7 +1,6 @@
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore, getMockedDate } from "../stores/debugStore";
-import { Trash2, Copy, X } from "lucide-react";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { Trash2, Copy } from "lucide-react";
 import { useEffect } from "react";
 
 export default function DebugWindow() {
@@ -286,17 +285,6 @@ export default function DebugWindow() {
                 style={{ flex: "none" }}
               >
                 Clear App Data
-              </button>
-              <button
-                className="debug-btn"
-                onClick={() => {
-                  getCurrentWebviewWindow()?.hide();
-                  setDebugMode(false);
-                }}
-                title="Close"
-                style={{ flex: "none", padding: "8px" }}
-              >
-                <X size={16} />
               </button>
             </div>
           </div>

@@ -254,10 +254,8 @@ pub fn run() {
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "focus_25" | "focus_50" | "break_5" | "break_15" => {
                         if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.hide();
-                        }
-                        if let Some(window) = app.get_webview_window("mini") {
-                            let _ = window.show();
+                            let _ = window.set_size(tauri::Size::Logical(tauri::LogicalSize::new(90.0, 46.0)));
+                            let _ = app.emit("switch-to-mini", ());
                         }
 
                         let duration = match event.id.as_ref() {
@@ -364,10 +362,16 @@ pub fn run() {
             if let WindowEvent::Moved(_) = event {
                 clamp_window_to_monitor(window);
             }
+            if let WindowEvent::Destroyed = event {
+                if window.label() == "debug" {
+                    let _ = window.emit_to("main", "debug-closed", ());
+                }
+            }
         })
         .invoke_handler(tauri::generate_handler![
             commands::window::toggle_mini_window,
             commands::window::open_settings_window,
+            commands::window::open_debug_window,
             commands::settings::load_settings,
             commands::settings::save_settings,
             commands::sys::get_memory_usage,

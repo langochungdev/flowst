@@ -1,6 +1,7 @@
 import { Play, Pause, X, Maximize2 } from "lucide-react";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { invoke } from "@tauri-apps/api/core";
+import { emit } from "@tauri-apps/api/event";
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useWindowDrag } from "../hooks/useWindowDrag";
 
@@ -48,7 +49,8 @@ export default function MiniWindow() {
   };
 
   const handleExpand = () => {
-    invoke("toggle_mini_window").catch(console.error);
+    invoke("toggle_mini_window", { toMini: false }).catch(console.error);
+    emit("ui-mode-changed", { mini: false }).catch(console.error);
   };
 
   const handlePlayPause = () => {

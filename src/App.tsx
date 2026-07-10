@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Effect } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import MainWindow from "./components/MainWindow";
 import MiniWindow from "./components/MiniWindow";
 import DebugWindow from "./components/DebugWindow";
@@ -21,6 +22,26 @@ function App() {
       return "main";
     }
   });
+
+  const [isMiniMode, setIsMiniMode] = useState(false);
+
+  useEffect(() => {
+    const unlisten1 = listen("switch-to-mini", () => {
+      setIsMiniMode(true);
+    });
+    const unlisten2 = listen("ui-mode-changed", (event: { payload: { mini: boolean } }) => {
+      setIsMiniMode(event.payload.mini);
+    });
+    const unlisten3 = listen("debug-closed", () => {
+      useDebugStore.getState().setDebugMode(false);
+    });
+
+    return () => {
+      unlisten1.then((f) => f()).catch(console.error);
+      unlisten2.then((f) => f()).catch(console.error);
+      unlisten3.then((f) => f()).catch(console.error);
+    };
+  }, []);
 
   useEffect(() => {
     if (windowLabel === "main") {
@@ -75,11 +96,8 @@ function App() {
   return (
     <>
       <style>{`:root { --grid-active: ${gridColor || "#00FBFF"} !important; }`}</style>
-      {windowLabel === "main" && <MainWindow />}
-      {windowLabel === "mini" && <MiniWindow />}
+      {windowLabel === "main" && (isMiniMode ? <MiniWindow /> : <MainWindow />)}
       {windowLabel === "debug" && <DebugWindow />}
-      {/* settings window logic is deprecated since it's merged into MainWindow, but fallback just in case */}
-      {windowLabel === "settings" && <MainWindow />}
     </>
   );
 }
