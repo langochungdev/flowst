@@ -10,67 +10,38 @@
 
 :root {
     /* Text */
-    --text-primary: #000000;
-    /* Black */
+    --text-primary: #ffffff;
+    /* White */
     --text-secondary: #808080;
     /* Gray */
 
     /* Element surfaces — solid, always visible */
-    --el-bg: rgba(255, 255, 255, 0.7);
-    /* White with opacity */
-    --el-bg-hover: rgba(255, 255, 255, 0.9);
-    --el-border: rgba(0, 0, 0, 0.1);
-    --el-border-hover: rgba(0, 0, 0, 0.2);
-    --el-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+    --el-bg: rgba(0, 0, 0, 0.7);
+    /* Black with opacity */
+    --el-bg-hover: rgba(0, 0, 0, 0.9);
+    --el-border: rgba(255, 255, 255, 0.1);
+    --el-border-hover: rgba(255, 255, 255, 0.2);
+    --el-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
 
     /* Dropdown */
-    --dropdown-bg: rgba(255, 255, 255, 0.95);
-    --dropdown-opt-hover: rgba(0, 0, 0, 0.05);
-    --dropdown-opt-selected: rgba(0, 0, 0, 0.08);
+    --dropdown-bg: rgba(0, 0, 0, 0.95);
+    --dropdown-opt-hover: rgba(255, 255, 255, 0.06);
+    --dropdown-opt-selected: rgba(255, 255, 255, 0.1);
 
     /* Divider */
-    --divider: rgba(0, 0, 0, 0.1);
+    --divider: rgba(255, 255, 255, 0.1);
 
     /* Grid */
-    --grid-base: rgba(0, 0, 0, 0.05);
+    --grid-base: rgba(255, 255, 255, 0.05);
     --grid-active: #00fbff;
     /* Strict Accent Color */
 
     /* Contribution block glass */
-    --contribution-glass: rgba(255, 255, 255, 0.72);
-    --contribution-border: rgba(0, 0, 0, 0.1);
+    --contribution-glass: rgba(255, 255, 255, 0.05);
+    --contribution-border: rgba(255, 255, 255, 0.1);
 
     /* Text shadow for readability on any desktop bg */
-    --text-glow: 0 0 10px rgba(255, 255, 255, 0.8), 0 1px 3px rgba(255, 255, 255, 0.4);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --text-primary: #ffffff;
-        /* White */
-        --text-secondary: #808080;
-        /* Gray */
-
-        --el-bg: rgba(0, 0, 0, 0.7);
-        /* Black with opacity */
-        --el-bg-hover: rgba(0, 0, 0, 0.9);
-        --el-border: rgba(255, 255, 255, 0.1);
-        --el-border-hover: rgba(255, 255, 255, 0.2);
-        --el-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
-
-        --dropdown-bg: rgba(0, 0, 0, 0.95);
-        --dropdown-opt-hover: rgba(255, 255, 255, 0.06);
-        --dropdown-opt-selected: rgba(255, 255, 255, 0.1);
-
-        --divider: rgba(255, 255, 255, 0.1);
-        --grid-base: rgba(255, 255, 255, 0.05);
-        --grid-active: #00fbff;
-        /* Strict Accent Color */
-        --contribution-glass: rgba(255, 255, 255, 0.05);
-        --contribution-border: rgba(255, 255, 255, 0.1);
-
-        --text-glow: 0 0 10px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.6);
-    }
+    --text-glow: 0 0 10px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 /* ───── Base ───── */
@@ -910,7 +881,7 @@ input[type="number"] {
     align-items: center;
     justify-content: space-between;
     padding: 10px 14px;
-    background: rgba(0, 0, 0, 0.02);
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--divider);
     border-radius: 0;
     cursor: pointer;
@@ -918,19 +889,10 @@ input[type="number"] {
 }
 
 .sound-option:hover {
-    background: rgba(0, 0, 0, 0.04);
+    background: rgba(255, 255, 255, 0.04);
     border-color: var(--el-border-hover);
 }
 
-@media (prefers-color-scheme: dark) {
-    .sound-option {
-        background: rgba(255, 255, 255, 0.02);
-    }
-
-    .sound-option:hover {
-        background: rgba(255, 255, 255, 0.04);
-    }
-}
 
 .sound-option.selected {
     border-color: var(--grid-active);
@@ -969,7 +931,7 @@ input[type="number"] {
 
 /* ───── Number inputs (settings) ───── */
 .modern-input {
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--divider);
     color: var(--text-primary);
     border-radius: 0;
@@ -990,11 +952,6 @@ input[type="number"] {
     margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-    .modern-input {
-        background-color: rgba(255, 255, 255, 0.02);
-    }
-}
 
 .modern-input:focus {
     outline: none;
