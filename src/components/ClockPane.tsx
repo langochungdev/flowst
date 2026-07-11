@@ -228,6 +228,9 @@ function GoalTrackerView() {
               <input
                 id="goal-text-input"
                 type="text"
+                autoComplete="off"
+                spellCheck="false"
+                autoCorrect="off"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => {
@@ -256,6 +259,9 @@ function GoalTrackerView() {
                   <input
                     id="goal-day-input"
                     type="text"
+                    autoComplete="off"
+                    spellCheck="false"
+                    autoCorrect="off"
                     value={day}
                     onChange={(e) => setDay(e.target.value.replace(/[^0-9]/g, "").substring(0, 2))}
                     onKeyDown={(e) => {
@@ -297,6 +303,9 @@ function GoalTrackerView() {
                   <input
                     id="goal-month-input"
                     type="text"
+                    autoComplete="off"
+                    spellCheck="false"
+                    autoCorrect="off"
                     value={month}
                     onChange={(e) =>
                       setMonth(e.target.value.replace(/[^0-9]/g, "").substring(0, 2))
@@ -340,6 +349,9 @@ function GoalTrackerView() {
                   <input
                     id="goal-year-input"
                     type="text"
+                    autoComplete="off"
+                    spellCheck="false"
+                    autoCorrect="off"
                     value={year}
                     onChange={(e) => setYear(e.target.value.replace(/[^0-9]/g, "").substring(0, 2))}
                     onKeyDown={(e) => {

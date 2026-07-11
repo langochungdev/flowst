@@ -34,10 +34,6 @@ export default function SettingsPane() {
   const setNotificationsEnabled = usePomodoroStore((state) => state.setNotificationsEnabled);
   const dailyTarget = usePomodoroStore((state) => state.dailyTarget);
   const setDailyTarget = usePomodoroStore((state) => state.setDailyTarget);
-  const categories = usePomodoroStore((state) => state.categories);
-  const todayTotalTime = usePomodoroStore((state) => state.todayTotalTime);
-  const todayCategoryBreakdown = usePomodoroStore((state) => state.todayCategoryBreakdown);
-  const history = usePomodoroStore((state) => state.history);
   const gridColor = usePomodoroStore((state) => state.gridColor);
   const setGridColor = usePomodoroStore((state) => state.setGridColor);
 
@@ -191,7 +187,21 @@ export default function SettingsPane() {
         <div style={{ display: "flex", gap: "4px" }}>
           <button className="action-btn-outline" onClick={async () => { 
             try {
-              const data = { categories, dailyTarget, soundOption, todayTotalTime, todayCategoryBreakdown, history, gridColor };
+              const state = usePomodoroStore.getState();
+              const data = {
+                categories: state.categories,
+                dailyTarget: state.dailyTarget,
+                soundOption: state.soundOption,
+                notificationsEnabled: state.notificationsEnabled,
+                todayTotalTime: state.todayTotalTime,
+                todayCategoryBreakdown: state.todayCategoryBreakdown,
+                history: state.history,
+                gridColor: state.gridColor,
+                goal: state.goal,
+                selectedTaskCategory: state.selectedTaskCategory,
+                selectedFocusTime: state.selectedFocusTime,
+                selectedBreakTime: state.selectedBreakTime,
+              };
               const path = await save({ filters: [{ name: "JSON", extensions: ["json"] }], defaultPath: `flowst-backup-${new Date().toISOString().split("T")[0]}.json` });
               if (path) await writeTextFile(path, JSON.stringify(data, null, 2));
             } catch (e) {}
@@ -202,10 +212,22 @@ export default function SettingsPane() {
               if (path && typeof path === "string") {
                 const content = await readTextFile(path);
                 const data = JSON.parse(content);
+                const state = usePomodoroStore.getState();
                 usePomodoroStore.setState({
-                  categories: data.categories || categories, dailyTarget: data.dailyTarget || dailyTarget, soundOption: data.soundOption || soundOption, todayTotalTime: data.todayTotalTime !== undefined ? data.todayTotalTime : todayTotalTime, todayCategoryBreakdown: data.todayCategoryBreakdown || todayCategoryBreakdown, history: data.history || history, gridColor: data.gridColor || gridColor
+                  categories: data.categories || state.categories,
+                  dailyTarget: data.dailyTarget || state.dailyTarget,
+                  soundOption: data.soundOption || state.soundOption,
+                  notificationsEnabled: data.notificationsEnabled !== undefined ? data.notificationsEnabled : state.notificationsEnabled,
+                  todayTotalTime: data.todayTotalTime !== undefined ? data.todayTotalTime : state.todayTotalTime,
+                  todayCategoryBreakdown: data.todayCategoryBreakdown || state.todayCategoryBreakdown,
+                  history: data.history || state.history,
+                  gridColor: data.gridColor || state.gridColor,
+                  goal: data.goal !== undefined ? data.goal : state.goal,
+                  selectedTaskCategory: data.selectedTaskCategory || state.selectedTaskCategory,
+                  selectedFocusTime: data.selectedFocusTime || state.selectedFocusTime,
+                  selectedBreakTime: data.selectedBreakTime || state.selectedBreakTime,
                 });
-                setLocalTarget((data.dailyTarget || dailyTarget).toString());
+                setLocalTarget((data.dailyTarget || state.dailyTarget).toString());
               }
             } catch (e) {}
           }}>Import</button>
