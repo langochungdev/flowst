@@ -11,6 +11,13 @@ import { emit, listen } from "@tauri-apps/api/event";
 
 let lastSoundTime = 0;
 
+const soundModules = import.meta.glob('/src/sounds/*.*', { eager: true, query: '?url', import: 'default' });
+const soundUrls: Record<string, string> = {};
+for (const path in soundModules) {
+  const filename = path.split('/').pop() || '';
+  soundUrls[filename] = soundModules[path] as string;
+}
+
 export type SessionType = "focus" | "break" | "idle";
 
 export interface TaskCategory {
@@ -67,8 +74,8 @@ interface PomodoroState {
   tick: () => void;
   checkRollover: () => void;
   setTimeLeft: (seconds: number) => void;
-  soundOption: "victory" | "trumpet" | "off";
-  setSoundOption: (option: "victory" | "trumpet" | "off") => void;
+  soundOption: string;
+  setSoundOption: (option: string) => void;
   notificationsEnabled: boolean;
   setNotificationsEnabled: (enabled: boolean) => void;
   triggerNotification: (title: string, body: string) => void;
@@ -191,16 +198,24 @@ export const usePomodoroStore = create<PomodoroState>()(
         checkVis().catch(console.error);
       },
 
+
       playSound: () => {
         const { soundOption } = get();
         if (soundOption === "off") return;
         const now = Date.now();
         if (now - lastSoundTime < 500) return;
         lastSoundTime = now;
-        const soundFile =
-          soundOption === "trumpet" ? "success-fanfare-trumpets.mp3" : "victory-chime.mp3";
-        const audio = new Audio(`/sounds/${soundFile}`);
-        audio.play().catch((e) => console.error("Error playing sound:", e));
+        
+        // Backward compatibility for old values
+        let soundFile = soundOption;
+        if (soundOption === "victory") soundFile = "victory-chime.mp3";
+        else if (soundOption === "trumpet") soundFile = "success-fanfare-trumpets.mp3";
+        
+        const url = soundUrls[soundFile];
+        if (url) {
+          const audio = new Audio(url);
+          audio.play().catch((e) => console.error("Error playing sound:", e));
+        }
       },
 
       startTimer: (focusTimeStr, breakTimeStr, customTimeLeft, categoryId) => {

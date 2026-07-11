@@ -7,8 +7,28 @@ import { invoke } from "@tauri-apps/api/core";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 
+const soundFiles = import.meta.glob('/src/sounds/*.*', { eager: true, query: '?url', import: 'default' });
+const soundUrls: Record<string, string> = {};
+const dynamicSounds = Object.keys(soundFiles).map(path => {
+  const id = path.split('/').pop() || '';
+  soundUrls[id] = soundFiles[path] as string;
+  const baseName = id.replace(/\.[^/.]+$/, "");
+  const displayName = baseName.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+  return { id, displayName };
+});
+const availableSounds = [...dynamicSounds, { id: "off", displayName: "Off" }];
+
 export default function SettingsPane() {
-  const soundOption = usePomodoroStore((state) => state.soundOption);
+  const soundOptionRaw = usePomodoroStore((state) => state.soundOption);
+  
+  // Resolve backward compat names to actual filenames, and ensure default is first item
+  let soundOption = soundOptionRaw;
+  if (soundOption === "victory") soundOption = "victory-chime.mp3";
+  if (soundOption === "trumpet") soundOption = "success-fanfare-trumpets.mp3";
+  if (!availableSounds.find(s => s.id === soundOption)) {
+    soundOption = availableSounds[0]?.id || "off";
+  }
+
   const setSoundOption = usePomodoroStore((state) => state.setSoundOption);
   const notificationsEnabled = usePomodoroStore((state) => state.notificationsEnabled);
   const setNotificationsEnabled = usePomodoroStore((state) => state.setNotificationsEnabled);
@@ -40,11 +60,11 @@ export default function SettingsPane() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handlePlayPreview = (soundName: "victory" | "trumpet" | "off", e: React.MouseEvent) => {
+  const handlePlayPreview = (soundId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (soundName === "off") return;
+    if (soundId === "off") return;
 
-    if (playingSoundId === soundName && audioRef.current) {
+    if (playingSoundId === soundId && audioRef.current) {
       audioRef.current.pause();
       setPlayingSoundId(null);
       return;
@@ -55,10 +75,12 @@ export default function SettingsPane() {
       audioRef.current = null;
     }
 
-    const soundFile = soundName === "trumpet" ? "success-fanfare-trumpets.mp3" : "victory-chime.mp3";
-    const audio = new Audio(`/sounds/${soundFile}`);
+    const url = soundUrls[soundId];
+    if (!url) return;
+
+    const audio = new Audio(url);
     audioRef.current = audio;
-    setPlayingSoundId(soundName);
+    setPlayingSoundId(soundId);
 
     audio.addEventListener("ended", () => {
       setPlayingSoundId(null);
@@ -71,10 +93,8 @@ export default function SettingsPane() {
   };
 
   const getSoundLabel = (val: string) => {
-    if (val === "victory") return "Victory Chime";
-    if (val === "trumpet") return "Fanfare Trumpets";
-    if (val === "off") return "Off";
-    return val;
+    const found = availableSounds.find(s => s.id === val);
+    return found ? found.displayName : val;
   };
 
   return (
@@ -91,21 +111,16 @@ export default function SettingsPane() {
             </div>
             {isSoundDropdownOpen && (
               <div className="select-dropdown" style={{ width: "100%", maxWidth: "none", padding: "4px", right: 0, left: "auto", zIndex: 50 }}>
-                <div className={`sound-option ${soundOption === "victory" ? "selected" : ""}`} onClick={() => { setSoundOption("victory"); setIsSoundDropdownOpen(false); }} style={{ padding: "4px 6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div className="sound-option-name" style={{ fontSize: "11px" }}>Victory</div>
-                  <button onClick={(e) => handlePlayPreview("victory", e)} style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer", padding: "2px" }}>
-                    {playingSoundId === "victory" ? <Pause size={10} /> : <Play size={10} />}
-                  </button>
-                </div>
-                <div className={`sound-option ${soundOption === "trumpet" ? "selected" : ""}`} onClick={() => { setSoundOption("trumpet"); setIsSoundDropdownOpen(false); }} style={{ padding: "4px 6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div className="sound-option-name" style={{ fontSize: "11px" }}>Trumpets</div>
-                  <button onClick={(e) => handlePlayPreview("trumpet", e)} style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer", padding: "2px" }}>
-                    {playingSoundId === "trumpet" ? <Pause size={10} /> : <Play size={10} />}
-                  </button>
-                </div>
-                <div className={`sound-option ${soundOption === "off" ? "selected" : ""}`} onClick={() => { setSoundOption("off"); setIsSoundDropdownOpen(false); if(playingSoundId){audioRef.current?.pause(); setPlayingSoundId(null);} }} style={{ padding: "4px 6px" }}>
-                  <div className="sound-option-name" style={{ fontSize: "11px" }}>Off</div>
-                </div>
+                {availableSounds.map((sound) => (
+                  <div key={sound.id} className={`sound-option ${soundOption === sound.id ? "selected" : ""}`} onClick={() => { setSoundOption(sound.id); setIsSoundDropdownOpen(false); if(sound.id === "off" && playingSoundId){audioRef.current?.pause(); setPlayingSoundId(null);} }} style={{ padding: "4px 6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div className="sound-option-name" style={{ fontSize: "11px" }}>{sound.displayName}</div>
+                    {sound.id !== "off" && (
+                      <button onClick={(e) => handlePlayPreview(sound.id, e)} style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer", padding: "2px" }}>
+                        {playingSoundId === sound.id ? <Pause size={10} /> : <Play size={10} />}
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>
