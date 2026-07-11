@@ -6,6 +6,7 @@ import { listen } from "@tauri-apps/api/event";
 import MainWindow from "./components/MainWindow";
 import MiniWindow from "./components/MiniWindow";
 import DebugWindow from "./components/DebugWindow";
+import DashboardWindow from "./components/DashboardWindow";
 import { usePomodoroStore } from "./stores/pomodoroStore";
 import { useDebugStore } from "./stores/debugStore";
 import { onAction } from "@tauri-apps/plugin-notification";
@@ -114,6 +115,7 @@ function App() {
       <style>{`:root { --grid-active: ${gridColor || "#00FBFF"} !important; }`}</style>
       {windowLabel === "main" && (isMiniMode ? <MiniWindow /> : <MainWindow />)}
       {windowLabel === "debug" && <DebugWindow />}
+      {windowLabel === "dashboard" && <DashboardWindow />}
     </>
   );
 }

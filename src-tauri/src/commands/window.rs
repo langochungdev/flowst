@@ -40,3 +40,25 @@ pub async fn open_debug_window(app: AppHandle) -> Result<(), String> {
     }
     Ok(())
 }
+
+#[tauri::command]
+pub async fn open_dashboard_window(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("dashboard") {
+        let _ = window.show();
+        let _ = window.set_focus();
+    } else {
+        let _ = tauri::WebviewWindowBuilder::new(
+            &app,
+            "dashboard",
+            tauri::WebviewUrl::App("index.html".into())
+        )
+        .title("Dashboard")
+        .inner_size(750.0, 650.0)
+        .resizable(false)
+        .decorations(false)
+        .always_on_top(false)
+        .build()
+        .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}

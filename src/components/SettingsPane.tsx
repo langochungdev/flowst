@@ -1,6 +1,6 @@
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore } from "../stores/debugStore";
-import { Play, Pause, ChevronDown, Minus, Plus } from "lucide-react";
+import { ChevronDown, Play, Pause } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { invoke } from "@tauri-apps/api/core";
@@ -55,8 +55,7 @@ export default function SettingsPane() {
       audioRef.current = null;
     }
 
-    const soundFile =
-      soundName === "trumpet" ? "success-fanfare-trumpets.mp3" : "victory-chime.mp3";
+    const soundFile = soundName === "trumpet" ? "success-fanfare-trumpets.mp3" : "victory-chime.mp3";
     const audio = new Audio(`/sounds/${soundFile}`);
     audioRef.current = audio;
     setPlayingSoundId(soundName);
@@ -79,382 +78,164 @@ export default function SettingsPane() {
   };
 
   return (
-    <div className="settings-pane">
-      <div className="setting-item-row" ref={soundDropdownRef}>
-        <span className="setting-label">Alert Sound</span>
-        <div className="custom-select" style={{ width: "150px" }}>
-          <div
-            className="select-trigger"
-            onClick={() => setIsSoundDropdownOpen(!isSoundDropdownOpen)}
-          >
-            <span>{getSoundLabel(soundOption)}</span>
-            <ChevronDown size={14} />
-          </div>
-          {isSoundDropdownOpen && (
-            <div
-              className="select-dropdown"
-              style={{ width: "100%", maxWidth: "none", padding: "4px", right: 0, left: "auto" }}
-            >
-              <div
-                className={`sound-option ${soundOption === "victory" ? "selected" : ""}`}
-                onClick={() => {
-                  setSoundOption("victory");
-                  setIsSoundDropdownOpen(false);
-                }}
-                style={{ padding: "6px 10px", marginBottom: "4px" }}
-              >
-                <div className="sound-option-name" style={{ fontSize: "12px" }}>
-                  Victory
-                </div>
-                <button
-                  className="sound-play-btn"
-                  onClick={(e) => handlePlayPreview("victory", e)}
-                  title={playingSoundId === "victory" ? "Pause" : "Preview"}
-                  style={{ width: "22px", height: "22px" }}
-                >
-                  {playingSoundId === "victory" ? <Pause size={10} /> : <Play size={10} />}
-                </button>
-              </div>
-              <div
-                className={`sound-option ${soundOption === "trumpet" ? "selected" : ""}`}
-                onClick={() => {
-                  setSoundOption("trumpet");
-                  setIsSoundDropdownOpen(false);
-                }}
-                style={{ padding: "6px 10px", margin: 0 }}
-              >
-                <div className="sound-option-name" style={{ fontSize: "12px" }}>
-                  Trumpets
-                </div>
-                <button
-                  className="sound-play-btn"
-                  onClick={(e) => handlePlayPreview("trumpet", e)}
-                  title={playingSoundId === "trumpet" ? "Pause" : "Preview"}
-                  style={{ width: "22px", height: "22px" }}
-                >
-                  {playingSoundId === "trumpet" ? <Pause size={10} /> : <Play size={10} />}
-                </button>
-              </div>
-              <div
-                className={`sound-option ${soundOption === "off" ? "selected" : ""}`}
-                onClick={() => {
-                  setSoundOption("off");
-                  setIsSoundDropdownOpen(false);
-                  if (playingSoundId) {
-                    audioRef.current?.pause();
-                    setPlayingSoundId(null);
-                  }
-                }}
-                style={{ padding: "6px 10px", marginTop: "4px" }}
-              >
-                <div className="sound-option-name" style={{ fontSize: "12px" }}>
-                  Off
-                </div>
-              </div>
+    <div className="settings-pane" style={{ padding: "16px 12px", display: "flex", flexDirection: "column", gap: "12px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
+      
+      {/* ROW 1: Alert Sound & Theme Color */}
+      <div style={{ display: "flex", gap: "12px" }}>
+        <div style={{ flex: 1 }} ref={soundDropdownRef}>
+          <div className="setting-label" style={{ marginBottom: "4px" }}>Alert Sound</div>
+          <div className="custom-select" style={{ width: "100%" }}>
+            <div className="select-trigger" onClick={() => setIsSoundDropdownOpen(!isSoundDropdownOpen)} style={{ padding: "4px 8px" }}>
+              <span style={{ fontSize: "11px" }}>{getSoundLabel(soundOption)}</span>
+              <ChevronDown size={12} />
             </div>
-          )}
+            {isSoundDropdownOpen && (
+              <div className="select-dropdown" style={{ width: "100%", maxWidth: "none", padding: "4px", right: 0, left: "auto", zIndex: 50 }}>
+                <div className={`sound-option ${soundOption === "victory" ? "selected" : ""}`} onClick={() => { setSoundOption("victory"); setIsSoundDropdownOpen(false); }} style={{ padding: "4px 6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div className="sound-option-name" style={{ fontSize: "11px" }}>Victory</div>
+                  <button onClick={(e) => handlePlayPreview("victory", e)} style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer", padding: "2px" }}>
+                    {playingSoundId === "victory" ? <Pause size={10} /> : <Play size={10} />}
+                  </button>
+                </div>
+                <div className={`sound-option ${soundOption === "trumpet" ? "selected" : ""}`} onClick={() => { setSoundOption("trumpet"); setIsSoundDropdownOpen(false); }} style={{ padding: "4px 6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div className="sound-option-name" style={{ fontSize: "11px" }}>Trumpets</div>
+                  <button onClick={(e) => handlePlayPreview("trumpet", e)} style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer", padding: "2px" }}>
+                    {playingSoundId === "trumpet" ? <Pause size={10} /> : <Play size={10} />}
+                  </button>
+                </div>
+                <div className={`sound-option ${soundOption === "off" ? "selected" : ""}`} onClick={() => { setSoundOption("off"); setIsSoundDropdownOpen(false); if(playingSoundId){audioRef.current?.pause(); setPlayingSoundId(null);} }} style={{ padding: "4px 6px" }}>
+                  <div className="sound-option-name" style={{ fontSize: "11px" }}>Off</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <div className="setting-label" style={{ marginBottom: "4px" }}>Theme</div>
+          <div style={{ display: "flex", alignItems: "center", height: "26px" }}>
+            <input
+              type="color"
+              value={gridColor || "#00FBFF"}
+              onChange={(e) => setGridColor(e.target.value)}
+              style={{ width: "26px", height: "26px", padding: 0, border: "none", background: "transparent", cursor: "pointer" }}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="setting-item-row">
-        <span className="setting-label">Grid Theme Color</span>
-        <input
-          type="color"
-          value={gridColor || "#00FBFF"}
-          onChange={(e) => setGridColor(e.target.value)}
-          style={{
-            width: "26px",
-            height: "26px",
-            padding: 0,
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-          }}
-        />
+      {/* ROW 2: Focus Target & Notifications */}
+      <div style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}>
+        <div style={{ flex: 1 }}>
+          <div className="setting-label" style={{ marginBottom: "4px" }}>Daily Target</div>
+          <div style={{ display: "flex" }}>
+            <input
+              type="number"
+              value={localTarget}
+              onChange={(e) => setLocalTarget(e.target.value)}
+              className="modern-input"
+              style={{ flex: 1, padding: "4px", height: "26px", textAlign: "center", fontSize: "12px", borderRadius: "0", minWidth: 0 }}
+            />
+            <button
+              onClick={() => {
+                const val = parseInt(localTarget);
+                if (!isNaN(val) && val > 0) setDailyTarget(val);
+              }}
+              disabled={localTarget === dailyTarget.toString()}
+              style={{
+                background: localTarget !== dailyTarget.toString() ? "var(--text-primary)" : "transparent",
+                border: "1px solid var(--divider)",
+                borderLeft: "none",
+                color: localTarget !== dailyTarget.toString() ? "var(--el-bg)" : "var(--text-secondary)",
+                padding: "0 8px",
+                borderRadius: 0,
+                cursor: localTarget !== dailyTarget.toString() ? "pointer" : "not-allowed",
+                fontSize: "11px",
+                fontWeight: 500,
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center", height: "26px", border: "1px solid var(--el-border)", padding: "0 8px" }}>
+          <span className="setting-label" style={{ margin: 0 }}>Notify</span>
+          <label className="switch" style={{ transform: "scale(0.8)", margin: 0 }}>
+            <input type="checkbox" checked={notificationsEnabled} onChange={(e) => setNotificationsEnabled(e.target.checked)} />
+            <span className="slider round"></span>
+          </label>
+        </div>
       </div>
 
-      <div className="setting-item-row">
-        <span
-          className="setting-label"
-          title="Show OS notification when timer finishes (only if app is minimized/hidden)"
-        >
-          Desktop Notifications
-        </span>
-        <label className="switch">
-          <input
-            type="checkbox"
-            checked={notificationsEnabled}
-            onChange={(e) => setNotificationsEnabled(e.target.checked)}
-          />
-          <span className="slider round"></span>
-        </label>
-      </div>
+      <div className="divider" style={{ margin: "4px 0" }} />
 
-      <div className="setting-item-row">
-        <span className="setting-label">Daily Focus Target</span>
-        <div style={{ display: "flex", gap: "4px", width: "160px", alignItems: "center" }}>
-          <button
-            className="action-btn-outline"
-            style={{ width: "26px", height: "26px", padding: 0 }}
-            onClick={() => {
-              const val = parseInt(localTarget);
-              if (!isNaN(val) && val > 5) setLocalTarget((val - 5).toString());
-            }}
-          >
-            <Minus size={14} />
-          </button>
-          <input
-            type="number"
-            value={localTarget}
-            onChange={(e) => setLocalTarget(e.target.value)}
-            className="modern-input"
-            style={{ padding: "4px 8px", height: "26px", width: "50px", textAlign: "center" }}
-          />
-          <button
-            className="action-btn-outline"
-            style={{ width: "26px", height: "26px", padding: 0 }}
-            onClick={() => {
-              const val = parseInt(localTarget);
-              if (!isNaN(val)) setLocalTarget((val + 5).toString());
-            }}
-          >
-            <Plus size={14} />
-          </button>
-          <button
-            onClick={() => {
-              const val = parseInt(localTarget);
-              if (!isNaN(val) && val > 0) {
-                setDailyTarget(val);
+      {/* ROW 3: Data Management */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+        <span className="setting-label">Data Management</span>
+        <div style={{ display: "flex", gap: "4px" }}>
+          <button className="action-btn-outline" onClick={async () => { 
+            try {
+              const data = { categories, dailyTarget, soundOption, todayTotalTime, todayCategoryBreakdown, history, gridColor };
+              const path = await save({ filters: [{ name: "JSON", extensions: ["json"] }], defaultPath: `flowst-backup-${new Date().toISOString().split("T")[0]}.json` });
+              if (path) await writeTextFile(path, JSON.stringify(data, null, 2));
+            } catch (e) {}
+          }}>Export</button>
+          <button className="action-btn-outline" onClick={async () => { 
+            try {
+              const path = await open({ multiple: false, filters: [{ name: "JSON", extensions: ["json"] }] });
+              if (path && typeof path === "string") {
+                const content = await readTextFile(path);
+                const data = JSON.parse(content);
+                usePomodoroStore.setState({
+                  categories: data.categories || categories, dailyTarget: data.dailyTarget || dailyTarget, soundOption: data.soundOption || soundOption, todayTotalTime: data.todayTotalTime !== undefined ? data.todayTotalTime : todayTotalTime, todayCategoryBreakdown: data.todayCategoryBreakdown || todayCategoryBreakdown, history: data.history || history, gridColor: data.gridColor || gridColor
+                });
+                setLocalTarget((data.dailyTarget || dailyTarget).toString());
               }
-            }}
-            disabled={localTarget === dailyTarget.toString()}
-            style={{
-              background:
-                localTarget !== dailyTarget.toString() ? "var(--text-primary)" : "transparent",
-              border: localTarget !== dailyTarget.toString() ? "none" : "1px solid var(--divider)",
-              color:
-                localTarget !== dailyTarget.toString() ? "var(--el-bg)" : "var(--text-secondary)",
-              padding: "0 10px",
-              borderRadius: 0,
-              cursor: localTarget !== dailyTarget.toString() ? "pointer" : "not-allowed",
-              fontSize: "11px",
-              fontWeight: 500,
-              transition: "all 200ms ease",
-              height: "26px",
-            }}
-          >
-            Save
-          </button>
+            } catch (e) {}
+          }}>Import</button>
+          <button className="action-btn-outline hover-danger" onClick={() => setShowClearConfirm(true)}>Clear</button>
         </div>
       </div>
 
-      <div className="setting-item-row">
-        <span className="setting-label">Developer Debug Mode</span>
+      {/* ROW 4: Extra Windows */}
+      <div style={{ display: "flex", gap: "4px", marginTop: "12px" }}>
         <button
+          className="action-btn-outline"
+          onClick={() => invoke("open_dashboard_window")}
+          style={{ flex: 1, padding: "8px 0", height: "auto" }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#00F2F6"; e.currentTarget.style.color = "#00F2F6"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--el-border)"; e.currentTarget.style.color = "var(--text-primary)"; }}
+        >
+          Dashboard
+        </button>
+        <button
+          className="action-btn-outline"
           onClick={async () => {
             try {
               const debugWin = await WebviewWindow.getByLabel("debug");
               if (debugWin) {
-                const isVisible = await debugWin.isVisible();
-                if (isVisible) {
-                  await debugWin.hide();
-                  useDebugStore.getState().setDebugMode(false);
-                } else {
-                  await debugWin.show();
-                  await debugWin.setFocus();
-                  useDebugStore.getState().setDebugMode(true);
-                }
-              } else {
-                await invoke("open_debug_window");
-                useDebugStore.getState().setDebugMode(true);
-              }
-            } catch (e) {
-              console.error("Debug Window Error:", e);
-            }
+                if (await debugWin.isVisible()) { await debugWin.hide(); useDebugStore.getState().setDebugMode(false); }
+                else { await debugWin.show(); await debugWin.setFocus(); useDebugStore.getState().setDebugMode(true); }
+              } else { await invoke("open_debug_window"); useDebugStore.getState().setDebugMode(true); }
+            } catch (e) {}
           }}
-          style={{
-            background: "var(--el-bg)",
-            border: "1px solid var(--el-border)",
-            color: "var(--text-primary)",
-            padding: "0 12px",
-            borderRadius: 0,
-            cursor: "pointer",
-            fontSize: "11px",
-            fontWeight: 500,
-            transition: "all 200ms ease",
-            height: "26px",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "var(--grid-active)";
-            e.currentTarget.style.color = "var(--grid-active)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "var(--el-border)";
-            e.currentTarget.style.color = "var(--text-primary)";
-          }}
+          style={{ flex: 1, padding: "8px 0", height: "auto" }}
         >
-          Open Debug
+          Debug Log
         </button>
       </div>
 
-      <div className="divider" style={{ marginTop: "4px", marginBottom: "4px" }} />
-
-      <div className="setting-item-col">
-        <span className="setting-label">Data Management</span>
-        <div style={{ display: "flex", gap: "6px" }}>
-          <button
-            className="action-btn-outline"
-            onClick={async () => {
-              try {
-                const data = {
-                  categories,
-                  dailyTarget,
-                  soundOption,
-                  todayTotalTime,
-                  todayCategoryBreakdown,
-                  history,
-                  gridColor,
-                };
-                const path = await save({
-                  filters: [{ name: "JSON", extensions: ["json"] }],
-                  defaultPath: `flowst-backup-${new Date().toISOString().split("T")[0]}.json`,
-                });
-                if (path) {
-                  await writeTextFile(path, JSON.stringify(data, null, 2));
-                }
-              } catch (e) {
-                console.error(e);
-                alert("Export failed");
-              }
-            }}
-          >
-            Export
-          </button>
-          <button
-            className="action-btn-outline"
-            onClick={async () => {
-              try {
-                const path = await open({
-                  multiple: false,
-                  filters: [{ name: "JSON", extensions: ["json"] }],
-                });
-                if (path && typeof path === "string") {
-                  const content = await readTextFile(path);
-                  const data = JSON.parse(content);
-                  usePomodoroStore.setState({
-                    categories: data.categories || categories,
-                    dailyTarget: data.dailyTarget || dailyTarget,
-                    soundOption: data.soundOption || soundOption,
-                    todayTotalTime:
-                      data.todayTotalTime !== undefined ? data.todayTotalTime : todayTotalTime,
-                    todayCategoryBreakdown: data.todayCategoryBreakdown || todayCategoryBreakdown,
-                    history: data.history || history,
-                    gridColor: data.gridColor || gridColor,
-                  });
-                  setLocalTarget((data.dailyTarget || dailyTarget).toString());
-                }
-              } catch (e) {
-                console.error(e);
-                alert("Import failed or invalid file.");
-              }
-            }}
-          >
-            Import
-          </button>
-          <button
-            className="action-btn-outline hover-danger"
-            onClick={() => setShowClearConfirm(true)}
-          >
-            Clear Data
-          </button>
-        </div>
-      </div>
-
       {showClearConfirm && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.5)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 200,
-          }}
-        >
-          <div
-            style={{
-              background: "var(--dropdown-bg)",
-              border: "1px solid var(--el-border)",
-              padding: "16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
-              boxShadow: "var(--el-shadow)",
-              maxWidth: "240px",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: "14px", fontWeight: 600, color: "#e81123" }}>
-              Delete all data?
-            </div>
-            <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-              This will reset your categories, goals, and today's progress. This action cannot be
-              undone.
-            </div>
-            <div
-              style={{ display: "flex", gap: "8px", justifyContent: "center", marginTop: "4px" }}
-            >
-              <button
-                onClick={() => setShowClearConfirm(false)}
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--divider)",
-                  padding: "4px 12px",
-                  borderRadius: 0,
-                  color: "var(--text-primary)",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                  fontWeight: 500,
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  usePomodoroStore.setState({
-                    categories: [
-                      { id: "study", name: "Study", color: "#00FBFF" },
-                      { id: "work", name: "Work", color: "#00FF66" },
-                    ],
-                    dailyTarget: 240,
-                    todayTotalTime: 0,
-                    todayCategoryBreakdown: {},
-                    history: {},
-                    soundOption: "victory",
-                    gridColor: "#00FBFF",
-                    goal: null,
-                  });
-                  setLocalTarget("240");
-                  setShowClearConfirm(false);
-                }}
-                style={{
-                  background: "#e81123",
-                  border: "1px solid #e81123",
-                  padding: "4px 12px",
-                  borderRadius: 0,
-                  color: "white",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                  fontWeight: 500,
-                }}
-              >
-                Delete
-              </button>
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
+          <div style={{ background: "var(--dropdown-bg)", border: "1px solid var(--el-border)", padding: "16px", display: "flex", flexDirection: "column", gap: "12px", width: "80%", textAlign: "center" }}>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: "#e81123" }}>Delete all data?</div>
+            <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
+              <button onClick={() => setShowClearConfirm(false)} style={{ flex: 1, background: "transparent", border: "1px solid var(--divider)", padding: "4px", color: "var(--text-primary)", cursor: "pointer", fontSize: "11px" }}>Cancel</button>
+              <button onClick={() => {
+                  usePomodoroStore.setState({ categories: [{ id: "study", name: "Study", color: "#00FBFF" }, { id: "work", name: "Work", color: "#00FF66" }], dailyTarget: 240, todayTotalTime: 0, todayCategoryBreakdown: {}, history: {}, soundOption: "victory", gridColor: "#00FBFF", goal: null });
+                  setLocalTarget("240"); setShowClearConfirm(false);
+                }} style={{ flex: 1, background: "#e81123", border: "none", color: "white", cursor: "pointer", fontSize: "11px" }}>Delete</button>
             </div>
           </div>
         </div>

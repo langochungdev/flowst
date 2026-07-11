@@ -372,6 +372,7 @@ pub fn run() {
             commands::window::toggle_mini_window,
             commands::window::open_settings_window,
             commands::window::open_debug_window,
+            commands::window::open_dashboard_window,
             commands::settings::load_settings,
             commands::settings::save_settings,
             commands::sys::get_memory_usage,
