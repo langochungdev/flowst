@@ -23,6 +23,8 @@ export default function MiniWindow() {
     startTimer,
     totalSessionDuration,
     elapsedSessionTime,
+    sessionDuration,
+    isCountUp,
     selectedFocusTime,
     selectedBreakTime,
     selectedTaskCategory,
@@ -68,8 +70,18 @@ export default function MiniWindow() {
     }
   };
 
-  const progressPercent =
-    totalSessionDuration > 0 ? (elapsedSessionTime / totalSessionDuration) * 100 : 0;
+  const isInfinite = !isCountUp && totalSessionDuration === 0 && state !== "idle";
+  const progressPercent = isCountUp
+    ? // Stopwatch: điền đầy mỗi giờ
+      (elapsedSessionTime % 3600) / 3600 * 100
+    : isInfinite
+      ? // Infinite block: progress theo block hiện tại
+        sessionDuration > 0
+        ? ((sessionDuration - timeLeft) / sessionDuration) * 100
+        : 0
+      : totalSessionDuration > 0
+        ? (elapsedSessionTime / totalSessionDuration) * 100
+        : 0;
   const sessionTimeLeft = totalSessionDuration - elapsedSessionTime;
 
   return (
@@ -101,14 +113,16 @@ export default function MiniWindow() {
       </div>
 
       <div className="mini-progress-row">
-        <div className="mini-progress-times">
-          <span className="mini-progress-text">
-            {formatTime(elapsedSessionTime > 0 ? Math.floor(elapsedSessionTime) : 0)}
-          </span>
-          <span className="mini-progress-text">
-            {formatTime(sessionTimeLeft > 0 ? Math.floor(sessionTimeLeft) : 0)}
-          </span>
-        </div>
+        {!isInfinite && !isCountUp && (
+          <div className="mini-progress-times">
+            <span className="mini-progress-text">
+              {formatTime(elapsedSessionTime > 0 ? Math.floor(elapsedSessionTime) : 0)}
+            </span>
+            <span className="mini-progress-text">
+              {formatTime(sessionTimeLeft > 0 ? Math.floor(sessionTimeLeft) : 0)}
+            </span>
+          </div>
+        )}
         <div className="mini-progress-bar-bg">
           <div
             className="mini-progress-bar-fill"

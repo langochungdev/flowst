@@ -71,10 +71,11 @@ export default function ContributionGrid() {
             else level = 4;
 
             for (const [catId, hours] of Object.entries(historicalData.breakdown || {})) {
-              const cat = categories.find((c) => c.id === catId);
-              if (cat && hours > 0) {
-                breakdown.push({ name: cat.name, hours: Math.round(hours * 10) / 10 });
-              }
+              if (hours <= 0) continue;
+              // Ưu tiên dùng snapshot tên tại thời điểm lưu, fallback về categories hiện tại
+              const snapshotName = historicalData.categoryNames?.[catId];
+              const name = snapshotName ?? (categories.find((c) => c.id === catId)?.name ?? catId);
+              breakdown.push({ name, hours: Math.round(hours * 10) / 10 });
             }
           } else {
             level = 0;

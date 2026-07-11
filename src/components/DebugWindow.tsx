@@ -47,7 +47,7 @@ export default function DebugWindow() {
 
   const handleGenerateMockData = (type: "year-random" | "month-consistent" | "month-random") => {
     const { categories } = usePomodoroStore.getState();
-    const history: Record<string, { totalHours: number; breakdown: Record<string, number> }> = {};
+    const history: Record<string, { totalHours: number; breakdown: Record<string, number>; categoryNames: Record<string, string>; categoryColors: Record<string, string> }> = {};
 
     // Add custom categories if missing
     const extraCats = [
@@ -69,9 +69,12 @@ export default function DebugWindow() {
       const dateStr = d.toISOString().split("T")[0];
 
       if (type === "month-consistent") {
+        const workCat = newCats.find((c) => c.id === "work");
         history[dateStr] = {
           totalHours: 4,
           breakdown: { work: 4 },
+          categoryNames: { work: workCat?.name ?? "Work" },
+          categoryColors: { work: workCat?.color ?? "#00FF66" },
         };
       } else {
         // Random
@@ -90,7 +93,14 @@ export default function DebugWindow() {
           }
         });
 
-        history[dateStr] = { totalHours, breakdown };
+        const categoryNames: Record<string, string> = {};
+        const categoryColors: Record<string, string> = {};
+        newCats.forEach((cat) => {
+          categoryNames[cat.id] = cat.name;
+          categoryColors[cat.id] = cat.color;
+        });
+
+        history[dateStr] = { totalHours, breakdown, categoryNames, categoryColors };
       }
     }
 

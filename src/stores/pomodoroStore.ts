@@ -23,6 +23,10 @@ export interface TaskCategory {
 export interface HistoryDay {
   totalHours: number;
   breakdown: Record<string, number>;
+  /** Snapshot of category names at the time of archiving — immutable after save */
+  categoryNames?: Record<string, string>;
+  /** Snapshot of category colors at the time of archiving — immutable after save */
+  categoryColors?: Record<string, string>;
 }
 
 export interface GoalTracker {
@@ -43,6 +47,8 @@ interface PomodoroState {
   totalSessionDuration: number;
   elapsedSessionTime: number;
   breakDuration: number;
+  /** Stopwatch mode: auto focus + 0 total time — counts up, no blocks/breaks */
+  isCountUp: boolean;
 
   currentDate: string;
   activeCategoryId: string | null;
@@ -99,6 +105,7 @@ export const usePomodoroStore = create<PomodoroState>()(
       totalSessionDuration: 0,
       elapsedSessionTime: 0,
       breakDuration: 0,
+      isCountUp: false,
 
       currentDate: new Date().toISOString().split("T")[0],
       activeCategoryId: null,
@@ -204,6 +211,24 @@ export const usePomodoroStore = create<PomodoroState>()(
         let blocks: number[] = [];
 
         if (focusTimeStr === "auto") {
+          // Stopwatch mode: auto + 0 total time — đếm tăng vô hạn, không nghỉ
+          if (T === 0) {
+            set({
+              state: "focus",
+              blocks: [],
+              currentBlockIndex: 0,
+              timeLeft: 0,
+              sessionDuration: 0,
+              breakDuration: 0,
+              totalSessionDuration: 0,
+              elapsedSessionTime: 0,
+              activeCategoryId: categoryId,
+              isActive: true,
+              isCountUp: true,
+            });
+            return;
+          }
+
           const T_minutes = Math.floor(T / 60);
           totalSessionDuration = T; // Full inputted time including breaks
           if (B === 0) {
@@ -240,19 +265,26 @@ export const usePomodoroStore = create<PomodoroState>()(
           }
         } else {
           const blockSeconds = (parseInt(focusTimeStr) || 25) * 60;
-          let remainingSeconds = T;
 
-          while (remainingSeconds > 0) {
-            if (remainingSeconds >= blockSeconds) {
-              blocks.push(blockSeconds);
-              remainingSeconds -= blockSeconds;
-            } else {
-              blocks.push(remainingSeconds);
-              remainingSeconds = 0;
+          // Infinite mode: T = 0 — chạy mãi 1 block tống hợp
+          if (T === 0) {
+            blocks = [blockSeconds];
+            totalSessionDuration = 0; // sentinel: infinite
+          } else {
+            let remainingSeconds = T;
+
+            while (remainingSeconds > 0) {
+              if (remainingSeconds >= blockSeconds) {
+                blocks.push(blockSeconds);
+                remainingSeconds -= blockSeconds;
+              } else {
+                blocks.push(remainingSeconds);
+                remainingSeconds = 0;
+              }
             }
-          }
 
-          totalSessionDuration = T;
+            totalSessionDuration = T;
+          }
         }
 
         set({
@@ -266,6 +298,7 @@ export const usePomodoroStore = create<PomodoroState>()(
           elapsedSessionTime: 0,
           activeCategoryId: categoryId,
           isActive: true,
+          isCountUp: false,
         });
       },
 
@@ -287,6 +320,7 @@ export const usePomodoroStore = create<PomodoroState>()(
           currentBlockIndex: 0,
           totalSessionDuration: 0,
           elapsedSessionTime: 0,
+          isCountUp: false,
         });
       },
 
@@ -296,13 +330,21 @@ export const usePomodoroStore = create<PomodoroState>()(
 
       checkRollover: () => {
         const todayDateString = getMockedDate().toISOString().split("T")[0];
-        const { currentDate, todayTotalTime, todayCategoryBreakdown, history } = get();
+        const { currentDate, todayTotalTime, todayCategoryBreakdown, history, categories } = get();
 
         if (todayDateString !== currentDate) {
           const archivedTotalHours = todayTotalTime / 60;
           const archivedBreakdown: Record<string, number> = {};
+          // Snapshot tên và màu của category tại thời điểm rollover
+          const archivedCategoryNames: Record<string, string> = {};
+          const archivedCategoryColors: Record<string, string> = {};
           for (const [cat, mins] of Object.entries(todayCategoryBreakdown || {})) {
             archivedBreakdown[cat] = mins / 60;
+            const catObj = (categories || []).find((c) => c.id === cat);
+            if (catObj) {
+              archivedCategoryNames[cat] = catObj.name;
+              archivedCategoryColors[cat] = catObj.color;
+            }
           }
 
           const newHistory = {
@@ -310,6 +352,8 @@ export const usePomodoroStore = create<PomodoroState>()(
             [currentDate]: {
               totalHours: archivedTotalHours,
               breakdown: archivedBreakdown,
+              categoryNames: archivedCategoryNames,
+              categoryColors: archivedCategoryColors,
             },
           };
 
@@ -344,6 +388,7 @@ export const usePomodoroStore = create<PomodoroState>()(
           breakDuration,
           activeCategoryId,
           checkRollover,
+          isCountUp,
         } = get();
 
         checkRollover();
@@ -352,6 +397,24 @@ export const usePomodoroStore = create<PomodoroState>()(
 
         const debugState = useDebugStore.getState();
         const multiplier = debugState.isDebugMode ? debugState.timeMultiplier : 1;
+
+        // — Stopwatch mode: auto + 0 — chỉ đếm tăng, không nghỉ, không kết thúc
+        if (isCountUp) {
+          const addedMinutes = multiplier / 60;
+          set((s) => {
+            const breakdown = { ...s.todayCategoryBreakdown };
+            if (activeCategoryId) {
+              breakdown[activeCategoryId] = (breakdown[activeCategoryId] || 0) + addedMinutes;
+            }
+            return {
+              timeLeft: s.timeLeft + multiplier,        // đếm tăng
+              elapsedSessionTime: s.elapsedSessionTime + multiplier,
+              todayTotalTime: s.todayTotalTime + addedMinutes,
+              todayCategoryBreakdown: breakdown,
+            };
+          });
+          return;
+        }
 
         if (timeLeft > 0) {
           const actualSubtracted = Math.min(multiplier, timeLeft);
@@ -376,26 +439,29 @@ export const usePomodoroStore = create<PomodoroState>()(
           get().playSound();
 
           if (state === "focus") {
+            // Infinite mode: totalSessionDuration === 0
+            const isInfinite = get().totalSessionDuration === 0;
             const nextIndex = currentBlockIndex + 1;
-            if (nextIndex < blocks.length) {
+            if (isInfinite || nextIndex < blocks.length) {
               if (breakDuration > 0) {
                 get().triggerNotification("Break Time", `${breakDuration / 60} min`);
                 set({
                   state: "break",
                   timeLeft: breakDuration,
                   sessionDuration: breakDuration,
-                  currentBlockIndex: nextIndex,
+                  currentBlockIndex: isInfinite ? currentBlockIndex : nextIndex,
                 });
               } else {
+                const nextBlock = isInfinite ? blocks[currentBlockIndex] : blocks[nextIndex];
                 get().triggerNotification(
                   "Focus Time",
-                  `${Math.round(blocks[nextIndex] / 60)} min`,
+                  `${Math.round(nextBlock / 60)} min`,
                 );
                 set({
                   state: "focus",
-                  timeLeft: blocks[nextIndex],
-                  sessionDuration: blocks[nextIndex],
-                  currentBlockIndex: nextIndex,
+                  timeLeft: nextBlock,
+                  sessionDuration: nextBlock,
+                  currentBlockIndex: isInfinite ? currentBlockIndex : nextIndex,
                 });
               }
             } else {
@@ -403,14 +469,16 @@ export const usePomodoroStore = create<PomodoroState>()(
               stopTimer();
             }
           } else if (state === "break") {
+            const isInfinite = get().totalSessionDuration === 0;
+            const blockDuration = isInfinite ? blocks[0] : blocks[currentBlockIndex];
             get().triggerNotification(
               "Focus Time",
-              `${Math.round(blocks[currentBlockIndex] / 60)} min`,
+              `${Math.round(blockDuration / 60)} min`,
             );
             set({
               state: "focus",
-              timeLeft: blocks[currentBlockIndex],
-              sessionDuration: blocks[currentBlockIndex],
+              timeLeft: blockDuration,
+              sessionDuration: blockDuration,
             });
           }
         }

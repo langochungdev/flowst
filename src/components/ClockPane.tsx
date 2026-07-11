@@ -450,6 +450,7 @@ export default function ClockPane() {
     state,
     timeLeft,
     isActive,
+    isCountUp,
     startTimer,
     pauseTimer,
     resumeTimer,
@@ -464,6 +465,7 @@ export default function ClockPane() {
     dailyTarget,
     blocks,
     currentBlockIndex,
+    totalSessionDuration,
     selectedFocusTime: focusTime,
     setSelectedFocusTime: setFocusTime,
     selectedBreakTime: breakTime,
@@ -521,12 +523,15 @@ export default function ClockPane() {
       setIsEditingCustom(false);
       return;
     }
-    let val = parseInt(e.target.value);
-    if (!isNaN(val) && val > 0) {
-      if (val * 60 < minTimeInSeconds) {
-        val = minTimeInSeconds / 60;
+    const val = parseInt(e.target.value);
+    if (!isNaN(val) && val >= 0) {
+      if (val === 0) {
+        // Infinite mode
+        setTimeLeft(0);
+      } else {
+        const clamped = val * 60 < minTimeInSeconds ? minTimeInSeconds / 60 : val;
+        setTimeLeft(clamped * 60);
       }
-      setTimeLeft(val * 60);
     }
     setIsEditingCustom(false);
   };
@@ -637,7 +642,7 @@ export default function ClockPane() {
               pointerEvents: isEditingCustom ? "none" : "auto",
             }}
           >
-            {formatTime(timeLeft)}
+            {timeLeft === 0 && state === "idle" ? "∞" : formatTime(timeLeft)}
           </div>
 
           {isEditingCustom && (
@@ -648,24 +653,28 @@ export default function ClockPane() {
               defaultValue=""
               onBlur={handleCustomInputBlur}
               onKeyDown={handleCustomInputKeyDown}
-              placeholder={Math.floor(timeLeft / 60).toString()}
+              placeholder={timeLeft === 0 ? "∞" : Math.floor(timeLeft / 60).toString()}
             />
           )}
         </div>
         {isEditing && (
           <WheelPicker
-            value={Math.max(timeLeft, minTimeInSeconds)}
+            value={timeLeft === 0 ? 0 : Math.max(timeLeft, minTimeInSeconds)}
             onChange={(val) => setTimeLeft(val)}
             onClose={() => setIsEditing(false)}
             minTime={minTimeInSeconds}
+            allowInfinite={focusTime === "auto"}
           />
         )}
         <div className="time-subtext">
-          {state === "focus"
-            ? `Focus — block ${currentBlockIndex + 1}/${blocks.length || 1}`
-            : state === "break"
-              ? "Break"
-              : "Ready"}
+          {(() => {
+            if (state === "focus") {
+              if (isCountUp) return "∞ Stopwatch";
+              if (totalSessionDuration === 0) return "Focus";
+              return `Focus — block ${currentBlockIndex + 1}/${blocks.length || 1}`;
+            }
+            return state === "break" ? "Break" : "Ready";
+          })()}
         </div>
       </div>
 

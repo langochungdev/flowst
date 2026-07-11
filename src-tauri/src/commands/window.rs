@@ -22,6 +22,7 @@ pub fn open_settings_window(app: AppHandle) {
 #[tauri::command]
 pub async fn open_debug_window(app: AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("debug") {
+        let _ = window.set_always_on_top(true);
         let _ = window.show();
         let _ = window.set_focus();
     } else {
@@ -33,6 +34,7 @@ pub async fn open_debug_window(app: AppHandle) -> Result<(), String> {
         .title("Debug Window")
         .inner_size(500.0, 600.0)
         .resizable(true)
+        .always_on_top(true)
         .build()
         .map_err(|e| e.to_string())?;
     }
