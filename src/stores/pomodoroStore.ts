@@ -522,7 +522,7 @@ export const usePomodoroStore = create<PomodoroState>()(
 let isSyncing = false;
 const storeWindowId = Math.random().toString(36).substring(7);
 
-listen("pomodoro-state-sync", (event: { payload: { senderId: string; state: PomodoroState } }) => {
+listen("pomodoro-state-sync", (event: { payload: { senderId: string; state: Partial<PomodoroState> } }) => {
   if (event.payload.senderId === storeWindowId) return;
   isSyncing = true;
   usePomodoroStore.setState(event.payload.state);
@@ -531,20 +531,44 @@ listen("pomodoro-state-sync", (event: { payload: { senderId: string; state: Pomo
 
 let lastSyncTime = 0;
 let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+let lastHistoryRef: any = undefined;
+let pendingHistorySync = false;
 
 usePomodoroStore.subscribe((state) => {
   if (!isSyncing) {
+    if (state.history !== lastHistoryRef) {
+      pendingHistorySync = true;
+      lastHistoryRef = state.history;
+    }
+
     const now = Date.now();
     if (now - lastSyncTime > 100) {
       lastSyncTime = now;
-      emit("pomodoro-state-sync", { senderId: storeWindowId, state }).catch(console.error);
+      let payloadState: Partial<PomodoroState>;
+      if (pendingHistorySync) {
+        payloadState = state;
+        pendingHistorySync = false;
+      } else {
+        const { history, ...leanState } = state;
+        payloadState = leanState;
+      }
+      emit("pomodoro-state-sync", { senderId: storeWindowId, state: payloadState }).catch(console.error);
     } else {
       if (syncTimeout) clearTimeout(syncTimeout);
       syncTimeout = setTimeout(() => {
         lastSyncTime = Date.now();
+        const currentState = usePomodoroStore.getState();
+        let payloadState: Partial<PomodoroState>;
+        if (pendingHistorySync) {
+          payloadState = currentState;
+          pendingHistorySync = false;
+        } else {
+          const { history: _h, ...leanState } = currentState;
+          payloadState = leanState;
+        }
         emit("pomodoro-state-sync", {
           senderId: storeWindowId,
-          state: usePomodoroStore.getState(),
+          state: payloadState,
         }).catch(console.error);
       }, 100);
     }

@@ -63,12 +63,18 @@ function App() {
 
     useEffect(() => {
         if (windowLabel === "main") {
-            const debugState = useDebugStore.getState();
-            if (debugState.isDebugMode) {
-                debugState.setDebugMode(false);
-            }
+            import("@tauri-apps/api/webviewWindow").then(({ WebviewWindow }) => {
+                WebviewWindow.getByLabel("debug").then(debugWin => {
+                    // Only disable debug mode if the debug window is not actually open
+                    if (!debugWin) {
+                        const debugState = useDebugStore.getState();
+                        if (debugState.isDebugMode) {
+                            debugState.setDebugMode(false);
+                        }
+                    }
+                }).catch(console.error);
+            });
         }
-    // Do nothing - user prefers simple transparency. OS effects cause black background and stutter.
   }, [windowLabel]);
 
     useEffect(() => {
@@ -92,14 +98,13 @@ function App() {
             let tooltip = "Flowst v0.7.0\nlangochungdev@gmail.com";
             if (isActive) {
                 const m = Math.floor(timeLeft / 60);
-                const s = Math.floor(timeLeft % 60);
                 const isBreak = currentBlockIndex % 2 !== 0;
                 const phase = isBreak ? "Break" : "Focus";
-                tooltip = `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")} - ${phase}`;
+                tooltip = `${m}m left - ${phase}`;
             }
             invoke("update_tray_tooltip", { tooltip }).catch(console.error);
         }
-    }, [windowLabel, isActive, Math.ceil(timeLeft), currentBlockIndex]);
+    }, [windowLabel, isActive, Math.floor(timeLeft / 60), currentBlockIndex]);
 
     const gridColor = usePomodoroStore((state) => state.gridColor);
 
