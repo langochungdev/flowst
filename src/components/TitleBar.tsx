@@ -58,7 +58,10 @@ export const TitleBar: React.FC = () => {
         </button>
         <button
           className="titlebar-button minimize"
-          onClick={() => appWindow?.minimize()}
+          onClick={(e) => {
+            e.currentTarget.blur();
+            invoke("hide_main_window_minimize").catch(() => appWindow?.minimize());
+          }}
           title="Minimize"
         >
           <svg
@@ -72,7 +75,14 @@ export const TitleBar: React.FC = () => {
             <path d="M5 12h14" />
           </svg>
         </button>
-        <button className="titlebar-button close" onClick={() => appWindow?.close()} title="Close">
+        <button 
+          className="titlebar-button close" 
+          onClick={(e) => {
+            e.currentTarget.blur();
+            invoke("hide_main_window_close").catch(() => appWindow?.close());
+          }} 
+          title="Close"
+        >
           <svg
             viewBox="0 0 24 24"
             width="14"

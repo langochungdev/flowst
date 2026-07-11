@@ -713,6 +713,7 @@ input[type="number"] {
     display: flex;
     justify-content: flex-end;
     padding-right: 16px;
+    gap: 8px;
 }
 
 .action-center {
@@ -724,10 +725,12 @@ input[type="number"] {
     display: flex;
     justify-content: flex-start;
     padding-left: 16px;
+    gap: 8px;
 }
 
 .play-pause-btn,
-.stop-btn {
+.stop-btn,
+.skip-btn {
     width: 48px;
     height: 48px;
     border-radius: 0;

@@ -71,6 +71,7 @@ interface PomodoroState {
   pauseTimer: () => void;
   resumeTimer: () => void;
   stopTimer: () => void;
+  skipBreak: () => void;
   tick: () => void;
   checkRollover: () => void;
   setTimeLeft: (seconds: number) => void;
@@ -337,6 +338,19 @@ export const usePomodoroStore = create<PomodoroState>()(
           elapsedSessionTime: 0,
           isCountUp: false,
         });
+      },
+
+      skipBreak: () => {
+        const { state, blocks, currentBlockIndex, totalSessionDuration } = get();
+        if (state === "break") {
+          const isInfinite = totalSessionDuration === 0;
+          const blockDuration = isInfinite ? blocks[0] : blocks[currentBlockIndex];
+          set({
+            state: "focus",
+            timeLeft: blockDuration,
+            sessionDuration: blockDuration,
+          });
+        }
       },
 
       setTimeLeft: (seconds) => {

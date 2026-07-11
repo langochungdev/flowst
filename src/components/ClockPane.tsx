@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Square, Trash2, Pen } from "lucide-react";
+import { Play, Pause, Square, Trash2, Pen, SkipForward } from "lucide-react";
 import ContributionGrid from "./ContributionGrid";
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore, getMockedDate } from "../stores/debugStore";
@@ -455,6 +455,7 @@ export default function ClockPane() {
     pauseTimer,
     resumeTimer,
     stopTimer,
+    skipBreak,
     setTimeLeft,
     categories,
     addCategory,
@@ -679,7 +680,13 @@ export default function ClockPane() {
       </div>
 
       <div className="action-buttons">
-        <div className="action-left"></div>
+        <div className="action-left">
+          {state === "break" && (
+            <button className="skip-btn" onClick={skipBreak} title="Skip Break">
+              <SkipForward size={18} fill="currentColor" />
+            </button>
+          )}
+        </div>
         <div className="action-center">
           <button
             className="play-pause-btn"
