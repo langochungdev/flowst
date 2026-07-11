@@ -88,59 +88,56 @@ export default function DashboardStats() {
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-glass)", padding: "16px", border: "1px solid var(--glass-border)", overflow: "hidden" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-        <h3 style={{ margin: 0, fontSize: "16px" }}>Total Stats</h3>
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "24px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+        <h3 style={{ margin: 0, fontSize: "18px" }}>Total Stats</h3>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           {filter === "custom" && (
             <input
               type="number"
               value={customDays}
               onChange={(e) => setCustomDays(Math.max(1, parseInt(e.target.value) || 1))}
-              style={{ width: "50px", background: "#222", color: "#fff", border: "1px solid #444", borderRadius: "4px", padding: "4px 8px", fontSize: "12px" }}
+              style={{ width: "45px", background: "#222", color: "#fff", border: "1px solid #444", borderRadius: "4px", padding: "4px 8px", fontSize: "14px" }}
               min={1}
             />
           )}
           <select 
             value={filter} 
             onChange={(e) => setFilter(e.target.value as FilterType)}
-            style={{ flex: 1, background: "#222", color: "#fff", border: "1px solid #444", padding: "4px 8px", borderRadius: "4px", fontSize: "12px" }}
+            style={{ background: "#222", color: "#fff", border: "1px solid #444", padding: "4px 8px", borderRadius: "4px", fontSize: "14px" }}
           >
-            <option value="7d">Last 7 days</option>
-            <option value="1m">Last 1 month</option>
-            <option value="3m">Last 3 months</option>
+            <option value="7d">7 days</option>
+            <option value="1m">1 month</option>
+            <option value="3m">3 months</option>
             <option value="thisWeek">This week</option>
             <option value="thisMonth">This month</option>
             <option value="thisYear">This year</option>
             <option value="all">All time</option>
-            <option value="custom">Custom days</option>
+            <option value="custom">Custom</option>
           </select>
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", overflowY: "auto" }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "16px" }}>
-          <span style={{ fontSize: "14px", color: "var(--text-muted)" }}>Total Focus Time</span>
-          <span style={{ fontSize: "48px", fontWeight: "bold", color: "#00F2F6", lineHeight: "1" }}>{stats.totalHours}</span>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", overflowY: "auto", overflowX: "hidden" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "12px" }}>
+          <span style={{ fontSize: "16px", color: "var(--text-muted)" }}>Total Focus Time</span>
+          <span style={{ fontSize: "64px", fontWeight: "bold", color: "#00F2F6", lineHeight: "1" }}>{stats.totalHours}</span>
           <span style={{ fontSize: "14px", color: "var(--text-muted)" }}>Hours in {stats.days} days</span>
         </div>
 
         {stats.breakdownList.length > 0 && (
-          <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", borderBottom: "1px solid #333", paddingBottom: "4px", marginBottom: "4px" }}>
+          <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "6px" }}>
+            <div style={{ fontSize: "14px", color: "var(--text-muted)", borderBottom: "1px solid #333", paddingBottom: "4px", marginBottom: "6px" }}>
               By Category
             </div>
-            {stats.breakdownList.map(b => (
-              <div key={b.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", justifyContent: "center" }}>
+              {stats.breakdownList.map(b => (
+                <div key={b.name} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px" }}>
                   <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: b.color }} />
-                  <span>{b.name}</span>
+                  <span style={{ color: "var(--text-secondary)" }}>{b.name}:</span>
+                  <span style={{ fontWeight: "bold" }}>{b.hours}h</span>
                 </div>
-                <span style={{ fontWeight: "bold" }}>{b.hours}h</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>

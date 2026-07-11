@@ -23,17 +23,18 @@ export default function DashboardGrid() {
     return Array.from(years).sort((a, b) => b - a); // Descending
   }, [history, currentYear]);
 
-  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [selectedYear, setSelectedYear] = useState<string>("last1year");
 
   const days = 7;
-  const weeks = 52; // Full year
 
   const grid = useMemo(() => {
-    // If selected year is current year, we align to today.
-    // If selected year is past year, we align to Dec 31 of that year.
     let referenceDate = getMockedDate();
-    if (selectedYear !== currentYear) {
-      referenceDate = new Date(selectedYear, 11, 31); // Dec 31
+    let weeks = 52;
+
+    if (selectedYear !== "last1year") {
+      const yearNum = Number(selectedYear);
+      referenceDate = new Date(yearNum, 11, 31); // Dec 31
+      weeks = 53; // A full calendar year can span 53 weeks
     }
     
     const refDOW = referenceDate.getDay();
@@ -50,11 +51,12 @@ export default function DashboardGrid() {
         const date = new Date(referenceDate);
         date.setDate(date.getDate() - daysAgo);
 
-        // If date is completely out of the selected year, we could make it level -1 (invisible)
-        // But typical Github graph shows surrounding days. We will hide days not in the year if they are in the future of that year.
-        if (date.getFullYear() > selectedYear || date > new Date()) {
+        const isFuture = date > getMockedDate();
+        const isWrongYear = selectedYear !== "last1year" && date.getFullYear() !== Number(selectedYear);
+
+        if (isFuture || isWrongYear) {
           level = -1;
-        } else if (date.getFullYear() === currentYear && daysAgo === 0) {
+        } else if (date.getFullYear() === currentYear && date.getMonth() === getMockedDate().getMonth() && date.getDate() === getMockedDate().getDate()) {
           totalHours = Math.round((todayTotalTime / 60) * 10) / 10;
         } else {
           const dateString = date.toISOString().split("T")[0];
@@ -88,23 +90,67 @@ export default function DashboardGrid() {
     setHoveredCell({ data, rect });
   };
 
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px", background: "var(--bg-glass)", padding: "16px", border: "1px solid var(--glass-border)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h3 style={{ margin: 0, fontSize: "16px" }}>Contributions</h3>
-        <select 
-          value={selectedYear} 
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          style={{ background: "#222", color: "#fff", border: "1px solid #444", padding: "4px 8px", borderRadius: "4px", fontSize: "12px" }}
-        >
-          {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-        </select>
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px", background: "var(--bg-glass)", padding: "16px", border: "1px solid var(--glass-border)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>
+        <h3 style={{ margin: 0, fontSize: "18px" }}>Contributions</h3>
+        <div style={{ position: "relative" }}>
+          <div 
+            onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
+            style={{ 
+              background: "#222", color: "#fff", border: "1px solid #444", 
+              padding: "4px 10px", borderRadius: "4px", fontSize: "14px", 
+              cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" 
+            }}
+          >
+            {selectedYear === "last1year" ? "Last 1 year" : selectedYear}
+            <span style={{ fontSize: "10px" }}>▼</span>
+          </div>
+          {isYearDropdownOpen && (
+            <div style={{
+              position: "absolute", bottom: "100%", right: 0, marginBottom: "4px",
+              background: "#222", border: "1px solid #444", borderRadius: "4px",
+              display: "flex", flexDirection: "column", zIndex: 100,
+              maxHeight: "180px", overflowY: "auto", whiteSpace: "nowrap"
+            }}>
+              {availableYears.map(y => (
+                <div 
+                  key={y} 
+                  onClick={() => { setSelectedYear(String(y)); setIsYearDropdownOpen(false); }}
+                  style={{
+                    padding: "6px 16px", fontSize: "14px", cursor: "pointer",
+                    background: selectedYear === String(y) ? "#00F2F6" : "transparent",
+                    color: selectedYear === String(y) ? "#000" : "#fff",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = selectedYear === String(y) ? "#00F2F6" : "#333"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = selectedYear === String(y) ? "#00F2F6" : "transparent"}
+                >
+                  {y}
+                </div>
+              ))}
+              <div 
+                onClick={() => { setSelectedYear("last1year"); setIsYearDropdownOpen(false); }}
+                style={{
+                  padding: "6px 16px", fontSize: "14px", cursor: "pointer",
+                  background: selectedYear === "last1year" ? "#00F2F6" : "transparent",
+                  color: selectedYear === "last1year" ? "#000" : "#fff",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = selectedYear === "last1year" ? "#00F2F6" : "#333"}
+                onMouseLeave={(e) => e.currentTarget.style.background = selectedYear === "last1year" ? "#00F2F6" : "transparent"}
+              >
+                Last 1 year
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div style={{ position: "relative", overflowX: "auto", overflowY: "hidden", paddingBottom: "4px" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+      <div style={{ position: "relative", overflowX: "hidden", overflowY: "hidden", paddingBottom: "2px", alignSelf: "center" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
           {grid.map((row, rowIndex) => (
-            <div key={rowIndex} style={{ display: "flex", gap: "3px" }}>
+            <div key={rowIndex} style={{ display: "flex", gap: "2px" }}>
               {row.map((cell, colIndex) => {
                 const monthThis = cell.date.getMonth();
                 const isNewMonthLeft = colIndex > 0 && monthThis !== grid[rowIndex][colIndex - 1].date.getMonth();
@@ -116,8 +162,8 @@ export default function DashboardGrid() {
                   <div
                     key={colIndex}
                     style={{
-                      width: "10px",
-                      height: "10px",
+                      width: "6px",
+                      height: "6px",
                       position: "relative",
                       backgroundColor: "transparent",
                       pointerEvents: cell.level === -1 ? "none" : "auto",
@@ -129,14 +175,14 @@ export default function DashboardGrid() {
                       style={{
                         position: "absolute",
                         inset: 0,
-                        borderRadius: "2px",
+                        borderRadius: "1px",
                         backgroundColor: cell.level <= 0 ? "#222" : "#00F2F6",
                         opacity: cell.level === -1 ? 0 : cell.level === 0 ? 1 : [0, 0.3, 0.5, 0.72, 1.0][cell.level],
                       }}
                     />
-                    {isNewMonthLeft && <div style={{ position: "absolute", left: "-2px", top: rowIndex > 0 && !isNewMonthTop ? "-2px" : "0", bottom: 0, width: "1px", backgroundColor: "#555", opacity: 0.5, pointerEvents: "none" }} />}
-                    {isNewMonthTop && <div style={{ position: "absolute", top: "-2px", left: colIndex > 0 && !isNewMonthLeft ? "-2px" : "0", right: 0, height: "1px", backgroundColor: "#555", opacity: 0.5, pointerEvents: "none" }} />}
-                    {fillCorner && <div style={{ position: "absolute", top: "-2px", left: "-2px", width: "1px", height: "1px", backgroundColor: "#555", opacity: 0.5, pointerEvents: "none" }} />}
+                    {isNewMonthLeft && <div style={{ position: "absolute", left: "-1px", top: rowIndex > 0 && !isNewMonthTop ? "-1px" : "0", bottom: 0, width: "1px", backgroundColor: "#555", opacity: 0.5, pointerEvents: "none" }} />}
+                    {isNewMonthTop && <div style={{ position: "absolute", top: "-1px", left: colIndex > 0 && !isNewMonthLeft ? "-1px" : "0", right: 0, height: "1px", backgroundColor: "#555", opacity: 0.5, pointerEvents: "none" }} />}
+                    {fillCorner && <div style={{ position: "absolute", top: "-1px", left: "-1px", width: "1px", height: "1px", backgroundColor: "#555", opacity: 0.5, pointerEvents: "none" }} />}
                   </div>
                 );
               })}
@@ -149,13 +195,13 @@ export default function DashboardGrid() {
         <div
           style={{
             position: "fixed",
-            top: hoveredCell.rect.top - 30,
-            left: hoveredCell.rect.left + 5,
+            top: hoveredCell.rect.top - 34,
+            left: Math.max(80, Math.min(window.innerWidth - 80, hoveredCell.rect.left + 3)),
             transform: "translateX(-50%)",
             background: "#fff",
             color: "#000",
             padding: "4px 8px",
-            fontSize: "10px",
+            fontSize: "14px",
             borderRadius: "4px",
             fontWeight: "bold",
             pointerEvents: "none",

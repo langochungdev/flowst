@@ -1,7 +1,8 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export function useWindowDrag() {
+  const [isDragging, setIsDragging] = useState(false);
   const isDraggingRef = useRef(false);
   const dragOccurred = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
@@ -11,14 +12,17 @@ export function useWindowDrag() {
     // Do not drag if clicking on inputs or wheel container
     if (
       target.closest("input") ||
+      target.closest("button") ||
       target.closest(".wheel-container") ||
-      target.closest(".wheel-list")
+      target.closest(".wheel-list") ||
+      target.closest(".no-drag")
     ) {
       return;
     }
     isDraggingRef.current = true;
     dragOccurred.current = false;
     startPos.current = { x: e.clientX, y: e.clientY };
+    setIsDragging(true); // immediate feedback
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -31,7 +35,8 @@ export function useWindowDrag() {
       dragOccurred.current = true;
       getCurrentWindow()
         .startDragging()
-        .catch(() => {});
+        .then(() => setIsDragging(false))
+        .catch(() => setIsDragging(false));
     }
   };
 
@@ -40,6 +45,7 @@ export function useWindowDrag() {
       // It was just a click, do not drag
       isDraggingRef.current = false;
     }
+    setIsDragging(false);
   };
 
   const onClickCapture = (e: React.MouseEvent) => {
@@ -51,6 +57,7 @@ export function useWindowDrag() {
   };
 
   return {
+    isDragging,
     startDrag,
     bind: {
       onPointerDown: startDrag,

@@ -53,7 +53,7 @@ pub async fn open_dashboard_window(app: AppHandle) -> Result<(), String> {
             tauri::WebviewUrl::App("index.html".into())
         )
         .title("Dashboard")
-        .inner_size(750.0, 650.0)
+        .inner_size(450.0, 800.0)
         .resizable(false)
         .decorations(false)
         .always_on_top(false)
