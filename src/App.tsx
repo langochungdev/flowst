@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { Effect } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import MainWindow from "./components/MainWindow";
@@ -69,7 +68,6 @@ function App() {
                 debugState.setDebugMode(false);
             }
         }
-    const win = getCurrentWebviewWindow();
     // Do nothing - user prefers simple transparency. OS effects cause black background and stutter.
   }, [windowLabel]);
 
