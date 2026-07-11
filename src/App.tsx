@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { getCurrentWebviewWindow, WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import MainWindow from "./components/MainWindow";
@@ -63,17 +63,15 @@ function App() {
 
     useEffect(() => {
         if (windowLabel === "main") {
-            import("@tauri-apps/api/webviewWindow").then(({ WebviewWindow }) => {
-                WebviewWindow.getByLabel("debug").then(debugWin => {
-                    // Only disable debug mode if the debug window is not actually open
-                    if (!debugWin) {
-                        const debugState = useDebugStore.getState();
-                        if (debugState.isDebugMode) {
-                            debugState.setDebugMode(false);
-                        }
+            WebviewWindow.getByLabel("debug").then(debugWin => {
+                // Only disable debug mode if the debug window is not actually open
+                if (!debugWin) {
+                    const debugState = useDebugStore.getState();
+                    if (debugState.isDebugMode) {
+                        debugState.setDebugMode(false);
                     }
-                }).catch(console.error);
-            });
+                }
+            }).catch(console.error);
         }
   }, [windowLabel]);
 

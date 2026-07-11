@@ -10,24 +10,38 @@ import { usePomodoroStore } from "../stores/pomodoroStore";
 export default function MainWindow() {
   const [isSettings, setIsSettings] = useState(false);
   const [, setHovered] = useState(false);
+  const [isHiding, setIsHiding] = useState(false);
   const { bind } = useWindowDrag();
   const isActive = usePomodoroStore((state) => state.isActive);
 
+  const executeHideAction = (action: () => Promise<void>) => {
+    setIsHiding(true);
+    setTimeout(() => {
+      action()
+        .then(() => {
+          setTimeout(() => setIsHiding(false), 200);
+        })
+        .catch(console.error);
+    }, 50);
+  };
+
   const handleMinimize = () => {
-    invoke("hide_main_window_minimize").catch(console.error);
+    executeHideAction(() => invoke("hide_main_window_minimize"));
   };
 
   const handleClose = () => {
     if (isActive) {
       usePomodoroStore.getState().stopTimer();
     }
-    invoke("hide_main_window_close").catch(console.error);
+    executeHideAction(() => invoke("hide_main_window_close"));
   };
 
   const handleCompact = () => {
     setIsSettings(false);
-    invoke("toggle_mini_window", { toMini: true }).catch(console.error);
-    emit("ui-mode-changed", { mini: true }).catch(console.error);
+    executeHideAction(async () => {
+      await invoke("toggle_mini_window", { toMini: true });
+      await emit("ui-mode-changed", { mini: true });
+    });
   };
 
   return (
@@ -40,7 +54,11 @@ export default function MainWindow() {
       <div className="top-header-bar"></div>
 
       <div className="corner-btn-group left">
-        <button className="corner-btn" onClick={handleCompact} title="Mini View">
+        <button 
+          className={`corner-btn ${isHiding ? 'force-no-hover' : ''}`} 
+          onClick={handleCompact} 
+          title="Mini View"
+        >
           <Minimize2 size={14} />
         </button>
         <div className="corner-divider" />
@@ -54,11 +72,19 @@ export default function MainWindow() {
       </div>
 
       <div className="corner-btn-group right">
-        <button className="corner-btn" onClick={handleMinimize} title="Minimize">
+        <button 
+          className={`corner-btn ${isHiding ? 'force-no-hover' : ''}`} 
+          onClick={handleMinimize} 
+          title="Minimize"
+        >
           <Minus size={14} />
         </button>
         <div className="corner-divider" />
-        <button className="corner-btn hover-danger" onClick={handleClose} title="Close">
+        <button 
+          className={`corner-btn hover-danger ${isHiding ? 'force-no-hover' : ''}`} 
+          onClick={handleClose} 
+          title="Close"
+        >
           <X size={14} />
         </button>
       </div>
