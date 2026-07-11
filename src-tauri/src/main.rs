@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
+    // Force rebuild for capabilities
     // Disable unnecessary WebView2 features to save RAM (Aggressive optimization)
     std::env::set_var(
         "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",

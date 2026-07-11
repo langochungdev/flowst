@@ -13,111 +13,108 @@ import { onAction } from "@tauri-apps/plugin-notification";
 import "./App.css";
 
 function App() {
-  const tick = usePomodoroStore((state) => state.tick);
-  const timeMultiplier = useDebugStore((state) => (state.isDebugMode ? state.timeMultiplier : 1));
+    const tick = usePomodoroStore((state) => state.tick);
+    const timeMultiplier = useDebugStore((state) => (state.isDebugMode ? state.timeMultiplier : 1));
 
-  const [windowLabel] = useState<string | null>(() => {
-    try {
-      const appWindow = getCurrentWebviewWindow();
-      return appWindow ? appWindow.label : "main";
-    } catch {
-      return "main";
-    }
-  });
-
-  const [isMiniMode, setIsMiniMode] = useState(false);
-
-  useEffect(() => {
-    const unlisten1 = listen("switch-to-mini", () => {
-      setIsMiniMode(true);
-    });
-    const unlisten2 = listen("ui-mode-changed", (event: { payload: { mini: boolean } }) => {
-      setIsMiniMode(event.payload.mini);
-    });
-    const unlisten3 = listen("debug-closed", () => {
-      useDebugStore.getState().setDebugMode(false);
+    const [windowLabel] = useState<string | null>(() => {
+        try {
+            const appWindow = getCurrentWebviewWindow();
+            return appWindow ? appWindow.label : "main";
+        } catch {
+            return "main";
+        }
     });
 
-    let unlistenAction: any;
-    onAction(() => {
-      const win = getCurrentWebviewWindow();
-      if (win) {
-        win.unminimize().catch(console.error);
-        win.show().catch(console.error);
-        win.setFocus().catch(console.error);
-      }
-    }).then(listener => {
-      unlistenAction = listener;
-    }).catch(console.error);
+    const [isMiniMode, setIsMiniMode] = useState(false);
 
-    return () => {
-      unlisten1.then((f) => f()).catch(console.error);
-      unlisten2.then((f) => f()).catch(console.error);
-      unlisten3.then((f) => f()).catch(console.error);
-      if (unlistenAction && typeof unlistenAction.unregister === 'function') {
-        unlistenAction.unregister().catch(console.error);
-      }
-    };
-  }, []);
+    useEffect(() => {
+        const unlisten1 = listen("switch-to-mini", () => {
+            setIsMiniMode(true);
+        });
+        const unlisten2 = listen("ui-mode-changed", (event: { payload: { mini: boolean } }) => {
+            setIsMiniMode(event.payload.mini);
+        });
+        const unlisten3 = listen("debug-closed", () => {
+            useDebugStore.getState().setDebugMode(false);
+        });
 
-  useEffect(() => {
-    if (windowLabel === "main") {
-      const debugState = useDebugStore.getState();
-      if (debugState.isDebugMode) {
-        debugState.setDebugMode(false);
-      }
-    }
+        let unlistenAction: any;
+        onAction(() => {
+            const win = getCurrentWebviewWindow();
+            if (win) {
+                win.unminimize().catch(console.error);
+                win.show().catch(console.error);
+                win.setFocus().catch(console.error);
+            }
+        }).then(listener => {
+            unlistenAction = listener;
+        }).catch(() => {
+            // Ignored: Action listeners may not be supported on this platform
+        });
 
+        return () => {
+            unlisten1.then((f) => f()).catch(console.error);
+            unlisten2.then((f) => f()).catch(console.error);
+            unlisten3.then((f) => f()).catch(console.error);
+            if (unlistenAction && typeof unlistenAction.unregister === 'function') {
+                unlistenAction.unregister().catch(console.error);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (windowLabel === "main") {
+            const debugState = useDebugStore.getState();
+            if (debugState.isDebugMode) {
+                debugState.setDebugMode(false);
+            }
+        }
     const win = getCurrentWebviewWindow();
-    if (windowLabel === "main" || windowLabel === "mini" || windowLabel === "settings") {
-      if (win) {
-        win.setEffects({ effects: [Effect.Acrylic, Effect.Blur] }).catch(console.error);
-      }
-    }
+    // Do nothing - user prefers simple transparency. OS effects cause black background and stutter.
   }, [windowLabel]);
 
-  useEffect(() => {
-    if (windowLabel === "main") {
-      const timer = setInterval(
-        () => {
-          tick();
-        },
-        1000 / Math.max(0.1, timeMultiplier),
-      );
-      return () => clearInterval(timer);
-    }
-  }, [windowLabel, tick, timeMultiplier]);
+    useEffect(() => {
+        if (windowLabel === "main") {
+            const timer = setInterval(
+                () => {
+                    tick();
+                },
+                1000 / Math.max(0.1, timeMultiplier),
+            );
+            return () => clearInterval(timer);
+        }
+    }, [windowLabel, tick, timeMultiplier]);
 
-  const isActive = usePomodoroStore((state) => state.isActive);
-  const timeLeft = usePomodoroStore((state) => state.timeLeft);
-  const currentBlockIndex = usePomodoroStore((state) => state.currentBlockIndex);
+    const isActive = usePomodoroStore((state) => state.isActive);
+    const timeLeft = usePomodoroStore((state) => state.timeLeft);
+    const currentBlockIndex = usePomodoroStore((state) => state.currentBlockIndex);
 
-  useEffect(() => {
-    if (windowLabel === "main") {
-      let tooltip = "Flowst v0.7.0\nlangochungdev@gmail.com";
-      if (isActive) {
-        const m = Math.floor(timeLeft / 60);
-        const s = Math.floor(timeLeft % 60);
-        const isBreak = currentBlockIndex % 2 !== 0;
-        const phase = isBreak ? "Break" : "Focus";
-        tooltip = `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")} - ${phase}`;
-      }
-      invoke("update_tray_tooltip", { tooltip }).catch(console.error);
-    }
-  }, [windowLabel, isActive, Math.ceil(timeLeft), currentBlockIndex]);
+    useEffect(() => {
+        if (windowLabel === "main") {
+            let tooltip = "Flowst v0.7.0\nlangochungdev@gmail.com";
+            if (isActive) {
+                const m = Math.floor(timeLeft / 60);
+                const s = Math.floor(timeLeft % 60);
+                const isBreak = currentBlockIndex % 2 !== 0;
+                const phase = isBreak ? "Break" : "Focus";
+                tooltip = `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")} - ${phase}`;
+            }
+            invoke("update_tray_tooltip", { tooltip }).catch(console.error);
+        }
+    }, [windowLabel, isActive, Math.ceil(timeLeft), currentBlockIndex]);
 
-  const gridColor = usePomodoroStore((state) => state.gridColor);
+    const gridColor = usePomodoroStore((state) => state.gridColor);
 
-  if (!windowLabel) return null;
+    if (!windowLabel) return null;
 
-  return (
-    <>
-      <style>{`:root { --grid-active: ${gridColor || "#00FBFF"} !important; }`}</style>
-      {windowLabel === "main" && (isMiniMode ? <MiniWindow /> : <MainWindow />)}
-      {windowLabel === "debug" && <DebugWindow />}
-      {windowLabel === "dashboard" && <DashboardWindow />}
-    </>
-  );
+    return (
+        <>
+            <style>{`:root { --grid-active: ${gridColor || "#00FBFF"} !important; }`}</style>
+            {windowLabel === "main" && (isMiniMode ? <MiniWindow /> : <MainWindow />)}
+            {windowLabel === "debug" && <DebugWindow />}
+            {windowLabel === "dashboard" && <DashboardWindow />}
+        </>
+    );
 }
 
 export default App;

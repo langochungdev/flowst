@@ -12,7 +12,7 @@ export function useWindowDrag() {
     // Do not drag if clicking on inputs or wheel container
     if (
       target.closest("input") ||
-      target.closest("button") ||
+      target.closest("select") ||
       target.closest(".wheel-container") ||
       target.closest(".wheel-list") ||
       target.closest(".no-drag")

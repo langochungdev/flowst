@@ -159,6 +159,7 @@ input[type="number"] {
   position: relative;
   border-radius: 0;
 }
+
 .mini-window-container.hovered {
   border: 1px solid var(--el-border);
 }

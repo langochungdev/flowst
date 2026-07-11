@@ -23,6 +23,8 @@
     "fs:default",
     "fs:allow-read-text-file",
     "fs:allow-write-text-file",
-    "notification:default"
+    "notification:default",
+    "notification:allow-register-listener",
+    "core:window:allow-set-effects"
   ]
 }
