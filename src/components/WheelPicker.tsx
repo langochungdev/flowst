@@ -10,7 +10,7 @@ interface WheelPickerProps {
 
 const options = [
   0, // Infinite mode
-  ...Array.from({ length: 12 }, (_, i) => (i + 1) * 5 * 60), // 5m to 60m
+  ...Array.from({ length: 9 }, (_, i) => (i + 4) * 5 * 60), // 20m to 60m
   90 * 60,
   120 * 60,
   150 * 60,
