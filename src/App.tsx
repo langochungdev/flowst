@@ -73,7 +73,7 @@ function App() {
                 }
             }).catch(console.error);
         }
-  }, [windowLabel]);
+    }, [windowLabel]);
 
     useEffect(() => {
         if (windowLabel === "main") {

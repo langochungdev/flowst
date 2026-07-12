@@ -113,6 +113,10 @@ interface PomodoroState {
   setSelectedFocusTime: (time: string) => void;
   selectedBreakTime: string;
   setSelectedBreakTime: (time: string) => void;
+  customFocusTime: string;
+  setCustomFocusTime: (time: string) => void;
+  customBreakTime: string;
+  setCustomBreakTime: (time: string) => void;
 }
 
 export const usePomodoroStore = create<PomodoroState>()(
@@ -144,6 +148,8 @@ export const usePomodoroStore = create<PomodoroState>()(
       selectedTaskCategory: "study",
       selectedFocusTime: "25",
       selectedBreakTime: "5",
+      customFocusTime: "90",
+      customBreakTime: "20",
       categories: [
         { id: "study", name: "Study", color: "#00FBFF" },
         { id: "work", name: "Work", color: "#00FF66" },
@@ -172,6 +178,8 @@ export const usePomodoroStore = create<PomodoroState>()(
       setSelectedTaskCategory: (categoryId) => set({ selectedTaskCategory: categoryId }),
       setSelectedFocusTime: (time) => set({ selectedFocusTime: time }),
       setSelectedBreakTime: (time) => set({ selectedBreakTime: time }),
+      setCustomFocusTime: (time) => set({ customFocusTime: time }),
+      setCustomBreakTime: (time) => set({ customBreakTime: time }),
 
       setSoundOption: (option) => set({ soundOption: option }),
       setNotificationsEnabled: (enabled) => {
@@ -548,6 +556,8 @@ export const usePomodoroStore = create<PomodoroState>()(
         selectedTaskCategory: state.selectedTaskCategory,
         selectedFocusTime: state.selectedFocusTime,
         selectedBreakTime: state.selectedBreakTime,
+        customFocusTime: state.customFocusTime,
+        customBreakTime: state.customBreakTime,
       }),
     },
   ),

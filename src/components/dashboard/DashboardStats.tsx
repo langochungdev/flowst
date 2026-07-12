@@ -55,6 +55,8 @@ export default function DashboardStats({ selectedCategories, timeFilter, customD
 
     let totalHours = 0;
     const breakdown: Record<string, number> = {};
+    const catFirstActive: Record<string, number> = {};
+    let globalFirstActive = -1;
     
     // Determine the actual start date to count backwards from.
     // If it's a specific year (and not the current year), we count back from Dec 31 of that year.
@@ -71,8 +73,13 @@ export default function DashboardStats({ selectedCategories, timeFilter, customD
       if (todayCategoryBreakdown) {
         for (const [catId, mins] of Object.entries(todayCategoryBreakdown)) {
           if (selectedCategories.includes(catId)) {
-            breakdown[catId] = (breakdown[catId] || 0) + (mins / 60);
-            totalHours += (mins / 60);
+            const hrs = mins / 60;
+            breakdown[catId] = (breakdown[catId] || 0) + hrs;
+            totalHours += hrs;
+            if (hrs > 0) {
+              catFirstActive[catId] = Math.max(catFirstActive[catId] || 0, 0);
+              globalFirstActive = Math.max(globalFirstActive, 0);
+            }
           }
         }
       }
@@ -90,6 +97,10 @@ export default function DashboardStats({ selectedCategories, timeFilter, customD
             if (selectedCategories.includes(catId)) {
               breakdown[catId] = (breakdown[catId] || 0) + hours;
               totalHours += hours;
+              if (hours > 0) {
+                catFirstActive[catId] = Math.max(catFirstActive[catId] || 0, i);
+                globalFirstActive = Math.max(globalFirstActive, i);
+              }
             }
           }
         }
@@ -99,11 +110,12 @@ export default function DashboardStats({ selectedCategories, timeFilter, customD
     const breakdownList = Object.entries(breakdown)
       .map(([catId, hours]) => {
         const cat = categories.find((c) => c.id === catId);
+        const cDays = catFirstActive[catId] !== undefined ? catFirstActive[catId] + 1 : 0;
         return { 
           name: cat ? cat.name : catId, 
           color: cat ? cat.color : "#888", 
           hours: Math.round(hours * 10) / 10,
-          avgHours: numDays > 0 ? Math.round((hours / numDays) * 10) / 10 : 0
+          avgHours: cDays > 0 ? Math.round((hours / cDays) * 10) / 10 : 0
         };
       })
       .filter(b => b.hours > 0)
@@ -116,9 +128,11 @@ export default function DashboardStats({ selectedCategories, timeFilter, customD
         return `${d.getDate()}/${d.getMonth() + 1}/${String(d.getFullYear()).slice(-2)}`;
     };
 
+    const globalDays = globalFirstActive >= 0 ? globalFirstActive + 1 : 0;
+
     return {
       totalHours: Math.round(totalHours * 10) / 10,
-      avgHours: numDays > 0 ? Math.round((totalHours / numDays) * 10) / 10 : 0,
+      avgHours: globalDays > 0 ? Math.round((totalHours / globalDays) * 10) / 10 : 0,
       days: numDays,
       breakdownList,
       dateRange: `${formatShortDate(startDate)} -> ${formatShortDate(anchorDate)}`

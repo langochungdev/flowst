@@ -104,11 +104,23 @@ export default function DashboardChart({ selectedCategories, timeFilter, customD
 
     const activeCatArr = Array.from(catMap.entries()).map(([id, val]) => ({ id, ...val }));
     
-    // Fill missing data points with 0
-    chartData.forEach(point => {
+    // Fill missing data points with 0 ONLY for days after the category's first appearance
+    const catFirstIndex = new Map<string, number>();
+    chartData.forEach((point, index) => {
       activeCatArr.forEach(cat => {
-        if (point[cat.id] === undefined) {
-          point[cat.id] = 0;
+        if (point[cat.id] > 0 && !catFirstIndex.has(cat.id)) {
+          catFirstIndex.set(cat.id, index);
+        }
+      });
+    });
+
+    chartData.forEach((point, index) => {
+      activeCatArr.forEach(cat => {
+        const firstIdx = catFirstIndex.get(cat.id);
+        if (firstIdx !== undefined && index >= firstIdx) {
+          if (point[cat.id] === undefined) {
+            point[cat.id] = 0;
+          }
         }
       });
     });

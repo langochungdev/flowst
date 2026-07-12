@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Square, Trash2, Pen, SkipForward } from "lucide-react";
+import { Play, Pause, Square, Trash2, Pen, SkipForward, Settings2 } from "lucide-react";
 import ContributionGrid from "./ContributionGrid";
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore, getMockedDate } from "../stores/debugStore";
@@ -483,9 +483,18 @@ export default function ClockPane() {
     setSelectedFocusTime: setFocusTime,
     selectedBreakTime: breakTime,
     setSelectedBreakTime: setBreakTime,
+    customFocusTime,
+    setCustomFocusTime,
+    customBreakTime,
+    setCustomBreakTime,
     selectedTaskCategory: taskCategory,
     setSelectedTaskCategory: setTaskCategory,
   } = usePomodoroStore();
+
+  const [showCustomFocusPopup, setShowCustomFocusPopup] = useState(false);
+  const [showCustomBreakPopup, setShowCustomBreakPopup] = useState(false);
+  const [tempCustomFocus, setTempCustomFocus] = useState("");
+  const [tempCustomBreak, setTempCustomBreak] = useState("");
 
   const [showCatPopup, setShowCatPopup] = useState(false);
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
@@ -503,12 +512,15 @@ export default function ClockPane() {
     };
   }, []);
 
+  const actualFocusValue = focusTime === "custom_focus" ? customFocusTime : focusTime;
+  const actualBreakValue = breakTime === "custom_break" ? customBreakTime : breakTime;
+
   const minTimeInSeconds =
-    (focusTime === "auto" || focusTime === "off") ? 0 : (parseInt(focusTime) + parseInt(breakTime)) * 60;
+    (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(actualBreakValue)) * 60;
 
   const handlePlayPause = () => {
     if (state === "idle") {
-      startTimer(focusTime, breakTime, timeLeft, taskCategory);
+      startTimer(actualFocusValue, actualBreakValue, timeLeft, taskCategory);
     } else if (isActive) {
       pauseTimer();
     } else {
@@ -567,18 +579,25 @@ export default function ClockPane() {
             { label: "20m", value: "20" },
             { label: "25m", value: "25" },
             { label: "30m", value: "30" },
-            { label: "35m", value: "35" },
-            { label: "40m", value: "40" },
             { label: "45m", value: "45" },
             { label: "50m", value: "50" },
             { label: "1h", value: "60" },
-            { label: "1h30", value: "90" },
+            { 
+              label: <div style={{ display: "flex", alignItems: "center", gap: "4px" }}><span>{customFocusTime}m</span> <Settings2 size={12} opacity={0.7} /></div>, 
+              triggerLabel: `${customFocusTime}m`, 
+              value: "custom_focus" 
+            },
           ]}
           value={focusTime}
           onChange={(val) => {
-            setFocusTime(val);
-            const newMinTime = (val === "auto" || val === "off") ? 0 : (parseInt(val) + parseInt(breakTime)) * 60;
-            if (timeLeft < newMinTime) setTimeLeft(newMinTime);
+            if (val === "custom_focus") {
+              setTempCustomFocus(customFocusTime);
+              setShowCustomFocusPopup(true);
+            } else {
+              setFocusTime(val);
+              const newMinTime = (val === "auto" || val === "off") ? 0 : (parseInt(val) + parseInt(actualBreakValue)) * 60;
+              if (timeLeft < newMinTime) setTimeLeft(newMinTime);
+            }
           }}
           width="auto"
           disabled={state !== "idle"}
@@ -589,14 +608,23 @@ export default function ClockPane() {
             { label: "5m", value: "5" },
             { label: "10m", value: "10" },
             { label: "15m", value: "15" },
-            { label: "20m", value: "20" },
+            { 
+              label: <div style={{ display: "flex", alignItems: "center", gap: "4px" }}><span>{customBreakTime}m</span> <Settings2 size={12} opacity={0.7} /></div>, 
+              triggerLabel: `${customBreakTime}m`, 
+              value: "custom_break" 
+            },
           ]}
           value={breakTime}
           onChange={(val) => {
-            setBreakTime(val);
-            const newMinTime =
-              (focusTime === "auto" || focusTime === "off") ? 0 : (parseInt(focusTime) + parseInt(val)) * 60;
-            if (timeLeft < newMinTime) setTimeLeft(newMinTime);
+            if (val === "custom_break") {
+              setTempCustomBreak(customBreakTime);
+              setShowCustomBreakPopup(true);
+            } else {
+              setBreakTime(val);
+              const newMinTime =
+                (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(val)) * 60;
+              if (timeLeft < newMinTime) setTimeLeft(newMinTime);
+            }
           }}
           width="auto"
           disabled={state !== "idle"}
@@ -723,6 +751,32 @@ export default function ClockPane() {
       </div>
 
       <GoalTrackerView />
+
+      {showCustomFocusPopup && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150 }}>
+          <div style={{ background: "var(--dropdown-bg)", border: "1px solid var(--el-border)", padding: "16px", display: "flex", flexDirection: "column", gap: "12px", boxShadow: "var(--el-shadow)", width: "220px" }}>
+            <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)" }}>Custom Focus Time (m)</div>
+            <input type="number" autoFocus value={tempCustomFocus} onChange={e => setTempCustomFocus(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { setCustomFocusTime(tempCustomFocus || "90"); setFocusTime("custom_focus"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(tempCustomFocus || "90") + parseInt(actualBreakValue)) * 60; if (timeLeft < newMinTime) setTimeLeft(newMinTime); setShowCustomFocusPopup(false); } }} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", outline: "none", fontSize: "12px", borderRadius: 0, width: "100%", boxSizing: "border-box" }} />
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <button onClick={() => setShowCustomFocusPopup(false)} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Cancel</button>
+              <button onClick={() => { setCustomFocusTime(tempCustomFocus || "90"); setFocusTime("custom_focus"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(tempCustomFocus || "90") + parseInt(actualBreakValue)) * 60; if (timeLeft < newMinTime) setTimeLeft(newMinTime); setShowCustomFocusPopup(false); }} style={{ background: "var(--text-primary)", border: "none", color: "var(--el-bg)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCustomBreakPopup && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150 }}>
+          <div style={{ background: "var(--dropdown-bg)", border: "1px solid var(--el-border)", padding: "16px", display: "flex", flexDirection: "column", gap: "12px", boxShadow: "var(--el-shadow)", width: "220px" }}>
+            <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)" }}>Custom Break Time (m)</div>
+            <input type="number" autoFocus value={tempCustomBreak} onChange={e => setTempCustomBreak(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { setCustomBreakTime(tempCustomBreak || "20"); setBreakTime("custom_break"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(tempCustomBreak || "20")) * 60; if (timeLeft < newMinTime) setTimeLeft(newMinTime); setShowCustomBreakPopup(false); } }} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", outline: "none", fontSize: "12px", borderRadius: 0, width: "100%", boxSizing: "border-box" }} />
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <button onClick={() => setShowCustomBreakPopup(false)} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Cancel</button>
+              <button onClick={() => { setCustomBreakTime(tempCustomBreak || "20"); setBreakTime("custom_break"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(tempCustomBreak || "20")) * 60; if (timeLeft < newMinTime) setTimeLeft(newMinTime); setShowCustomBreakPopup(false); }} style={{ background: "var(--text-primary)", border: "none", color: "var(--el-bg)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ position: "relative", marginTop: "auto" }}>
         <div
