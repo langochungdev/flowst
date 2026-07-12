@@ -123,8 +123,8 @@ export const usePomodoroStore = create<PomodoroState>()(
   persist(
     (set, get) => ({
       state: "idle",
-      timeLeft: 25 * 60,
-      sessionDuration: 25 * 60,
+      timeLeft: 0,
+      sessionDuration: 0,
       isActive: false,
 
       blocks: [],
@@ -356,8 +356,8 @@ export const usePomodoroStore = create<PomodoroState>()(
       stopTimer: () => {
         set({
           state: "idle",
-          timeLeft: 25 * 60,
-          sessionDuration: 25 * 60,
+          timeLeft: 0,
+          sessionDuration: 0,
           isActive: false,
           blocks: [],
           currentBlockIndex: 0,

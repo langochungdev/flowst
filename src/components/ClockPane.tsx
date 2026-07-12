@@ -596,7 +596,7 @@ export default function ClockPane() {
             } else {
               setFocusTime(val);
               const newMinTime = (val === "auto" || val === "off") ? 0 : (parseInt(val) + parseInt(actualBreakValue)) * 60;
-              if (timeLeft < newMinTime) setTimeLeft(newMinTime);
+              if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0);
             }
           }}
           width="auto"
@@ -623,7 +623,7 @@ export default function ClockPane() {
               setBreakTime(val);
               const newMinTime =
                 (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(val)) * 60;
-              if (timeLeft < newMinTime) setTimeLeft(newMinTime);
+              if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0);
             }
           }}
           width="auto"
@@ -705,7 +705,7 @@ export default function ClockPane() {
             onChange={(val) => setTimeLeft(val)}
             onClose={() => setIsEditing(false)}
             minTime={minTimeInSeconds}
-            allowInfinite={focusTime === "auto" || focusTime === "off"}
+            allowInfinite={true}
           />
         )}
         <div className="time-subtext">
@@ -756,10 +756,10 @@ export default function ClockPane() {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150 }}>
           <div style={{ background: "var(--dropdown-bg)", border: "1px solid var(--el-border)", padding: "16px", display: "flex", flexDirection: "column", gap: "12px", boxShadow: "var(--el-shadow)", width: "220px" }}>
             <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)" }}>Custom Focus Time (m)</div>
-            <input type="number" autoFocus value={tempCustomFocus} onChange={e => setTempCustomFocus(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { setCustomFocusTime(tempCustomFocus || "90"); setFocusTime("custom_focus"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(tempCustomFocus || "90") + parseInt(actualBreakValue)) * 60; if (timeLeft < newMinTime) setTimeLeft(newMinTime); setShowCustomFocusPopup(false); } }} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", outline: "none", fontSize: "12px", borderRadius: 0, width: "100%", boxSizing: "border-box" }} />
+            <input type="number" autoFocus value={tempCustomFocus} onChange={e => setTempCustomFocus(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { setCustomFocusTime(tempCustomFocus || "90"); setFocusTime("custom_focus"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(tempCustomFocus || "90") + parseInt(actualBreakValue)) * 60; if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0); setShowCustomFocusPopup(false); } }} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", outline: "none", fontSize: "12px", borderRadius: 0, width: "100%", boxSizing: "border-box" }} />
             <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
               <button onClick={() => setShowCustomFocusPopup(false)} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Cancel</button>
-              <button onClick={() => { setCustomFocusTime(tempCustomFocus || "90"); setFocusTime("custom_focus"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(tempCustomFocus || "90") + parseInt(actualBreakValue)) * 60; if (timeLeft < newMinTime) setTimeLeft(newMinTime); setShowCustomFocusPopup(false); }} style={{ background: "var(--text-primary)", border: "none", color: "var(--el-bg)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Save</button>
+              <button onClick={() => { setCustomFocusTime(tempCustomFocus || "90"); setFocusTime("custom_focus"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(tempCustomFocus || "90") + parseInt(actualBreakValue)) * 60; if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0); setShowCustomFocusPopup(false); }} style={{ background: "var(--text-primary)", border: "none", color: "var(--el-bg)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Save</button>
             </div>
           </div>
         </div>
@@ -769,10 +769,10 @@ export default function ClockPane() {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150 }}>
           <div style={{ background: "var(--dropdown-bg)", border: "1px solid var(--el-border)", padding: "16px", display: "flex", flexDirection: "column", gap: "12px", boxShadow: "var(--el-shadow)", width: "220px" }}>
             <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)" }}>Custom Break Time (m)</div>
-            <input type="number" autoFocus value={tempCustomBreak} onChange={e => setTempCustomBreak(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { setCustomBreakTime(tempCustomBreak || "20"); setBreakTime("custom_break"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(tempCustomBreak || "20")) * 60; if (timeLeft < newMinTime) setTimeLeft(newMinTime); setShowCustomBreakPopup(false); } }} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", outline: "none", fontSize: "12px", borderRadius: 0, width: "100%", boxSizing: "border-box" }} />
+            <input type="number" autoFocus value={tempCustomBreak} onChange={e => setTempCustomBreak(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { setCustomBreakTime(tempCustomBreak || "20"); setBreakTime("custom_break"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(tempCustomBreak || "20")) * 60; if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0); setShowCustomBreakPopup(false); } }} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", outline: "none", fontSize: "12px", borderRadius: 0, width: "100%", boxSizing: "border-box" }} />
             <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
               <button onClick={() => setShowCustomBreakPopup(false)} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Cancel</button>
-              <button onClick={() => { setCustomBreakTime(tempCustomBreak || "20"); setBreakTime("custom_break"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(tempCustomBreak || "20")) * 60; if (timeLeft < newMinTime) setTimeLeft(newMinTime); setShowCustomBreakPopup(false); }} style={{ background: "var(--text-primary)", border: "none", color: "var(--el-bg)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Save</button>
+              <button onClick={() => { setCustomBreakTime(tempCustomBreak || "20"); setBreakTime("custom_break"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(tempCustomBreak || "20")) * 60; if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0); setShowCustomBreakPopup(false); }} style={{ background: "var(--text-primary)", border: "none", color: "var(--el-bg)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Save</button>
             </div>
           </div>
         </div>
