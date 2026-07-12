@@ -106,7 +106,18 @@ function App() {
 
     const gridColor = usePomodoroStore((state) => state.gridColor);
 
+    const [isHydrated, setIsHydrated] = useState(false);
+
+    useEffect(() => {
+        setIsHydrated(usePomodoroStore.persist.hasHydrated());
+        const unsub = usePomodoroStore.persist.onFinishHydration(() => setIsHydrated(true));
+        return () => {
+            if (unsub) unsub();
+        };
+    }, []);
+
     if (!windowLabel) return null;
+    if (!isHydrated) return null;
 
     return (
         <>

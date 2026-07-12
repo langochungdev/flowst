@@ -55,15 +55,15 @@ export const useDebugStore = create<DebugState>()(
       setDebugMode: (mode: boolean) => {
         const { isDebugMode } = get();
         if (isDebugMode !== mode) {
-          swapData(mode);
           set({ isDebugMode: mode });
+          swapData(mode);
         }
       },
 
       toggleDebugMode: () => {
         const { isDebugMode } = get();
-        swapData(!isDebugMode);
         set({ isDebugMode: !isDebugMode });
+        swapData(!isDebugMode);
       },
 
       resetDebug: () => {

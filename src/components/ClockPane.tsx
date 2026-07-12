@@ -504,7 +504,7 @@ export default function ClockPane() {
   }, []);
 
   const minTimeInSeconds =
-    focusTime === "auto" ? 0 : (parseInt(focusTime) + parseInt(breakTime)) * 60;
+    (focusTime === "auto" || focusTime === "off") ? 0 : (parseInt(focusTime) + parseInt(breakTime)) * 60;
 
   const handlePlayPause = () => {
     if (state === "idle") {
@@ -562,6 +562,7 @@ export default function ClockPane() {
       <div className="select-group">
         <CustomSelect
           options={[
+            { label: "Off", value: "off" },
             { label: "Auto", value: "auto" },
             { label: "20m", value: "20" },
             { label: "25m", value: "25" },
@@ -576,7 +577,7 @@ export default function ClockPane() {
           value={focusTime}
           onChange={(val) => {
             setFocusTime(val);
-            const newMinTime = val === "auto" ? 0 : (parseInt(val) + parseInt(breakTime)) * 60;
+            const newMinTime = (val === "auto" || val === "off") ? 0 : (parseInt(val) + parseInt(breakTime)) * 60;
             if (timeLeft < newMinTime) setTimeLeft(newMinTime);
           }}
           width="auto"
@@ -594,7 +595,7 @@ export default function ClockPane() {
           onChange={(val) => {
             setBreakTime(val);
             const newMinTime =
-              focusTime === "auto" ? 0 : (parseInt(focusTime) + parseInt(val)) * 60;
+              (focusTime === "auto" || focusTime === "off") ? 0 : (parseInt(focusTime) + parseInt(val)) * 60;
             if (timeLeft < newMinTime) setTimeLeft(newMinTime);
           }}
           width="auto"
@@ -676,7 +677,7 @@ export default function ClockPane() {
             onChange={(val) => setTimeLeft(val)}
             onClose={() => setIsEditing(false)}
             minTime={minTimeInSeconds}
-            allowInfinite={focusTime === "auto"}
+            allowInfinite={focusTime === "auto" || focusTime === "off"}
           />
         )}
         <div className="time-subtext">

@@ -1,12 +1,13 @@
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore } from "../stores/debugStore";
-import { ChevronDown, Play, Pause } from "lucide-react";
+import { ChevronDown, Play, Pause, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { getLocalDateString } from "../utils/date";
 import { invoke } from "@tauri-apps/api/core";
 import { save, open } from "@tauri-apps/plugin-dialog";
-import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
+import { writeTextFile, readTextFile, exists, remove } from "@tauri-apps/plugin-fs";
+import { join } from "@tauri-apps/api/path";
 
 const soundFiles = import.meta.glob('/src/sounds/*.*', { eager: true, query: '?url', import: 'default' });
 const soundUrls: Record<string, string> = {};
@@ -46,6 +47,56 @@ export default function SettingsPane() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const isDebugMode = useDebugStore((state) => state.isDebugMode);
+  const dirKey = isDebugMode ? "custom-data-dir-debug" : "custom-data-dir";
+
+  const [customDataDir, setCustomDataDir] = useState<string | null>(
+    localStorage.getItem(dirKey)
+  );
+
+  const handleChooseDir = async () => {
+    try {
+      const selected = await open({ directory: true });
+      if (selected && typeof selected === "string") {
+        const currentData = localStorage.getItem("pomodoro-storage");
+        if (currentData) {
+          const filePath = await join(selected, "pomodoro-storage.json");
+          await writeTextFile(filePath, currentData);
+        }
+        localStorage.setItem(dirKey, selected);
+        setCustomDataDir(selected);
+        localStorage.removeItem("pomodoro-storage");
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleRemoveDir = async () => {
+    try {
+      const dir = localStorage.getItem(dirKey);
+      if (dir) {
+        const filePath = await join(dir, "pomodoro-storage.json");
+        let dataToMove = null;
+        if (await exists(filePath)) {
+          dataToMove = await readTextFile(filePath);
+        }
+        if (dataToMove) {
+          localStorage.setItem("pomodoro-storage", dataToMove);
+        }
+        if (await exists(filePath)) {
+          await remove(filePath);
+        }
+        localStorage.removeItem(dirKey);
+        setCustomDataDir(null);
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -95,10 +146,10 @@ export default function SettingsPane() {
   };
 
   return (
-    <div className="settings-pane" style={{ padding: "16px 12px", display: "flex", flexDirection: "column", gap: "12px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
+    <div className="settings-pane" style={{ padding: "12px", display: "flex", flexDirection: "column", gap: "8px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
       
       {/* ROW 1: Alert Sound & Theme Color */}
-      <div style={{ display: "flex", gap: "12px" }}>
+      <div style={{ display: "flex", gap: "8px" }}>
         <div style={{ flex: 1 }} ref={soundDropdownRef}>
           <div className="setting-label" style={{ marginBottom: "4px" }}>Alert Sound</div>
           <div className="custom-select" style={{ width: "100%" }}>
@@ -137,7 +188,7 @@ export default function SettingsPane() {
       </div>
 
       {/* ROW 2: Focus Target & Notifications */}
-      <div style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}>
+      <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
         <div style={{ flex: 1 }}>
           <div className="setting-label" style={{ marginBottom: "4px" }}>Daily Target</div>
           <div style={{ display: "flex" }}>
@@ -180,7 +231,7 @@ export default function SettingsPane() {
         </div>
       </div>
 
-      <div className="divider" style={{ margin: "4px 0" }} />
+      <div className="divider" style={{ margin: "2px 0" }} />
 
       {/* ROW 3: Data Management */}
       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -234,10 +285,21 @@ export default function SettingsPane() {
           }}>Import</button>
           <button className="action-btn-outline hover-danger" onClick={() => setShowClearConfirm(true)}>Clear</button>
         </div>
+        <div style={{ display: "flex", gap: "4px", marginTop: "4px" }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", background: "var(--el-bg)", border: "1px solid var(--el-border)", padding: "0 8px", fontSize: "11px", color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={customDataDir || "Default Directory"}>
+            {customDataDir || "Default Directory"}
+          </div>
+          <button className="action-btn-outline" onClick={handleChooseDir} style={{ width: "auto", padding: "0 8px", flex: "none" }}>Browse</button>
+          {customDataDir && (
+            <button className="action-btn-outline hover-danger" onClick={handleRemoveDir} style={{ width: "26px", padding: "0", display: "flex", justifyContent: "center", alignItems: "center", flex: "none" }}>
+              <X size={12} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ROW 4: Extra Windows */}
-      <div style={{ display: "flex", gap: "4px", marginTop: "12px" }}>
+      <div style={{ display: "flex", gap: "4px", marginTop: "8px" }}>
         <button
           className="action-btn-outline"
           onClick={() => invoke("open_dashboard_window")}

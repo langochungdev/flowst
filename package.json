@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build",
-        "build:exe": "tauri build --no-bundle && node -e \"const d=new Date();require('fs').copyFileSync('src-tauri/target/release/tauri-app.exe', 'D:/flowst-'+d.getHours()+'h'+String(d.getMinutes()).padStart(2,'0')+'.exe')\"",
+        "build:exe": "tauri build --no-bundle && node -e \"const d=new Date();require('fs').copyFileSync('src-tauri/target/release/tauri-app.exe', 'D:/flowst-'+d.getHours()+'h'+String(d.getMinutes()).padStart(2,'0')+'.exe')\" ",
         "preview": "vite preview",
         "lint": "eslint .",
         "format": "prettier --write .",

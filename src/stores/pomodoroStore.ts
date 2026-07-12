@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { customStorage } from "./storage";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import {
   isPermissionGranted,
@@ -220,14 +221,17 @@ export const usePomodoroStore = create<PomodoroState>()(
       },
 
       startTimer: (focusTimeStr, breakTimeStr, customTimeLeft, categoryId) => {
-        const B = parseInt(breakTimeStr) || 0;
+        let B = parseInt(breakTimeStr) || 0;
+        if (focusTimeStr === "off") {
+          B = 0; // Ignore break time
+        }
         const T = customTimeLeft;
 
         let totalSessionDuration = 0;
         let blocks: number[] = [];
 
-        if (focusTimeStr === "auto") {
-          // Stopwatch mode: auto + 0 total time — đếm tăng vô hạn, không nghỉ
+        if (focusTimeStr === "auto" || focusTimeStr === "off") {
+          // Stopwatch mode: auto/off + 0 total time — đếm tăng vô hạn, không nghỉ
           if (T === 0) {
             set({
               state: "focus",
@@ -247,7 +251,8 @@ export const usePomodoroStore = create<PomodoroState>()(
 
           const T_minutes = Math.floor(T / 60);
           totalSessionDuration = T; // Full inputted time including breaks
-          if (B === 0) {
+
+          if (focusTimeStr === "off") {
             blocks = [T];
           } else {
             let bestN = 1;
@@ -515,6 +520,7 @@ export const usePomodoroStore = create<PomodoroState>()(
     }),
     {
       name: "pomodoro-storage",
+      storage: createJSONStorage(() => customStorage),
       partialize: (state) => ({
         history: state.history,
         todayTotalTime: state.todayTotalTime,

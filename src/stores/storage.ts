@@ -1,0 +1,62 @@
+import { StateStorage } from "zustand/middleware";
+import { readTextFile, writeTextFile, exists, remove } from "@tauri-apps/plugin-fs";
+import { join } from "@tauri-apps/api/path";
+
+const getDirKey = () => {
+  try {
+    const debugStoreStr = localStorage.getItem("flowst-debug-store");
+    if (debugStoreStr) {
+      const parsed = JSON.parse(debugStoreStr);
+      if (parsed?.state?.isDebugMode) {
+        return "custom-data-dir-debug";
+      }
+    }
+  } catch (e) {}
+  return "custom-data-dir";
+};
+
+export const customStorage: StateStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    const customDir = localStorage.getItem(getDirKey());
+    if (customDir) {
+      try {
+        const filePath = await join(customDir, `${name}.json`);
+        if (await exists(filePath)) {
+          const content = await readTextFile(filePath);
+          // Sync to localStorage as a backup
+          localStorage.setItem(name, content);
+          return content;
+        }
+      } catch (e) {
+        console.error("Failed to read from custom dir:", e);
+      }
+    }
+    return localStorage.getItem(name);
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    localStorage.setItem(name, value);
+    const customDir = localStorage.getItem(getDirKey());
+    if (customDir) {
+      try {
+        const filePath = await join(customDir, `${name}.json`);
+        await writeTextFile(filePath, value);
+      } catch (e) {
+        console.error("Failed to write to custom dir:", e);
+      }
+    }
+  },
+  removeItem: async (name: string): Promise<void> => {
+    localStorage.removeItem(name);
+    const customDir = localStorage.getItem(getDirKey());
+    if (customDir) {
+      try {
+        const filePath = await join(customDir, `${name}.json`);
+        if (await exists(filePath)) {
+          await remove(filePath);
+        }
+      } catch (e) {
+        console.error("Failed to remove from custom dir:", e);
+      }
+    }
+  },
+};
