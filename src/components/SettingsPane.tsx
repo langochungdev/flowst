@@ -55,6 +55,10 @@ export default function SettingsPane() {
     localStorage.getItem(dirKey)
   );
 
+  useEffect(() => {
+    setCustomDataDir(localStorage.getItem(dirKey));
+  }, [dirKey]);
+
   const handleChooseDir = async () => {
     try {
       const selected = await open({ directory: true });
