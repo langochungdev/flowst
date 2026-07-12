@@ -3,6 +3,7 @@ import { useDebugStore } from "../stores/debugStore";
 import { ChevronDown, Play, Pause } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { getLocalDateString } from "../utils/date";
 import { invoke } from "@tauri-apps/api/core";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
@@ -202,7 +203,7 @@ export default function SettingsPane() {
                 selectedFocusTime: state.selectedFocusTime,
                 selectedBreakTime: state.selectedBreakTime,
               };
-              const path = await save({ filters: [{ name: "JSON", extensions: ["json"] }], defaultPath: `flowst-backup-${new Date().toISOString().split("T")[0]}.json` });
+              const path = await save({ filters: [{ name: "JSON", extensions: ["json"] }], defaultPath: `flowst-backup-${getLocalDateString()}.json` });
               if (path) await writeTextFile(path, JSON.stringify(data, null, 2));
             } catch (e) {}
           }}>Export</button>

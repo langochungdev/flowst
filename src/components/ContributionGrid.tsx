@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useDebugStore, getMockedDate } from "../stores/debugStore";
 import { usePomodoroStore } from "../stores/pomodoroStore";
-
+import { getLocalDateString } from "../utils/date";
 type CellData = {
   level: number;
   date: Date;
@@ -60,7 +60,7 @@ export default function ContributionGrid() {
           }
         } else {
           // Past days real history
-          const dateString = date.toISOString().split("T")[0];
+          const dateString = getLocalDateString(date);
           const historicalData = (history || {})[dateString];
           if (historicalData && historicalData.totalHours > 0) {
             totalHours = Math.round(historicalData.totalHours * 10) / 10;

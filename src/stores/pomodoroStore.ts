@@ -8,7 +8,7 @@ import {
 } from "@tauri-apps/plugin-notification";
 import { useDebugStore, getMockedDate } from "./debugStore";
 import { emit, listen } from "@tauri-apps/api/event";
-
+import { getLocalDateString } from "../utils/date";
 let lastSoundTime = 0;
 
 const soundModules = import.meta.glob('/src/sounds/*.*', { eager: true, query: '?url', import: 'default' });
@@ -115,7 +115,7 @@ export const usePomodoroStore = create<PomodoroState>()(
       breakDuration: 0,
       isCountUp: false,
 
-      currentDate: new Date().toISOString().split("T")[0],
+      currentDate: getLocalDateString(),
       activeCategoryId: null,
       todayCategoryBreakdown: {},
       history: {},
@@ -358,7 +358,7 @@ export const usePomodoroStore = create<PomodoroState>()(
       },
 
       checkRollover: () => {
-        const todayDateString = getMockedDate().toISOString().split("T")[0];
+        const todayDateString = getLocalDateString(getMockedDate());
         const { currentDate, todayTotalTime, todayCategoryBreakdown, history, categories } = get();
 
         if (todayDateString !== currentDate) {

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { usePomodoroStore } from "../../stores/pomodoroStore";
-import { getMockedDate } from "../../stores/debugStore";
+import { getLocalDateString } from "../../utils/date";import { getMockedDate } from "../../stores/debugStore";
 
 type CellData = {
   level: number;
@@ -59,7 +59,7 @@ export default function DashboardGrid() {
         } else if (date.getFullYear() === currentYear && date.getMonth() === getMockedDate().getMonth() && date.getDate() === getMockedDate().getDate()) {
           totalHours = Math.round((todayTotalTime / 60) * 10) / 10;
         } else {
-          const dateString = date.toISOString().split("T")[0];
+          const dateString = getLocalDateString(date);
           const historicalData = (history || {})[dateString];
           if (historicalData && historicalData.totalHours > 0) {
             totalHours = Math.round(historicalData.totalHours * 10) / 10;

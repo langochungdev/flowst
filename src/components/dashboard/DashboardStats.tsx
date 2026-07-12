@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { usePomodoroStore } from "../../stores/pomodoroStore";
-import { getMockedDate } from "../../stores/debugStore";
+import { getLocalDateString } from "../../utils/date";import { getMockedDate } from "../../stores/debugStore";
 
 type FilterType = "7d" | "1m" | "3m" | "thisWeek" | "thisMonth" | "thisYear" | "all" | "custom";
 
@@ -59,7 +59,7 @@ export default function DashboardStats() {
     for (let i = 1; i < numDays; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = getLocalDateString(d);
       if (history && history[dateStr]) {
         totalHours += history[dateStr].totalHours;
         const hdBreakdown = history[dateStr].breakdown;

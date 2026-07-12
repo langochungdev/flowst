@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { usePomodoroStore } from "../../stores/pomodoroStore";
-import { getMockedDate } from "../../stores/debugStore";
+import { getLocalDateString } from "../../utils/date";import { getMockedDate } from "../../stores/debugStore";
 
 type FilterType = "7d" | "1m" | "3m" | "thisWeek" | "thisMonth" | "thisYear" | "all" | "custom";
 
@@ -48,8 +48,8 @@ export default function DashboardChart() {
     for (let i = 0; i < numDays; i++) {
       const d = new Date(startDate);
       d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().split("T")[0];
-      const isToday = dateStr === today.toISOString().split("T")[0];
+      const dateStr = getLocalDateString(d);
+      const isToday = dateStr === getLocalDateString(today);
 
       const point: any = {
         name: `${d.getDate()}/${d.getMonth() + 1}`,

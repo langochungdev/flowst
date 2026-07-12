@@ -79,7 +79,8 @@ export const useDebugStore = create<DebugState>()(
 );
 
 export const getMockedDate = () => {
-  const offset = useDebugStore.getState().dateOffsetDays;
+  const state = useDebugStore.getState();
+  const offset = state.isDebugMode ? state.dateOffsetDays : 0;
   return new Date(Date.now() + offset * 86400000);
 };
 

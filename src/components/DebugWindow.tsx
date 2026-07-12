@@ -1,5 +1,6 @@
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore, getMockedDate } from "../stores/debugStore";
+import { getLocalDateString } from "../utils/date";
 import { Trash2, Copy } from "lucide-react";
 import { useEffect } from "react";
 
@@ -66,7 +67,7 @@ export default function DebugWindow() {
 
     for (let i = 0; i < daysToGenerate; i++) {
       const d = new Date(now.getTime() - i * 86400000);
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = getLocalDateString(d);
 
       if (type === "month-consistent") {
         const workCat = newCats.find((c) => c.id === "work");
