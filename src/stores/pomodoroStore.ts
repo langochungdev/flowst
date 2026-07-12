@@ -244,7 +244,7 @@ export const usePomodoroStore = create<PomodoroState>()(
 
       startTimer: (focusTimeStr, breakTimeStr, customTimeLeft, categoryId) => {
         let B = parseInt(breakTimeStr) || 0;
-        if (focusTimeStr === "off") {
+        if (focusTimeStr === "off" || customTimeLeft === -1) {
           B = 0; // Ignore break time
         }
         const T = customTimeLeft;
@@ -269,10 +269,12 @@ export const usePomodoroStore = create<PomodoroState>()(
               isCountUp: true,
             });
             return;
-          }
-
-          const T_minutes = Math.floor(T / 60);
-          totalSessionDuration = T; // Full inputted time including breaks
+          } else if (T === -1) {
+            blocks = [25 * 60];
+            totalSessionDuration = 25 * 60;
+          } else {
+            const T_minutes = Math.floor(T / 60);
+            totalSessionDuration = T; // Full inputted time including breaks
 
           if (focusTimeStr === "off") {
             blocks = [T];
@@ -306,6 +308,7 @@ export const usePomodoroStore = create<PomodoroState>()(
               }
             }
           }
+          }
         } else {
           const blockSeconds = (parseInt(focusTimeStr) || 25) * 60;
 
@@ -313,6 +316,10 @@ export const usePomodoroStore = create<PomodoroState>()(
           if (T === 0) {
             blocks = [blockSeconds];
             totalSessionDuration = 0; // sentinel: infinite
+          } else if (T === -1) {
+            // 1 block mode
+            blocks = [blockSeconds];
+            totalSessionDuration = blockSeconds;
           } else {
             let remainingSeconds = T;
 

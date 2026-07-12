@@ -549,10 +549,10 @@ export default function ClockPane() {
       return;
     }
     const val = parseInt(e.target.value);
-    if (!isNaN(val) && val >= 0) {
-      if (val === 0) {
-        // Infinite mode
-        setTimeLeft(0);
+    if (!isNaN(val) && val >= -1) {
+      if (val === 0 || val === -1) {
+        // Infinite or 1 block mode
+        setTimeLeft(val);
       } else {
         const clamped = val * 60 < minTimeInSeconds ? minTimeInSeconds / 60 : val;
         setTimeLeft(clamped * 60);
@@ -684,7 +684,7 @@ export default function ClockPane() {
               pointerEvents: isEditingCustom ? "none" : "auto",
             }}
           >
-            {timeLeft === 0 && state === "idle" ? "∞" : formatTime(timeLeft)}
+            {timeLeft === -1 ? "1 block" : timeLeft === 0 && state === "idle" ? "∞" : formatTime(timeLeft)}
           </div>
 
           {isEditingCustom && (
@@ -695,13 +695,13 @@ export default function ClockPane() {
               defaultValue=""
               onBlur={handleCustomInputBlur}
               onKeyDown={handleCustomInputKeyDown}
-              placeholder={timeLeft === 0 ? "∞" : Math.floor(timeLeft / 60).toString()}
+              placeholder={timeLeft === -1 ? "1 block" : timeLeft === 0 ? "∞" : Math.floor(timeLeft / 60).toString()}
             />
           )}
         </div>
         {isEditing && (
           <WheelPicker
-            value={timeLeft === 0 ? 0 : Math.max(timeLeft, minTimeInSeconds)}
+            value={timeLeft <= 0 ? timeLeft : Math.max(timeLeft, minTimeInSeconds)}
             onChange={(val) => setTimeLeft(val)}
             onClose={() => setIsEditing(false)}
             minTime={minTimeInSeconds}

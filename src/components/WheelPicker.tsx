@@ -10,6 +10,7 @@ interface WheelPickerProps {
 
 const options = [
   0, // Infinite mode
+  -1, // 1 block mode
   ...Array.from({ length: 9 }, (_, i) => (i + 4) * 5 * 60), // 20m to 60m
   90 * 60,
   120 * 60,
@@ -22,6 +23,7 @@ const options = [
 ];
 
 function formatEditTime(seconds: number) {
+  if (seconds === -1) return "1 block";
   if (seconds === 0) return "\u221e"; // Infinite
   const totalMinutes = Math.floor(seconds / 60);
   if (totalMinutes < 60) {
@@ -39,8 +41,8 @@ export default function WheelPicker({ value, onChange, onClose, minTime, allowIn
   const scrollRef = useRef<HTMLDivElement>(null);
   const itemHeight = 36;
   const availableOptions = minTime
-    ? options.filter((o) => o === 0 ? allowInfinite : o >= minTime)
-    : options.filter((o) => o !== 0 || allowInfinite);
+    ? options.filter((o) => o === 0 || o === -1 ? allowInfinite : o >= minTime)
+    : options.filter((o) => (o !== 0 && o !== -1) || allowInfinite);
   const [activeIndex, setActiveIndex] = useState(() => availableOptions.indexOf(value));
 
   useEffect(() => {
