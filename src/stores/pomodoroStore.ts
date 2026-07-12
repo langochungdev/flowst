@@ -10,6 +10,20 @@ import {
 import { useDebugStore, getMockedDate } from "./debugStore";
 import { emit, listen } from "@tauri-apps/api/event";
 import { getLocalDateString } from "../utils/date";
+
+// Migrate local storage key if exists
+if (typeof window !== "undefined" && window.localStorage) {
+  try {
+    const legacyData = localStorage.getItem("pomodoro-storage");
+    if (legacyData) {
+      localStorage.setItem("flowst-storage", legacyData);
+      localStorage.removeItem("pomodoro-storage");
+    }
+  } catch (e) {
+    console.error("Migration failed:", e);
+  }
+}
+
 let lastSoundTime = 0;
 
 const soundModules = import.meta.glob('/src/sounds/*.*', { eager: true, query: '?url', import: 'default' });
@@ -519,7 +533,7 @@ export const usePomodoroStore = create<PomodoroState>()(
       },
     }),
     {
-      name: "pomodoro-storage",
+      name: "flowst-storage",
       storage: createJSONStorage(() => customStorage),
       partialize: (state) => ({
         history: state.history,

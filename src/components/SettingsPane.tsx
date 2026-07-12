@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { getLocalDateString } from "../utils/date";
 import { invoke } from "@tauri-apps/api/core";
-import { save, open } from "@tauri-apps/plugin-dialog";
+import { save, open, ask } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile, exists, remove } from "@tauri-apps/plugin-fs";
 import { join } from "@tauri-apps/api/path";
 
@@ -59,14 +59,49 @@ export default function SettingsPane() {
     try {
       const selected = await open({ directory: true });
       if (selected && typeof selected === "string") {
-        const currentData = localStorage.getItem("pomodoro-storage");
-        if (currentData) {
-          const filePath = await join(selected, "pomodoro-storage.json");
-          await writeTextFile(filePath, currentData);
+        const oldDir = localStorage.getItem(dirKey);
+        if (oldDir === selected) return;
+
+        const filePath = await join(selected, "flowst-storage.json");
+        const legacyFilePath = await join(selected, "pomodoro-storage.json");
+        
+        const hasNewFile = await exists(filePath);
+        const hasLegacyFile = await exists(legacyFilePath);
+        
+        if (hasNewFile || hasLegacyFile) {
+          const shouldOverwrite = await ask(
+            "This directory already contains storage data. Do you want to overwrite it with your current data?\n\n- Select 'Yes' to overwrite (Existing data in the directory will be deleted)\n- Select 'No' to load the existing data (Your current progress will be replaced)",
+            { title: "Confirm Data Overwrite", kind: "warning" }
+          );
+
+          if (shouldOverwrite) {
+            const currentData = localStorage.getItem("flowst-storage");
+            if (currentData) {
+              await writeTextFile(filePath, currentData);
+              if (hasLegacyFile) {
+                await remove(legacyFilePath).catch(console.error);
+              }
+            }
+          }
+        } else {
+          // No existing files, just write current data
+          const currentData = localStorage.getItem("flowst-storage");
+          if (currentData) {
+            await writeTextFile(filePath, currentData);
+          }
         }
+
+        // Remove files from the old directory to ensure they are moved
+        if (oldDir) {
+          const oldFilePath = await join(oldDir, "flowst-storage.json");
+          const oldLegacyFilePath = await join(oldDir, "pomodoro-storage.json");
+          if (await exists(oldFilePath)) await remove(oldFilePath);
+          if (await exists(oldLegacyFilePath)) await remove(oldLegacyFilePath);
+        }
+        
         localStorage.setItem(dirKey, selected);
         setCustomDataDir(selected);
-        localStorage.removeItem("pomodoro-storage");
+        localStorage.removeItem("flowst-storage");
         window.location.reload();
       }
     } catch (e) {
@@ -78,13 +113,13 @@ export default function SettingsPane() {
     try {
       const dir = localStorage.getItem(dirKey);
       if (dir) {
-        const filePath = await join(dir, "pomodoro-storage.json");
+        const filePath = await join(dir, "flowst-storage.json");
         let dataToMove = null;
         if (await exists(filePath)) {
           dataToMove = await readTextFile(filePath);
         }
         if (dataToMove) {
-          localStorage.setItem("pomodoro-storage", dataToMove);
+          localStorage.setItem("flowst-storage", dataToMove);
         }
         if (await exists(filePath)) {
           await remove(filePath);

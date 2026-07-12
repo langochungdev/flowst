@@ -21,6 +21,21 @@ export const customStorage: StateStorage = {
     if (customDir) {
       try {
         const filePath = await join(customDir, `${name}.json`);
+        
+        // Migrate legacy pomodoro-storage.json to flowst-storage.json
+        if (name === "flowst-storage") {
+          const legacyFilePath = await join(customDir, "pomodoro-storage.json");
+          if (!(await exists(filePath)) && (await exists(legacyFilePath))) {
+            try {
+              const legacyContent = await readTextFile(legacyFilePath);
+              await writeTextFile(filePath, legacyContent);
+              await remove(legacyFilePath);
+            } catch (err) {
+              console.error("Migration of legacy file failed:", err);
+            }
+          }
+        }
+
         if (await exists(filePath)) {
           const content = await readTextFile(filePath);
           // Sync to localStorage as a backup

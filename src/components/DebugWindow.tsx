@@ -3,6 +3,7 @@ import { useDebugStore, getMockedDate } from "../stores/debugStore";
 import { getLocalDateString } from "../utils/date";
 import { Trash2, Copy } from "lucide-react";
 import { useEffect } from "react";
+import { ask } from "@tauri-apps/plugin-dialog";
 
 export default function DebugWindow() {
   const {
@@ -289,6 +290,18 @@ export default function DebugWindow() {
             <div style={{ display: "flex", gap: "8px" }}>
               <button className="debug-btn" onClick={resetDebug} style={{ flex: "none" }}>
                 Reset Time/Date
+              </button>
+              <button
+                className="debug-btn"
+                onClick={async () => {
+                  await ask(
+                    "This directory already contains storage data. Do you want to overwrite it with your current data?\n\n- Select 'Yes' to overwrite (Existing data in the directory will be deleted)\n- Select 'No' to load the existing data (Your current progress will be replaced)",
+                    { title: "Confirm Data Overwrite", kind: "warning" }
+                  );
+                }}
+                style={{ flex: "none", color: "#f39c12", borderColor: "#f39c12" }}
+              >
+                Preview Dialog
               </button>
               <button
                 className="debug-btn danger"
