@@ -1,13 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { usePomodoroStore } from "../../stores/pomodoroStore";
 import { getLocalDateString } from "../../utils/date";import { getMockedDate } from "../../stores/debugStore";
 
-type FilterType = "7d" | "1m" | "3m" | "thisWeek" | "thisMonth" | "thisYear" | "all" | "custom";
-
-export default function DashboardChart() {
-  const [filter, setFilter] = useState<FilterType>("7d");
-  const [customDays, setCustomDays] = useState<number>(14);
+export default function DashboardChart({ selectedCategories, timeFilter, customDays }: { selectedCategories: string[], timeFilter: string, customDays: number | string }) {
 
   const history = usePomodoroStore((state) => state.history);
   const categories = usePomodoroStore((state) => state.categories);
@@ -18,7 +14,7 @@ export default function DashboardChart() {
     let startDate = getMockedDate();
     let numDays = 0;
 
-    switch (filter) {
+    switch (timeFilter) {
       case "7d": numDays = 7; break;
       case "1m": numDays = 30; break;
       case "3m": numDays = 90; break;
@@ -28,7 +24,8 @@ export default function DashboardChart() {
         const startOfYear = new Date(today.getFullYear(), 0, 1);
         numDays = Math.ceil((today.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
         break;
-      case "custom": numDays = customDays || 1; break;
+      case "custom": numDays = Number(customDays) || 1; break;
+      case "last1year": numDays = 365; break;
       case "all":
         const keys = Object.keys(history || {});
         if (keys.length > 0) {
@@ -38,9 +35,27 @@ export default function DashboardChart() {
           numDays = 1;
         }
         break;
+      default:
+        if (!isNaN(Number(timeFilter))) {
+          const year = Number(timeFilter);
+          const startOfYear = new Date(year, 0, 1);
+          const endOfYear = new Date(year, 11, 31);
+          const compareDate = today < endOfYear ? today : endOfYear;
+          numDays = Math.ceil((compareDate.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
+        }
+        break;
     }
 
-    startDate.setDate(today.getDate() - numDays + 1);
+    let anchorDate = today;
+    if (!isNaN(Number(timeFilter))) {
+       const year = Number(timeFilter);
+       if (year !== today.getFullYear()) {
+           anchorDate = new Date(year, 11, 31);
+       }
+    }
+
+    startDate = new Date(anchorDate);
+    startDate.setDate(anchorDate.getDate() - numDays + 1);
 
     const chartData = [];
     const catMap = new Map<string, { name: string; color: string }>();
@@ -58,6 +73,7 @@ export default function DashboardChart() {
 
       if (isToday) {
         Object.entries(todayCategoryBreakdown).forEach(([catId, minutes]) => {
+          if (!selectedCategories.includes(catId)) return;
           const hours = minutes / 60;
           if (hours > 0) {
             point[catId] = Math.round(hours * 10) / 10;
@@ -70,6 +86,7 @@ export default function DashboardChart() {
       } else if (history && history[dateStr]) {
         const dayHist = history[dateStr];
         Object.entries(dayHist.breakdown || {}).forEach(([catId, hours]) => {
+          if (!selectedCategories.includes(catId)) return;
           if (hours > 0) {
             point[catId] = Math.round(hours * 10) / 10;
             if (!catMap.has(catId)) {
@@ -97,37 +114,12 @@ export default function DashboardChart() {
     });
 
     return { data: chartData, activeCategories: activeCatArr };
-  }, [filter, customDays, history, todayCategoryBreakdown, categories]);
+  }, [timeFilter, customDays, history, todayCategoryBreakdown, categories, selectedCategories]);
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-glass)", padding: "16px", border: "1px solid var(--glass-border)", overflow: "hidden" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-        <h3 style={{ margin: 0, fontSize: "18px" }}>Focus Trend</h3>
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          {filter === "custom" && (
-            <input
-              type="number"
-              value={customDays}
-              onChange={(e) => setCustomDays(Math.max(1, parseInt(e.target.value) || 1))}
-              style={{ width: "45px", background: "#222", color: "#fff", border: "1px solid #444", borderRadius: "4px", padding: "4px 8px", fontSize: "14px" }}
-              min={1}
-            />
-          )}
-          <select 
-            value={filter} 
-            onChange={(e) => setFilter(e.target.value as FilterType)}
-            style={{ background: "#222", color: "#fff", border: "1px solid #444", padding: "4px 8px", borderRadius: "4px", fontSize: "14px" }}
-          >
-            <option value="7d">7 days</option>
-            <option value="1m">1 month</option>
-            <option value="3m">3 months</option>
-            <option value="thisWeek">This week</option>
-            <option value="thisMonth">This month</option>
-            <option value="thisYear">This year</option>
-            <option value="all">All time</option>
-            <option value="custom">Custom</option>
-          </select>
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+        <h3 style={{ margin: 0, fontSize: "18px" }}>Trend Overview</h3>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, marginTop: "12px" }}>
