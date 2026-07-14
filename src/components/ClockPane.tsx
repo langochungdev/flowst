@@ -119,7 +119,12 @@ function GoalTrackerView() {
     if (goal.displayUnit === "hours") {
       timeString = Math.round(timeRemainingMs / (1000 * 60 * 60)) + " hours left";
     } else if (goal.displayUnit === "days") {
-      timeString = Math.round(timeRemainingMs / (1000 * 60 * 60 * 24)) + " days left";
+      const targetDateObj = new Date(goal.targetDate);
+      targetDateObj.setHours(0, 0, 0, 0);
+      const nowDateObj = new Date(now);
+      nowDateObj.setHours(0, 0, 0, 0);
+      const daysLeft = Math.max(0, Math.round((targetDateObj.getTime() - nowDateObj.getTime()) / (1000 * 60 * 60 * 24)));
+      timeString = daysLeft + " days left";
     } else if (goal.displayUnit === "weeks") {
       timeString = Math.round(timeRemainingMs / (1000 * 60 * 60 * 24 * 7)) + " weeks left";
     } else {
