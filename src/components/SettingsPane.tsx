@@ -66,10 +66,11 @@ export default function SettingsPane() {
   const dirKey = isDebugMode ? "custom-data-dir-debug" : "custom-data-dir";
 
   const [customDataDir, setCustomDataDir] = useState<string | null>(localStorage.getItem(dirKey));
-
-  useEffect(() => {
+  const [prevDirKey, setPrevDirKey] = useState(dirKey);
+  if (dirKey !== prevDirKey) {
+    setPrevDirKey(dirKey);
     setCustomDataDir(localStorage.getItem(dirKey));
-  }, [dirKey]);
+  }
 
   const handleChooseDir = async () => {
     try {
@@ -552,7 +553,9 @@ export default function SettingsPane() {
                   defaultPath: `flowst-backup-${getLocalDateString()}.json`,
                 });
                 if (path) await writeTextFile(path, JSON.stringify(data, null, 2));
-              } catch (e) {}
+              } catch {
+                // ignore
+              }
             }}
           >
             Export
@@ -592,7 +595,9 @@ export default function SettingsPane() {
                   });
                   setLocalTarget((data.dailyTarget || state.dailyTarget).toString());
                 }
-              } catch (e) {}
+              } catch {
+                // ignore
+              }
             }}
           >
             Import
@@ -684,7 +689,9 @@ export default function SettingsPane() {
                 await invoke("open_debug_window");
                 useDebugStore.getState().setDebugMode(true);
               }
-            } catch (e) {}
+            } catch {
+              // ignore
+            }
           }}
           style={{ flex: 1, padding: "8px 0", height: "auto" }}
         >

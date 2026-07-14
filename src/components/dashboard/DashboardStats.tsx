@@ -15,7 +15,6 @@ export default function DashboardStats({
   const categories = usePomodoroStore((state) => state.categories);
   const todayCategoryBreakdown = usePomodoroStore((state) => state.todayCategoryBreakdown);
   const history = usePomodoroStore((state) => state.history);
-  const todayTotalTime = usePomodoroStore((state) => state.todayTotalTime);
 
   const stats = useMemo(() => {
     const today = getMockedDate();
@@ -31,24 +30,26 @@ export default function DashboardStats({
       case "3m":
         numDays = 90;
         break;
-      case "thisWeek":
+      case "thisWeek": {
         const day = today.getDay();
         numDays = day === 0 ? 7 : day;
         break;
+      }
       case "thisMonth":
         numDays = today.getDate();
         break;
-      case "thisYear":
+      case "thisYear": {
         const startOfYear = new Date(today.getFullYear(), 0, 1);
         numDays = Math.ceil((today.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
         break;
+      }
       case "custom":
         numDays = Number(customDays) || 1;
         break;
       case "last1year":
         numDays = 365;
         break;
-      case "all":
+      case "all": {
         const keys = Object.keys(history || {});
         if (keys.length > 0) {
           const earliest = new Date(keys.sort()[0]);
@@ -57,7 +58,8 @@ export default function DashboardStats({
           numDays = 1;
         }
         break;
-      default:
+      }
+      default: {
         // For specific years like "2024"
         if (!isNaN(Number(timeFilter))) {
           const year = Number(timeFilter);
@@ -66,12 +68,9 @@ export default function DashboardStats({
           const compareDate = today < endOfYear ? today : endOfYear;
           numDays =
             Math.ceil((compareDate.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
-          // Note: for specific years we also need to adjust the today/start reference
-          // Let's adjust the stats logic for specific years later in the loop if needed.
-          // Or simpler: Stats just iterates from `today` backwards. For a specific year, `today` is not the right anchor.
-          // Let's fix the anchor date for specific years.
         }
         break;
+      }
     }
 
     let totalHours = 0;
@@ -158,15 +157,7 @@ export default function DashboardStats({
       breakdownList,
       dateRange: `${formatShortDate(startDate)} -> ${formatShortDate(anchorDate)}`,
     };
-  }, [
-    timeFilter,
-    customDays,
-    history,
-    todayTotalTime,
-    todayCategoryBreakdown,
-    categories,
-    selectedCategories,
-  ]);
+  }, [timeFilter, customDays, history, todayCategoryBreakdown, categories, selectedCategories]);
 
   return (
     <div

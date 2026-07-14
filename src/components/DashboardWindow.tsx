@@ -14,7 +14,6 @@ import { useMemo } from "react";
 
 export default function DashboardWindow() {
   const { isDragging, bind } = useWindowDrag();
-  const [windowRef, setWindowRef] = useState<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const timeDropdownRef = useRef<HTMLDivElement>(null);
@@ -22,7 +21,9 @@ export default function DashboardWindow() {
 
   const categories = usePomodoroStore((state) => state.categories);
   const history = usePomodoroStore((state) => state.history);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() =>
+    categories.map((c) => c.id),
+  );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [timeFilter, setTimeFilter] = useState<string>("7d");
@@ -53,14 +54,6 @@ export default function DashboardWindow() {
   ];
 
   useEffect(() => {
-    setSelectedCategories(categories.map((c) => c.id));
-  }, [categories]);
-
-  useEffect(() => {
-    setWindowRef(getCurrentWebviewWindow());
-  }, []);
-
-  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         categoryDropdownRef.current &&
@@ -78,9 +71,7 @@ export default function DashboardWindow() {
   }, []);
 
   const closeWindow = () => {
-    if (windowRef) {
-      windowRef.close();
-    }
+    getCurrentWebviewWindow()?.close();
   };
 
   const handleExport = async () => {
@@ -104,17 +95,18 @@ export default function DashboardWindow() {
         case "thisMonth":
           numDays = today.getDate();
           break;
-        case "thisYear":
+        case "thisYear": {
           const startOfYear = new Date(today.getFullYear(), 0, 1);
           numDays = Math.ceil((today.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
           break;
+        }
         case "custom":
           numDays = Number(customDays) || 1;
           break;
         case "last1year":
           numDays = 365;
           break;
-        case "all":
+        case "all": {
           const keys = Object.keys(history || {});
           if (keys.length > 0) {
             const earliest = new Date(keys.sort()[0]);
@@ -123,15 +115,18 @@ export default function DashboardWindow() {
             numDays = 1;
           }
           break;
-        default:
+        }
+        default: {
           if (!isNaN(Number(timeFilter))) {
             const year = Number(timeFilter);
             const startOfYear = new Date(year, 0, 1);
             const endOfYear = new Date(year, 11, 31);
+
             numDays =
               Math.ceil((endOfYear.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
           }
           break;
+        }
       }
 
       let anchorDate = today;

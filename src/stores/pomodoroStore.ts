@@ -661,7 +661,7 @@ listen(
 
 let lastSyncTime = 0;
 let syncTimeout: ReturnType<typeof setTimeout> | null = null;
-let lastHistoryRef: any = undefined;
+let lastHistoryRef: PomodoroState["history"] | undefined = undefined;
 let pendingHistorySync = false;
 
 usePomodoroStore.subscribe((state) => {
@@ -679,8 +679,8 @@ usePomodoroStore.subscribe((state) => {
         payloadState = state;
         pendingHistorySync = false;
       } else {
-        const { history, ...leanState } = state;
-        payloadState = leanState;
+        payloadState = { ...state };
+        delete payloadState.history;
       }
       emit("pomodoro-state-sync", { senderId: storeWindowId, state: payloadState }).catch(
         console.error,
@@ -695,8 +695,8 @@ usePomodoroStore.subscribe((state) => {
           payloadState = currentState;
           pendingHistorySync = false;
         } else {
-          const { history: _h, ...leanState } = currentState;
-          payloadState = leanState;
+          payloadState = { ...currentState };
+          delete payloadState.history;
         }
         emit("pomodoro-state-sync", {
           senderId: storeWindowId,

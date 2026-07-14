@@ -11,7 +11,9 @@ const isDebug = () => {
         return true;
       }
     }
-  } catch (e) {}
+  } catch {
+    // ignore
+  }
   return false;
 };
 

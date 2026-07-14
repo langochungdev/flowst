@@ -37,7 +37,7 @@ function App() {
       useDebugStore.getState().setDebugMode(false);
     });
 
-    let unlistenAction: any;
+    let unlistenAction: { unregister?: () => Promise<void> } | undefined;
     onAction(() => {
       const win = getCurrentWebviewWindow();
       if (win) {
@@ -47,7 +47,7 @@ function App() {
       }
     })
       .then((listener) => {
-        unlistenAction = listener;
+        unlistenAction = listener as unknown as { unregister?: () => Promise<void> };
       })
       .catch(() => {
         // Ignored: Action listeners may not be supported on this platform
@@ -96,28 +96,28 @@ function App() {
   const isCountUp = usePomodoroStore((state) => state.isCountUp);
   const sessionState = usePomodoroStore((state) => state.state);
 
+  const timeLeftMins = Math.floor(timeLeft / 60);
+
   useEffect(() => {
     if (windowLabel === "main") {
       let tooltip = "Flowst v0.7.0\nlangochungdev@gmail.com";
       if (isActive) {
-        const m = Math.floor(timeLeft / 60);
         if (isCountUp) {
-          tooltip = `${m}m elapsed - Stopwatch`;
+          tooltip = `${timeLeftMins}m elapsed - Stopwatch`;
         } else {
           const phase = sessionState === "break" ? "Break" : "Focus";
-          tooltip = `${m}m left - ${phase}`;
+          tooltip = `${timeLeftMins}m left - ${phase}`;
         }
       }
       invoke("update_tray_tooltip", { tooltip }).catch(console.error);
     }
-  }, [windowLabel, isActive, Math.floor(timeLeft / 60), isCountUp, sessionState]);
+  }, [windowLabel, isActive, timeLeftMins, isCountUp, sessionState]);
 
   const gridColor = usePomodoroStore((state) => state.gridColor);
 
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(usePomodoroStore.persist.hasHydrated());
 
   useEffect(() => {
-    setIsHydrated(usePomodoroStore.persist.hasHydrated());
     const unsub = usePomodoroStore.persist.onFinishHydration(() => setIsHydrated(true));
     return () => {
       if (unsub) unsub();

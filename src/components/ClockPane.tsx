@@ -1217,23 +1217,23 @@ export default function ClockPane() {
                 {showDeleteConfirm ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     <div style={{ fontSize: "12px", color: "#e81123", fontWeight: 600 }}>
-                      Xóa loại việc này sẽ xóa luôn toàn bộ lịch sử liên quan. Không thể hoàn tác!
+                      Deleting this category will remove all related history. This cannot be undone!
                     </div>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <button
                         onClick={() => setShowDeleteConfirm(false)}
                         style={{
                           flex: 1,
-                          background: "transparent",
-                          border: "1px solid var(--divider)",
+                          padding: "6px 0",
+                          background: "var(--bg-glass)",
+                          border: "1px solid var(--glass-border)",
                           color: "var(--text-secondary)",
-                          padding: "4px",
+                          borderRadius: "4px",
                           cursor: "pointer",
-                          fontSize: "11px",
-                          borderRadius: 0,
+                          fontSize: "12px",
                         }}
                       >
-                        Hủy
+                        Cancel
                       </button>
                       <button
                         onClick={() => {
@@ -1249,17 +1249,17 @@ export default function ClockPane() {
                         }}
                         style={{
                           flex: 1,
+                          padding: "6px 0",
                           background: "#e81123",
                           border: "none",
-                          color: "white",
-                          padding: "4px",
+                          color: "#fff",
+                          borderRadius: "4px",
                           cursor: "pointer",
-                          fontSize: "11px",
-                          borderRadius: 0,
-                          fontWeight: 600,
+                          fontSize: "12px",
+                          fontWeight: 500,
                         }}
                       >
-                        Xóa hẳn
+                        Delete permanently
                       </button>
                     </div>
                   </div>
@@ -1344,7 +1344,7 @@ export default function ClockPane() {
                               }
                               setShowCatPopup(false);
                             }}
-                            title="Archive (xẩn, giữ lịch sử)"
+                            title="Archive (hide, keep history)"
                             style={{
                               background: "transparent",
                               border: "1px solid var(--divider)",
@@ -1362,7 +1362,7 @@ export default function ClockPane() {
                           </button>
                           <button
                             onClick={() => setShowDeleteConfirm(true)}
-                            title="Xóa hẳn + xóa lịch sử"
+                            title="Delete permanently & remove history"
                             style={{
                               background: "transparent",
                               border: "1px solid var(--divider)",
@@ -1457,7 +1457,7 @@ export default function ClockPane() {
                       padding: "12px 0",
                     }}
                   >
-                    Không có loại việc nào đang ẩn
+                    No archived categories
                   </div>
                 ) : (
                   <div
@@ -1466,8 +1466,9 @@ export default function ClockPane() {
                       display: "flex",
                       flexDirection: "column",
                       gap: "6px",
-                      maxHeight: "150px",
+                      maxHeight: "115px",
                       overflowY: "auto",
+                      paddingRight: "4px",
                     }}
                   >
                     {categories
@@ -1524,7 +1525,7 @@ export default function ClockPane() {
                             onClick={() => {
                               deleteCategory(cat.id);
                             }}
-                            title="Xóa hẳn"
+                            title="Delete permanently"
                             style={{
                               background: "transparent",
                               border: "none",

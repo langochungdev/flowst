@@ -38,17 +38,18 @@ export default function DashboardChart({
       case "thisMonth":
         numDays = today.getDate();
         break;
-      case "thisYear":
+      case "thisYear": {
         const startOfYear = new Date(today.getFullYear(), 0, 1);
         numDays = Math.ceil((today.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
         break;
+      }
       case "custom":
         numDays = Number(customDays) || 1;
         break;
       case "last1year":
         numDays = 365;
         break;
-      case "all":
+      case "all": {
         const keys = Object.keys(history || {});
         if (keys.length > 0) {
           const earliest = new Date(keys.sort()[0]);
@@ -57,7 +58,8 @@ export default function DashboardChart({
           numDays = 1;
         }
         break;
-      default:
+      }
+      default: {
         if (!isNaN(Number(timeFilter))) {
           const year = Number(timeFilter);
           const startOfYear = new Date(year, 0, 1);
@@ -67,6 +69,7 @@ export default function DashboardChart({
             Math.ceil((compareDate.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
         }
         break;
+      }
     }
 
     let anchorDate = today;
@@ -80,7 +83,7 @@ export default function DashboardChart({
     startDate = new Date(anchorDate);
     startDate.setDate(anchorDate.getDate() - numDays + 1);
 
-    const chartData = [];
+    const chartData: Record<string, number | string>[] = [];
     const catMap = new Map<string, { name: string; color: string }>();
 
     for (let i = 0; i < numDays; i++) {
@@ -89,7 +92,7 @@ export default function DashboardChart({
       const dateStr = getLocalDateString(d);
       const isToday = dateStr === getLocalDateString(today);
 
-      const point: any = {
+      const point: Record<string, number | string> = {
         name: `${d.getDate()}/${d.getMonth() + 1}`,
         fullDate: dateStr,
       };
@@ -131,7 +134,7 @@ export default function DashboardChart({
     const catFirstIndex = new Map<string, number>();
     chartData.forEach((point, index) => {
       activeCatArr.forEach((cat) => {
-        if (point[cat.id] > 0 && !catFirstIndex.has(cat.id)) {
+        if ((point[cat.id] as number) > 0 && !catFirstIndex.has(cat.id)) {
           catFirstIndex.set(cat.id, index);
         }
       });
@@ -197,9 +200,12 @@ export default function DashboardChart({
                 padding: "6px 10px",
               }}
               itemStyle={{ color: "#000", padding: "2px 0" }}
-              formatter={(value: any, name: any) => {
+              formatter={(
+                value: number | string | readonly (number | string)[] | undefined,
+                name: string | number | undefined,
+              ) => {
                 const cat = activeCategories.find((c) => c.id === String(name));
-                return [`${value}h`, cat ? cat.name : String(name)];
+                return [`${value || 0}h`, cat ? cat.name : String(name)] as any;
               }}
               labelStyle={{ color: "#555", marginBottom: "4px" }}
             />
