@@ -1,13 +1,13 @@
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore } from "../stores/debugStore";
-import { ChevronDown, Play, Pause, X } from "lucide-react";
+import { ChevronDown, Play, Pause, X, Upload, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { getLocalDateString } from "../utils/date";
 import { invoke } from "@tauri-apps/api/core";
 import { save, open, ask } from "@tauri-apps/plugin-dialog";
-import { writeTextFile, readTextFile, exists, remove } from "@tauri-apps/plugin-fs";
-import { join } from "@tauri-apps/api/path";
+import { writeTextFile, readTextFile, exists, remove, copyFile } from "@tauri-apps/plugin-fs";
+import { join, appDataDir, extname } from "@tauri-apps/api/path";
 
 const soundFiles = import.meta.glob('/src/sounds/*.*', { eager: true, query: '?url', import: 'default' });
 const soundUrls: Record<string, string> = {};
@@ -23,11 +23,14 @@ const availableSounds = [...dynamicSounds, { id: "off", displayName: "Off" }];
 export default function SettingsPane() {
     const soundOptionRaw = usePomodoroStore((state) => state.soundOption);
 
+    const customSound = usePomodoroStore((state) => state.customSound);
+    const setCustomSound = usePomodoroStore((state) => state.setCustomSound);
+    
     // Resolve backward compat names to actual filenames, and ensure default is first item
     let soundOption = soundOptionRaw;
     if (soundOption === "victory") soundOption = "victory-chime.mp3";
     if (soundOption === "trumpet") soundOption = "success-fanfare-trumpets.mp3";
-    if (!availableSounds.find(s => s.id === soundOption)) {
+    if (soundOption !== "custom" && !availableSounds.find(s => s.id === soundOption)) {
         soundOption = availableSounds[0]?.id || "off";
     }
 
@@ -137,6 +140,49 @@ export default function SettingsPane() {
         }
     };
 
+    const handleUploadCustomSound = async () => {
+        try {
+            const selected = await open({
+                multiple: false,
+                filters: [{ name: "Audio", extensions: ["mp3", "wav", "ogg"] }]
+            });
+            if (selected && typeof selected === "string") {
+                const appDataDirPath = await appDataDir();
+                const ext = await extname(selected);
+                const destPath = await join(appDataDirPath, `custom_sound.${ext}`);
+
+                if (customSound?.path && await exists(customSound.path)) {
+                    await remove(customSound.path).catch(console.error);
+                }
+
+                await copyFile(selected, destPath);
+                const baseName = selected.split(/[\\/]/).pop() || "Custom Sound";
+                setCustomSound({ name: baseName, path: destPath });
+                setSoundOption("custom");
+                setIsSoundDropdownOpen(false);
+            }
+        } catch (e) {
+            console.error("Failed to upload custom sound:", e);
+        }
+    };
+
+    const handleDeleteCustomSound = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (customSound?.path) {
+            try {
+                if (await exists(customSound.path)) {
+                    await remove(customSound.path);
+                }
+            } catch (e) {
+                console.error("Failed to delete custom sound:", e);
+            }
+        }
+        setCustomSound(null);
+        if (soundOption === "custom") {
+            setSoundOption(availableSounds[0]?.id || "off");
+        }
+    };
+
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (soundDropdownRef.current && !soundDropdownRef.current.contains(e.target as Node)) {
@@ -147,7 +193,7 @@ export default function SettingsPane() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handlePlayPreview = (soundId: string, e: React.MouseEvent) => {
+    const handlePlayPreview = async (soundId: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (soundId === "off") return;
 
@@ -162,7 +208,22 @@ export default function SettingsPane() {
             audioRef.current = null;
         }
 
-        const url = soundUrls[soundId];
+        let url = soundUrls[soundId];
+        let isBlobUrl = false;
+
+        if (soundId === "custom" && customSound?.path) {
+            try {
+                const { readFile } = await import("@tauri-apps/plugin-fs");
+                const data = await readFile(customSound.path);
+                const blob = new Blob([data]);
+                url = URL.createObjectURL(blob);
+                isBlobUrl = true;
+            } catch (err) {
+                console.error("Failed to read file:", err);
+                return;
+            }
+        }
+
         if (!url) return;
 
         const audio = new Audio(url);
@@ -171,15 +232,18 @@ export default function SettingsPane() {
 
         audio.addEventListener("ended", () => {
             setPlayingSoundId(null);
+            if (isBlobUrl) URL.revokeObjectURL(url);
         });
 
-        audio.play().catch((e) => {
-            console.error("Error playing preview:", e);
+        audio.play().catch((err) => {
+            console.error("Error playing preview:", err);
             setPlayingSoundId(null);
+            if (isBlobUrl) URL.revokeObjectURL(url);
         });
     };
 
     const getSoundLabel = (val: string) => {
+        if (val === "custom" && customSound) return customSound.name;
         const found = availableSounds.find(s => s.id === val);
         return found ? found.displayName : val;
     };
@@ -191,13 +255,30 @@ export default function SettingsPane() {
             <div style={{ display: "flex", gap: "8px" }}>
                 <div style={{ flex: 1 }} ref={soundDropdownRef}>
                     <div className="setting-label" style={{ marginBottom: "4px" }}>Alert Sound</div>
-                    <div className="custom-select" style={{ width: "100%" }}>
-                        <div className="select-trigger" onClick={() => setIsSoundDropdownOpen(!isSoundDropdownOpen)} style={{ padding: "4px 8px" }}>
-                            <span style={{ fontSize: "11px" }}>{getSoundLabel(soundOption)}</span>
-                            <ChevronDown size={12} />
+                    <div className="custom-select" style={{ width: "100%", minWidth: 0 }}>
+                        <div className="select-trigger" onClick={() => setIsSoundDropdownOpen(!isSoundDropdownOpen)} style={{ padding: "4px 8px", display: "flex", alignItems: "center", width: "100%", boxSizing: "border-box" }}>
+                            <span style={{ fontSize: "11px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0, textAlign: "left" }}>{getSoundLabel(soundOption)}</span>
+                            <ChevronDown size={12} style={{ flexShrink: 0, marginLeft: "4px" }} />
                         </div>
                         {isSoundDropdownOpen && (
                             <div className="select-dropdown" style={{ width: "100%", maxWidth: "none", padding: "4px", right: 0, left: "auto", zIndex: 50 }}>
+                                <div className="sound-option" onClick={handleUploadCustomSound} style={{ padding: "4px 6px", display: "flex", alignItems: "center", gap: "6px", color: "var(--text-primary)", borderBottom: "1px solid var(--el-border)", marginBottom: "4px" }}>
+                                    <Upload size={12} />
+                                    <div style={{ fontSize: "11px" }}>Upload Custom</div>
+                                </div>
+                                {customSound && (
+                                    <div className={`sound-option ${soundOption === "custom" ? "selected" : ""}`} onClick={() => { setSoundOption("custom"); setIsSoundDropdownOpen(false); }} style={{ padding: "4px 6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <div className="sound-option-name" style={{ fontSize: "11px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "90px" }} title={customSound.name}>{customSound.name}</div>
+                                        <div style={{ display: "flex", gap: "4px" }}>
+                                            <button onClick={(e) => handlePlayPreview("custom", e)} style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer", padding: "2px" }}>
+                                                {playingSoundId === "custom" ? <Pause size={10} /> : <Play size={10} />}
+                                            </button>
+                                            <button onClick={handleDeleteCustomSound} style={{ background: "transparent", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: "2px" }}>
+                                                <Trash2 size={10} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                                 {availableSounds.map((sound) => (
                                     <div key={sound.id} className={`sound-option ${soundOption === sound.id ? "selected" : ""}`} onClick={() => { setSoundOption(sound.id); setIsSoundDropdownOpen(false); if (sound.id === "off" && playingSoundId) { audioRef.current?.pause(); setPlayingSoundId(null); } }} style={{ padding: "4px 6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                         <div className="sound-option-name" style={{ fontSize: "11px" }}>{sound.displayName}</div>

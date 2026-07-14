@@ -41,8 +41,21 @@
       "identifier": "fs:allow-remove",
       "allow": [{ "path": "**" }]
     },
+    {
+      "identifier": "fs:allow-copy-file",
+      "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-read-dir",
+      "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [{ "path": "**" }]
+    },
     "notification:default",
     "notification:allow-register-listener",
+    "core:path:default",
     "core:window:allow-set-effects"
   ]
 }

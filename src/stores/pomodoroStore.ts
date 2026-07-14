@@ -8,6 +8,7 @@ import {
   sendNotification,
 } from "@tauri-apps/plugin-notification";
 import { useDebugStore, getMockedDate } from "./debugStore";
+
 import { emit, listen } from "@tauri-apps/api/event";
 import { getLocalDateString } from "../utils/date";
 
@@ -93,6 +94,8 @@ interface PomodoroState {
   setTimeLeft: (seconds: number) => void;
   soundOption: string;
   setSoundOption: (option: string) => void;
+  customSound: { name: string; path: string } | null;
+  setCustomSound: (sound: { name: string; path: string } | null) => void;
   notificationsEnabled: boolean;
   setNotificationsEnabled: (enabled: boolean) => void;
   triggerNotification: (title: string, body: string) => void;
@@ -142,6 +145,7 @@ export const usePomodoroStore = create<PomodoroState>()(
       todayCategoryBreakdown: {},
       history: {},
 
+      customSound: null,
       soundOption: "victory",
       notificationsEnabled: true,
       dailyTarget: 240,
@@ -244,6 +248,7 @@ export const usePomodoroStore = create<PomodoroState>()(
       setCustomFocusTime: (time) => set({ customFocusTime: time }),
       setCustomBreakTime: (time) => set({ customBreakTime: time }),
 
+      setCustomSound: (sound) => set({ customSound: sound }),
       setSoundOption: (option) => set({ soundOption: option }),
       setNotificationsEnabled: (enabled) => {
         set({ notificationsEnabled: enabled });
@@ -287,12 +292,25 @@ export const usePomodoroStore = create<PomodoroState>()(
 
 
       playSound: () => {
-        const { soundOption } = get();
+        const { soundOption, customSound } = get();
         if (soundOption === "off") return;
         const now = Date.now();
         if (now - lastSoundTime < 500) return;
         lastSoundTime = now;
         
+        if (soundOption === "custom" && customSound?.path) {
+          import("@tauri-apps/plugin-fs").then(({ readFile }) => {
+            readFile(customSound.path).then((data) => {
+              const blob = new Blob([data]);
+              const url = URL.createObjectURL(blob);
+              const audio = new Audio(url);
+              audio.onended = () => URL.revokeObjectURL(url);
+              audio.play().catch((e) => console.error("Error playing custom sound:", e));
+            }).catch(e => console.error("Failed to read custom sound:", e));
+          }).catch(e => console.error("Failed to import fs plugin:", e));
+          return;
+        }
+
         // Backward compatibility for old values
         let soundFile = soundOption;
         if (soundOption === "victory") soundFile = "victory-chime.mp3";
@@ -623,6 +641,7 @@ export const usePomodoroStore = create<PomodoroState>()(
         gridColor: state.gridColor,
         goal: state.goal,
         soundOption: state.soundOption,
+        customSound: state.customSound,
         selectedTaskCategory: state.selectedTaskCategory,
         selectedFocusTime: state.selectedFocusTime,
         selectedBreakTime: state.selectedBreakTime,

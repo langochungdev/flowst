@@ -3,7 +3,10 @@ import { useDebugStore, getMockedDate } from "../stores/debugStore";
 import { getLocalDateString } from "../utils/date";
 import { Trash2, Copy } from "lucide-react";
 import { useEffect } from "react";
-import { ask } from "@tauri-apps/plugin-dialog";
+import { ask, message } from "@tauri-apps/plugin-dialog";
+import { openPath } from "@tauri-apps/plugin-opener";
+import { appDataDir } from "@tauri-apps/api/path";
+import { readDir } from "@tauri-apps/plugin-fs";
 
 export default function DebugWindow() {
   const {
@@ -25,6 +28,26 @@ export default function DebugWindow() {
       )
       .join("\n");
     navigator.clipboard.writeText(text);
+  };
+
+  const handleOpenSoundDir = async () => {
+    try {
+      const dir = await appDataDir();
+      try {
+        await openPath(dir);
+      } catch (err) {
+        console.error("Failed to open dir, falling back to readDir", err);
+        const entries = await readDir(dir);
+        const audioFiles = entries.filter(e => e.name?.match(/\.(mp3|wav|ogg)$/i)).map(e => e.name);
+        await message(
+          audioFiles.length ? `Audio files:\n${audioFiles.join("\n")}` : "No custom audio files found.",
+          { title: `Sound Directory: ${dir}`, kind: "info" }
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      await message("Could not access app data dir.", { title: "Error", kind: "error" });
+    }
   };
 
   const handleClearAppData = () => {
@@ -290,6 +313,13 @@ export default function DebugWindow() {
             <div style={{ display: "flex", gap: "8px" }}>
               <button className="debug-btn" onClick={resetDebug} style={{ flex: "none" }}>
                 Reset Time/Date
+              </button>
+              <button
+                className="debug-btn"
+                onClick={handleOpenSoundDir}
+                style={{ flex: "none", color: "#3498db", borderColor: "#3498db" }}
+              >
+                Open Sound Dir
               </button>
               <button
                 className="debug-btn"
