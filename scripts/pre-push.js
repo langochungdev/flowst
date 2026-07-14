@@ -10,6 +10,8 @@ try {
   console.log("Auto-format encountered issues (some errors might need manual fixing).\n");
 }
 
+let autoFormatCommitted = false;
+
 // Kiểm tra xem lệnh format có làm thay đổi file nào không
 try {
   const changedFiles = execSync("git status -uno --porcelain", { encoding: "utf-8" });
@@ -18,23 +20,7 @@ try {
     execSync("git add -u", { stdio: "pipe", encoding: "utf-8" });
     execSync('git commit -m "chore: auto-format code"', { stdio: "pipe", encoding: "utf-8" });
     console.log("Auto-format commit created successfully.\n");
-
-    // Đẩy commit format lên ngay sau khi tiến trình push hiện tại hoàn tất (có retry để tránh lock ref)
-    console.log("Scheduling background push for auto-format commit...");
-    const pushScript = `
-      const { execSync } = require('child_process');
-      let retries = 5;
-      const tryPush = () => {
-        try {
-          execSync('git push --no-verify', { stdio: 'ignore' });
-        } catch (e) {
-          if (retries-- > 0) setTimeout(tryPush, 4000);
-        }
-      };
-      setTimeout(tryPush, 4000);
-    `;
-    const child = spawn("node", ["-e", pushScript], { detached: true, stdio: "ignore" });
-    child.unref();
+    autoFormatCommitted = true;
   }
 } catch (e) {
   console.error("Failed to check or commit formatted files", e);
@@ -94,4 +80,21 @@ if (failed) {
   process.exit(1);
 } else {
   console.log("\nAll checks passed successfully! Proceeding with push.");
+  if (autoFormatCommitted) {
+    console.log("Scheduling background push for auto-format commit...");
+    const pushScript = `
+      const { execSync } = require('child_process');
+      let retries = 5;
+      const tryPush = () => {
+        try {
+          execSync('git push --no-verify', { stdio: 'ignore' });
+        } catch (e) {
+          if (retries-- > 0) setTimeout(tryPush, 4000);
+        }
+      };
+      setTimeout(tryPush, 4000);
+    `;
+    const child = spawn("node", ["-e", pushScript], { detached: true, stdio: "ignore" });
+    child.unref();
+  }
 }

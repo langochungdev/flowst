@@ -10,6 +10,7 @@ import {
 import { useDebugStore, getMockedDate } from "./debugStore";
 
 import { emit, listen } from "@tauri-apps/api/event";
+import { readFile } from "@tauri-apps/plugin-fs";
 import { getLocalDateString } from "../utils/date";
 
 // Migrate local storage key if exists
@@ -298,19 +299,15 @@ export const usePomodoroStore = create<PomodoroState>()(
         lastSoundTime = now;
 
         if (soundOption === "custom" && customSound?.path) {
-          import("@tauri-apps/plugin-fs")
-            .then(({ readFile }) => {
-              readFile(customSound.path)
-                .then((data) => {
-                  const blob = new Blob([data]);
-                  const url = URL.createObjectURL(blob);
-                  const audio = new Audio(url);
-                  audio.onended = () => URL.revokeObjectURL(url);
-                  audio.play().catch((e) => console.error("Error playing custom sound:", e));
-                })
-                .catch((e) => console.error("Failed to read custom sound:", e));
+          readFile(customSound.path)
+            .then((data) => {
+              const blob = new Blob([data]);
+              const url = URL.createObjectURL(blob);
+              const audio = new Audio(url);
+              audio.onended = () => URL.revokeObjectURL(url);
+              audio.play().catch((e) => console.error("Error playing custom sound:", e));
             })
-            .catch((e) => console.error("Failed to import fs plugin:", e));
+            .catch((e) => console.error("Failed to read custom sound:", e));
           return;
         }
 
