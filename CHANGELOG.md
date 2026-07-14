@@ -1,5 +1,7 @@
 ## [0.12.0] - 2026-07-10
+
 ### Features
+
 - feat: add automation scripts for pre-push validation and semantic versioning releases
 
 ## [0.11.0] - 2026-07-10

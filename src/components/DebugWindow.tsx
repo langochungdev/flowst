@@ -38,10 +38,14 @@ export default function DebugWindow() {
       } catch (err) {
         console.error("Failed to open dir, falling back to readDir", err);
         const entries = await readDir(dir);
-        const audioFiles = entries.filter(e => e.name?.match(/\.(mp3|wav|ogg)$/i)).map(e => e.name);
+        const audioFiles = entries
+          .filter((e) => e.name?.match(/\.(mp3|wav|ogg)$/i))
+          .map((e) => e.name);
         await message(
-          audioFiles.length ? `Audio files:\n${audioFiles.join("\n")}` : "No custom audio files found.",
-          { title: `Sound Directory: ${dir}`, kind: "info" }
+          audioFiles.length
+            ? `Audio files:\n${audioFiles.join("\n")}`
+            : "No custom audio files found.",
+          { title: `Sound Directory: ${dir}`, kind: "info" },
         );
       }
     } catch (e) {
@@ -72,7 +76,15 @@ export default function DebugWindow() {
 
   const handleGenerateMockData = (type: "year-random" | "month-consistent" | "month-random") => {
     const { categories } = usePomodoroStore.getState();
-    const history: Record<string, { totalHours: number; breakdown: Record<string, number>; categoryNames: Record<string, string>; categoryColors: Record<string, string> }> = {};
+    const history: Record<
+      string,
+      {
+        totalHours: number;
+        breakdown: Record<string, number>;
+        categoryNames: Record<string, string>;
+        categoryColors: Record<string, string>;
+      }
+    > = {};
 
     // Add custom categories if missing
     const extraCats = [
@@ -311,13 +323,23 @@ export default function DebugWindow() {
           </h2>
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button className="debug-btn" onClick={resetDebug} style={{ flex: "none", padding: "4px 8px" }} title="Reset Time/Date">
+              <button
+                className="debug-btn"
+                onClick={resetDebug}
+                style={{ flex: "none", padding: "4px 8px" }}
+                title="Reset Time/Date"
+              >
                 <RotateCcw size={14} />
               </button>
               <button
                 className="debug-btn"
                 onClick={handleOpenSoundDir}
-                style={{ flex: "none", color: "#3498db", borderColor: "#3498db", padding: "4px 8px" }}
+                style={{
+                  flex: "none",
+                  color: "#3498db",
+                  borderColor: "#3498db",
+                  padding: "4px 8px",
+                }}
                 title="Open Sound Dir"
               >
                 <FolderOpen size={14} />
@@ -327,10 +349,15 @@ export default function DebugWindow() {
                 onClick={async () => {
                   await ask(
                     "This directory already contains storage data. Do you want to overwrite it with your current data?\n\n- Select 'Yes' to overwrite (Existing data in the directory will be deleted)\n- Select 'No' to load the existing data (Your current progress will be replaced)",
-                    { title: "Confirm Data Overwrite", kind: "warning" }
+                    { title: "Confirm Data Overwrite", kind: "warning" },
                   );
                 }}
-                style={{ flex: "none", color: "#f39c12", borderColor: "#f39c12", padding: "4px 8px" }}
+                style={{
+                  flex: "none",
+                  color: "#f39c12",
+                  borderColor: "#f39c12",
+                  padding: "4px 8px",
+                }}
                 title="Preview Dialog"
               >
                 <MessageSquareWarning size={14} />

@@ -45,9 +45,9 @@ export default function MainWindow() {
       <div className="top-header-bar"></div>
 
       <div className="corner-btn-group left">
-        <button 
-          className={`corner-btn ${isHiding ? 'force-no-hover' : ''}`} 
-          onClick={handleCompact} 
+        <button
+          className={`corner-btn ${isHiding ? "force-no-hover" : ""}`}
+          onClick={handleCompact}
           title="Mini View"
         >
           <Minimize2 size={14} />
@@ -63,9 +63,9 @@ export default function MainWindow() {
       </div>
 
       <div className="corner-btn-group right">
-        <button 
-          className={`corner-btn ${isHiding ? 'force-no-hover' : ''}`} 
-          onClick={handleMinimize} 
+        <button
+          className={`corner-btn ${isHiding ? "force-no-hover" : ""}`}
+          onClick={handleMinimize}
           title="Minimize"
         >
           <Minus size={14} />

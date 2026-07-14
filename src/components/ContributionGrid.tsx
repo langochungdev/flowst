@@ -3,7 +3,6 @@ import { useDebugStore, getMockedDate } from "../stores/debugStore";
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { getLocalDateString } from "../utils/date";
 
-
 export default function ContributionGrid() {
   const days = 7;
   const blocksPerDay = 30;
@@ -69,7 +68,7 @@ export default function ContributionGrid() {
               if (hours <= 0) continue;
               // Ưu tiên dùng snapshot tên tại thời điểm lưu, fallback về categories hiện tại
               const snapshotName = historicalData.categoryNames?.[catId];
-              const name = snapshotName ?? (categories.find((c) => c.id === catId)?.name ?? catId);
+              const name = snapshotName ?? categories.find((c) => c.id === catId)?.name ?? catId;
               breakdown.push({ name, hours: Math.round(hours * 10) / 10 });
             }
           } else {
@@ -90,10 +89,15 @@ export default function ContributionGrid() {
 
   // Luôn đọc data trực tiếp từ grid (không cache snapshot) để phản ánh tên mới nhất
   const hoveredData = hoveredCell
-    ? grid[hoveredCell.rowIndex]?.[hoveredCell.colIndex] ?? null
+    ? (grid[hoveredCell.rowIndex]?.[hoveredCell.colIndex] ?? null)
     : null;
 
-  const handleMouseEnter = (e: React.MouseEvent, rowIndex: number, colIndex: number, level: number) => {
+  const handleMouseEnter = (
+    e: React.MouseEvent,
+    rowIndex: number,
+    colIndex: number,
+    level: number,
+  ) => {
     if (level < 0) return; // Skip future cells
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     setHoveredCell({ rowIndex, colIndex, rect });

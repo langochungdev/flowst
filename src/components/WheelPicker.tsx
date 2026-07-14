@@ -37,11 +37,17 @@ function formatEditTime(seconds: number) {
   return `${hours}h${mins}m`;
 }
 
-export default function WheelPicker({ value, onChange, onClose, minTime, allowInfinite }: WheelPickerProps) {
+export default function WheelPicker({
+  value,
+  onChange,
+  onClose,
+  minTime,
+  allowInfinite,
+}: WheelPickerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const itemHeight = 36;
   const availableOptions = minTime
-    ? options.filter((o) => o === 0 || o === -1 ? allowInfinite : o >= minTime)
+    ? options.filter((o) => (o === 0 || o === -1 ? allowInfinite : o >= minTime))
     : options.filter((o) => (o !== 0 && o !== -1) || allowInfinite);
   const [activeIndex, setActiveIndex] = useState(() => availableOptions.indexOf(value));
 

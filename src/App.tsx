@@ -12,125 +12,129 @@ import { onAction } from "@tauri-apps/plugin-notification";
 import "./App.css";
 
 function App() {
-    const tick = usePomodoroStore((state) => state.tick);
-    const timeMultiplier = useDebugStore((state) => (state.isDebugMode ? state.timeMultiplier : 1));
+  const tick = usePomodoroStore((state) => state.tick);
+  const timeMultiplier = useDebugStore((state) => (state.isDebugMode ? state.timeMultiplier : 1));
 
-    const [windowLabel] = useState<string | null>(() => {
-        try {
-            const appWindow = getCurrentWebviewWindow();
-            return appWindow ? appWindow.label : "main";
-        } catch {
-            return "main";
-        }
+  const [windowLabel] = useState<string | null>(() => {
+    try {
+      const appWindow = getCurrentWebviewWindow();
+      return appWindow ? appWindow.label : "main";
+    } catch {
+      return "main";
+    }
+  });
+
+  const [isMiniMode, setIsMiniMode] = useState(false);
+
+  useEffect(() => {
+    const unlisten1 = listen("switch-to-mini", () => {
+      setIsMiniMode(true);
+    });
+    const unlisten2 = listen("ui-mode-changed", (event: { payload: { mini: boolean } }) => {
+      setIsMiniMode(event.payload.mini);
+    });
+    const unlisten3 = listen("debug-closed", () => {
+      useDebugStore.getState().setDebugMode(false);
     });
 
-    const [isMiniMode, setIsMiniMode] = useState(false);
+    let unlistenAction: any;
+    onAction(() => {
+      const win = getCurrentWebviewWindow();
+      if (win) {
+        win.unminimize().catch(console.error);
+        win.show().catch(console.error);
+        win.setFocus().catch(console.error);
+      }
+    })
+      .then((listener) => {
+        unlistenAction = listener;
+      })
+      .catch(() => {
+        // Ignored: Action listeners may not be supported on this platform
+      });
 
-    useEffect(() => {
-        const unlisten1 = listen("switch-to-mini", () => {
-            setIsMiniMode(true);
-        });
-        const unlisten2 = listen("ui-mode-changed", (event: { payload: { mini: boolean } }) => {
-            setIsMiniMode(event.payload.mini);
-        });
-        const unlisten3 = listen("debug-closed", () => {
-            useDebugStore.getState().setDebugMode(false);
-        });
+    return () => {
+      unlisten1.then((f) => f()).catch(console.error);
+      unlisten2.then((f) => f()).catch(console.error);
+      unlisten3.then((f) => f()).catch(console.error);
+      if (unlistenAction && typeof unlistenAction.unregister === "function") {
+        unlistenAction.unregister().catch(console.error);
+      }
+    };
+  }, []);
 
-        let unlistenAction: any;
-        onAction(() => {
-            const win = getCurrentWebviewWindow();
-            if (win) {
-                win.unminimize().catch(console.error);
-                win.show().catch(console.error);
-                win.setFocus().catch(console.error);
+  useEffect(() => {
+    if (windowLabel === "main") {
+      WebviewWindow.getByLabel("debug")
+        .then((debugWin) => {
+          // Only disable debug mode if the debug window is not actually open
+          if (!debugWin) {
+            const debugState = useDebugStore.getState();
+            if (debugState.isDebugMode) {
+              debugState.setDebugMode(false);
             }
-        }).then(listener => {
-            unlistenAction = listener;
-        }).catch(() => {
-            // Ignored: Action listeners may not be supported on this platform
-        });
+          }
+        })
+        .catch(console.error);
+    }
+  }, [windowLabel]);
 
-        return () => {
-            unlisten1.then((f) => f()).catch(console.error);
-            unlisten2.then((f) => f()).catch(console.error);
-            unlisten3.then((f) => f()).catch(console.error);
-            if (unlistenAction && typeof unlistenAction.unregister === 'function') {
-                unlistenAction.unregister().catch(console.error);
-            }
-        };
-    }, []);
+  useEffect(() => {
+    if (windowLabel === "main") {
+      const timer = setInterval(
+        () => {
+          tick();
+        },
+        1000 / Math.max(0.1, timeMultiplier),
+      );
+      return () => clearInterval(timer);
+    }
+  }, [windowLabel, tick, timeMultiplier]);
 
-    useEffect(() => {
-        if (windowLabel === "main") {
-            WebviewWindow.getByLabel("debug").then(debugWin => {
-                // Only disable debug mode if the debug window is not actually open
-                if (!debugWin) {
-                    const debugState = useDebugStore.getState();
-                    if (debugState.isDebugMode) {
-                        debugState.setDebugMode(false);
-                    }
-                }
-            }).catch(console.error);
+  const isActive = usePomodoroStore((state) => state.isActive);
+  const timeLeft = usePomodoroStore((state) => state.timeLeft);
+  const isCountUp = usePomodoroStore((state) => state.isCountUp);
+  const sessionState = usePomodoroStore((state) => state.state);
+
+  useEffect(() => {
+    if (windowLabel === "main") {
+      let tooltip = "Flowst v0.7.0\nlangochungdev@gmail.com";
+      if (isActive) {
+        const m = Math.floor(timeLeft / 60);
+        if (isCountUp) {
+          tooltip = `${m}m elapsed - Stopwatch`;
+        } else {
+          const phase = sessionState === "break" ? "Break" : "Focus";
+          tooltip = `${m}m left - ${phase}`;
         }
-    }, [windowLabel]);
+      }
+      invoke("update_tray_tooltip", { tooltip }).catch(console.error);
+    }
+  }, [windowLabel, isActive, Math.floor(timeLeft / 60), isCountUp, sessionState]);
 
-    useEffect(() => {
-        if (windowLabel === "main") {
-            const timer = setInterval(
-                () => {
-                    tick();
-                },
-                1000 / Math.max(0.1, timeMultiplier),
-            );
-            return () => clearInterval(timer);
-        }
-    }, [windowLabel, tick, timeMultiplier]);
+  const gridColor = usePomodoroStore((state) => state.gridColor);
 
-    const isActive = usePomodoroStore((state) => state.isActive);
-    const timeLeft = usePomodoroStore((state) => state.timeLeft);
-    const isCountUp = usePomodoroStore((state) => state.isCountUp);
-    const sessionState = usePomodoroStore((state) => state.state);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-    useEffect(() => {
-        if (windowLabel === "main") {
-            let tooltip = "Flowst v0.7.0\nlangochungdev@gmail.com";
-            if (isActive) {
-                const m = Math.floor(timeLeft / 60);
-                if (isCountUp) {
-                    tooltip = `${m}m elapsed - Stopwatch`;
-                } else {
-                    const phase = sessionState === "break" ? "Break" : "Focus";
-                    tooltip = `${m}m left - ${phase}`;
-                }
-            }
-            invoke("update_tray_tooltip", { tooltip }).catch(console.error);
-        }
-    }, [windowLabel, isActive, Math.floor(timeLeft / 60), isCountUp, sessionState]);
+  useEffect(() => {
+    setIsHydrated(usePomodoroStore.persist.hasHydrated());
+    const unsub = usePomodoroStore.persist.onFinishHydration(() => setIsHydrated(true));
+    return () => {
+      if (unsub) unsub();
+    };
+  }, []);
 
-    const gridColor = usePomodoroStore((state) => state.gridColor);
+  if (!windowLabel) return null;
+  if (!isHydrated) return null;
 
-    const [isHydrated, setIsHydrated] = useState(false);
-
-    useEffect(() => {
-        setIsHydrated(usePomodoroStore.persist.hasHydrated());
-        const unsub = usePomodoroStore.persist.onFinishHydration(() => setIsHydrated(true));
-        return () => {
-            if (unsub) unsub();
-        };
-    }, []);
-
-    if (!windowLabel) return null;
-    if (!isHydrated) return null;
-
-    return (
-        <>
-            <style>{`:root { --grid-active: ${gridColor || "#00FBFF"} !important; }`}</style>
-            {windowLabel === "main" && (isMiniMode ? <MiniWindow /> : <MainWindow />)}
-            {windowLabel === "debug" && <DebugWindow />}
-            {windowLabel === "dashboard" && <DashboardWindow />}
-        </>
-    );
+  return (
+    <>
+      <style>{`:root { --grid-active: ${gridColor || "#00FBFF"} !important; }`}</style>
+      {windowLabel === "main" && (isMiniMode ? <MiniWindow /> : <MainWindow />)}
+      {windowLabel === "debug" && <DebugWindow />}
+      {windowLabel === "dashboard" && <DashboardWindow />}
+    </>
+  );
 }
 
 export default App;

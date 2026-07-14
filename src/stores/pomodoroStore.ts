@@ -27,10 +27,14 @@ if (typeof window !== "undefined" && window.localStorage) {
 
 let lastSoundTime = 0;
 
-const soundModules = import.meta.glob('/src/sounds/*.*', { eager: true, query: '?url', import: 'default' });
+const soundModules = import.meta.glob("/src/sounds/*.*", {
+  eager: true,
+  query: "?url",
+  import: "default",
+});
 const soundUrls: Record<string, string> = {};
 for (const path in soundModules) {
-  const filename = path.split('/').pop() || '';
+  const filename = path.split("/").pop() || "";
   soundUrls[filename] = soundModules[path] as string;
 }
 
@@ -167,7 +171,7 @@ export const usePomodoroStore = create<PomodoroState>()(
       updateCategory: (id, name, color, dailyTarget) =>
         set((state) => {
           // Sync tên và màu mới vào toàn bộ lịch sử
-          const updatedHistory: Record<string, typeof state.history[string]> = {};
+          const updatedHistory: Record<string, (typeof state.history)[string]> = {};
           for (const [date, day] of Object.entries(state.history)) {
             const updatedNames = { ...(day.categoryNames || {}) };
             const updatedColors = { ...(day.categoryColors || {}) };
@@ -192,7 +196,7 @@ export const usePomodoroStore = create<PomodoroState>()(
       deleteCategory: (id) =>
         set((state) => {
           // Xóa dữ liệu của category này khỏi toàn bộ lịch sử
-          const updatedHistory: Record<string, typeof state.history[string]> = {};
+          const updatedHistory: Record<string, (typeof state.history)[string]> = {};
           for (const [date, day] of Object.entries(state.history)) {
             const newBreakdown = { ...(day.breakdown || {}) };
             const newNames = { ...(day.categoryNames || {}) };
@@ -224,16 +228,12 @@ export const usePomodoroStore = create<PomodoroState>()(
 
       archiveCategory: (id) =>
         set((state) => ({
-          categories: state.categories.map((c) =>
-            c.id === id ? { ...c, archived: true } : c,
-          ),
+          categories: state.categories.map((c) => (c.id === id ? { ...c, archived: true } : c)),
         })),
 
       unarchiveCategory: (id) =>
         set((state) => ({
-          categories: state.categories.map((c) =>
-            c.id === id ? { ...c, archived: false } : c,
-          ),
+          categories: state.categories.map((c) => (c.id === id ? { ...c, archived: false } : c)),
         })),
 
       setDailyTarget: (minutes) => set({ dailyTarget: minutes }),
@@ -290,24 +290,27 @@ export const usePomodoroStore = create<PomodoroState>()(
         checkVis().catch(console.error);
       },
 
-
       playSound: () => {
         const { soundOption, customSound } = get();
         if (soundOption === "off") return;
         const now = Date.now();
         if (now - lastSoundTime < 500) return;
         lastSoundTime = now;
-        
+
         if (soundOption === "custom" && customSound?.path) {
-          import("@tauri-apps/plugin-fs").then(({ readFile }) => {
-            readFile(customSound.path).then((data) => {
-              const blob = new Blob([data]);
-              const url = URL.createObjectURL(blob);
-              const audio = new Audio(url);
-              audio.onended = () => URL.revokeObjectURL(url);
-              audio.play().catch((e) => console.error("Error playing custom sound:", e));
-            }).catch(e => console.error("Failed to read custom sound:", e));
-          }).catch(e => console.error("Failed to import fs plugin:", e));
+          import("@tauri-apps/plugin-fs")
+            .then(({ readFile }) => {
+              readFile(customSound.path)
+                .then((data) => {
+                  const blob = new Blob([data]);
+                  const url = URL.createObjectURL(blob);
+                  const audio = new Audio(url);
+                  audio.onended = () => URL.revokeObjectURL(url);
+                  audio.play().catch((e) => console.error("Error playing custom sound:", e));
+                })
+                .catch((e) => console.error("Failed to read custom sound:", e));
+            })
+            .catch((e) => console.error("Failed to import fs plugin:", e));
           return;
         }
 
@@ -315,7 +318,7 @@ export const usePomodoroStore = create<PomodoroState>()(
         let soundFile = soundOption;
         if (soundOption === "victory") soundFile = "victory-chime.mp3";
         else if (soundOption === "trumpet") soundFile = "success-fanfare-trumpets.mp3";
-        
+
         const url = soundUrls[soundFile];
         if (url) {
           const audio = new Audio(url);
@@ -357,38 +360,38 @@ export const usePomodoroStore = create<PomodoroState>()(
             const T_minutes = Math.floor(T / 60);
             totalSessionDuration = T; // Full inputted time including breaks
 
-          if (focusTimeStr === "off") {
-            blocks = [T];
-          } else {
-            let bestN = 1;
-            let bestDiff = Infinity;
-            const validNs = [];
+            if (focusTimeStr === "off") {
+              blocks = [T];
+            } else {
+              let bestN = 1;
+              let bestDiff = Infinity;
+              const validNs = [];
 
-            for (let n = 1; n <= Math.max(1, Math.ceil(T_minutes / 15)); n++) {
-              const blockTime = T_minutes / n;
-              if (blockTime >= 15 && blockTime <= 30) {
-                validNs.push(n);
-                const diff = Math.abs(blockTime - 25);
-                if (diff < bestDiff) {
-                  bestDiff = diff;
-                  bestN = n;
+              for (let n = 1; n <= Math.max(1, Math.ceil(T_minutes / 15)); n++) {
+                const blockTime = T_minutes / n;
+                if (blockTime >= 15 && blockTime <= 30) {
+                  validNs.push(n);
+                  const diff = Math.abs(blockTime - 25);
+                  if (diff < bestDiff) {
+                    bestDiff = diff;
+                    bestN = n;
+                  }
+                }
+              }
+
+              if (validNs.length === 0) {
+                blocks = [T];
+              } else {
+                const totalFocusSeconds = T_minutes * 60;
+                const baseBlockSeconds = Math.floor(totalFocusSeconds / bestN);
+                const remainderSeconds = totalFocusSeconds % bestN;
+
+                blocks = Array(bestN).fill(baseBlockSeconds);
+                for (let i = 0; i < remainderSeconds; i++) {
+                  blocks[i] += 1;
                 }
               }
             }
-
-            if (validNs.length === 0) {
-              blocks = [T];
-            } else {
-              const totalFocusSeconds = T_minutes * 60;
-              const baseBlockSeconds = Math.floor(totalFocusSeconds / bestN);
-              const remainderSeconds = totalFocusSeconds % bestN;
-
-              blocks = Array(bestN).fill(baseBlockSeconds);
-              for (let i = 0; i < remainderSeconds; i++) {
-                blocks[i] += 1;
-              }
-            }
-          }
           }
         } else {
           const blockSeconds = (parseInt(focusTimeStr) || 25) * 60;
@@ -551,7 +554,7 @@ export const usePomodoroStore = create<PomodoroState>()(
               breakdown[activeCategoryId] = (breakdown[activeCategoryId] || 0) + addedMinutes;
             }
             return {
-              timeLeft: s.timeLeft + multiplier,        // đếm tăng
+              timeLeft: s.timeLeft + multiplier, // đếm tăng
               elapsedSessionTime: s.elapsedSessionTime + multiplier,
               todayTotalTime: s.todayTotalTime + addedMinutes,
               todayCategoryBreakdown: breakdown,
@@ -597,10 +600,7 @@ export const usePomodoroStore = create<PomodoroState>()(
                 });
               } else {
                 const nextBlock = isInfinite ? blocks[currentBlockIndex] : blocks[nextIndex];
-                get().triggerNotification(
-                  "Focus Time",
-                  `${Math.round(nextBlock / 60)} min`,
-                );
+                get().triggerNotification("Focus Time", `${Math.round(nextBlock / 60)} min`);
                 set({
                   state: "focus",
                   timeLeft: nextBlock,
@@ -615,10 +615,7 @@ export const usePomodoroStore = create<PomodoroState>()(
           } else if (state === "break") {
             const isInfinite = get().totalSessionDuration === 0;
             const blockDuration = isInfinite ? blocks[0] : blocks[currentBlockIndex];
-            get().triggerNotification(
-              "Focus Time",
-              `${Math.round(blockDuration / 60)} min`,
-            );
+            get().triggerNotification("Focus Time", `${Math.round(blockDuration / 60)} min`);
             set({
               state: "focus",
               timeLeft: blockDuration,
@@ -655,12 +652,15 @@ export const usePomodoroStore = create<PomodoroState>()(
 let isSyncing = false;
 const storeWindowId = Math.random().toString(36).substring(7);
 
-listen("pomodoro-state-sync", (event: { payload: { senderId: string; state: Partial<PomodoroState> } }) => {
-  if (event.payload.senderId === storeWindowId) return;
-  isSyncing = true;
-  usePomodoroStore.setState(event.payload.state);
-  isSyncing = false;
-}).catch(console.error);
+listen(
+  "pomodoro-state-sync",
+  (event: { payload: { senderId: string; state: Partial<PomodoroState> } }) => {
+    if (event.payload.senderId === storeWindowId) return;
+    isSyncing = true;
+    usePomodoroStore.setState(event.payload.state);
+    isSyncing = false;
+  },
+).catch(console.error);
 
 let lastSyncTime = 0;
 let syncTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -685,7 +685,9 @@ usePomodoroStore.subscribe((state) => {
         const { history, ...leanState } = state;
         payloadState = leanState;
       }
-      emit("pomodoro-state-sync", { senderId: storeWindowId, state: payloadState }).catch(console.error);
+      emit("pomodoro-state-sync", { senderId: storeWindowId, state: payloadState }).catch(
+        console.error,
+      );
     } else {
       if (syncTimeout) clearTimeout(syncTimeout);
       syncTimeout = setTimeout(() => {

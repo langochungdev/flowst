@@ -123,7 +123,10 @@ function GoalTrackerView() {
       targetDateObj.setHours(0, 0, 0, 0);
       const nowDateObj = new Date(now);
       nowDateObj.setHours(0, 0, 0, 0);
-      const daysLeft = Math.max(0, Math.round((targetDateObj.getTime() - nowDateObj.getTime()) / (1000 * 60 * 60 * 24)));
+      const daysLeft = Math.max(
+        0,
+        Math.round((targetDateObj.getTime() - nowDateObj.getTime()) / (1000 * 60 * 60 * 24)),
+      );
       timeString = daysLeft + " days left";
     } else if (goal.displayUnit === "weeks") {
       timeString = Math.round(timeRemainingMs / (1000 * 60 * 60 * 24 * 7)) + " weeks left";
@@ -525,7 +528,9 @@ export default function ClockPane() {
   const actualBreakValue = breakTime === "custom_break" ? customBreakTime : breakTime;
 
   const minTimeInSeconds =
-    (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(actualBreakValue)) * 60;
+    actualFocusValue === "auto" || actualFocusValue === "off"
+      ? 0
+      : (parseInt(actualFocusValue) + parseInt(actualBreakValue)) * 60;
 
   const handlePlayPause = () => {
     if (state === "idle") {
@@ -591,10 +596,14 @@ export default function ClockPane() {
             { label: "45m", value: "45" },
             { label: "50m", value: "50" },
             { label: "1h", value: "60" },
-            { 
-              label: <div style={{ display: "flex", alignItems: "center", gap: "4px" }}><span>{customFocusTime}m</span> <Settings2 size={12} opacity={0.7} /></div>, 
-              triggerLabel: `${customFocusTime}m`, 
-              value: "custom_focus" 
+            {
+              label: (
+                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span>{customFocusTime}m</span> <Settings2 size={12} opacity={0.7} />
+                </div>
+              ),
+              triggerLabel: `${customFocusTime}m`,
+              value: "custom_focus",
             },
           ]}
           value={focusTime}
@@ -604,7 +613,10 @@ export default function ClockPane() {
               setShowCustomFocusPopup(true);
             } else {
               setFocusTime(val);
-              const newMinTime = (val === "auto" || val === "off") ? 0 : (parseInt(val) + parseInt(actualBreakValue)) * 60;
+              const newMinTime =
+                val === "auto" || val === "off"
+                  ? 0
+                  : (parseInt(val) + parseInt(actualBreakValue)) * 60;
               if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0);
             }
           }}
@@ -617,10 +629,14 @@ export default function ClockPane() {
             { label: "5m", value: "5" },
             { label: "10m", value: "10" },
             { label: "15m", value: "15" },
-            { 
-              label: <div style={{ display: "flex", alignItems: "center", gap: "4px" }}><span>{customBreakTime}m</span> <Settings2 size={12} opacity={0.7} /></div>, 
-              triggerLabel: `${customBreakTime}m`, 
-              value: "custom_break" 
+            {
+              label: (
+                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span>{customBreakTime}m</span> <Settings2 size={12} opacity={0.7} />
+                </div>
+              ),
+              triggerLabel: `${customBreakTime}m`,
+              value: "custom_break",
             },
           ]}
           value={breakTime}
@@ -631,7 +647,9 @@ export default function ClockPane() {
             } else {
               setBreakTime(val);
               const newMinTime =
-                (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(val)) * 60;
+                actualFocusValue === "auto" || actualFocusValue === "off"
+                  ? 0
+                  : (parseInt(actualFocusValue) + parseInt(val)) * 60;
               if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0);
             }
           }}
@@ -640,12 +658,14 @@ export default function ClockPane() {
         />
         <CustomSelect
           options={[
-            ...categories.filter((c) => !c.archived).map((c) => ({
-              label: c.name,
-              value: c.id,
-              color: c.color,
-              editable: true,
-            })),
+            ...categories
+              .filter((c) => !c.archived)
+              .map((c) => ({
+                label: c.name,
+                value: c.id,
+                color: c.color,
+                editable: true,
+              })),
             { label: "Add...", value: "add" },
           ]}
           value={taskCategory}
@@ -697,7 +717,11 @@ export default function ClockPane() {
               pointerEvents: isEditingCustom ? "none" : "auto",
             }}
           >
-            {timeLeft === -1 ? "1 block" : timeLeft === 0 && state === "idle" ? "∞" : formatTime(timeLeft)}
+            {timeLeft === -1
+              ? "1 block"
+              : timeLeft === 0 && state === "idle"
+                ? "∞"
+                : formatTime(timeLeft)}
           </div>
 
           {isEditingCustom && (
@@ -708,7 +732,13 @@ export default function ClockPane() {
               defaultValue=""
               onBlur={handleCustomInputBlur}
               onKeyDown={handleCustomInputKeyDown}
-              placeholder={timeLeft === -1 ? "1 block" : timeLeft === 0 ? "∞" : Math.floor(timeLeft / 60).toString()}
+              placeholder={
+                timeLeft === -1
+                  ? "1 block"
+                  : timeLeft === 0
+                    ? "∞"
+                    : Math.floor(timeLeft / 60).toString()
+              }
             />
           )}
         </div>
@@ -766,26 +796,206 @@ export default function ClockPane() {
       <GoalTrackerView />
 
       {showCustomFocusPopup && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150 }}>
-          <div style={{ background: "var(--dropdown-bg)", border: "1px solid var(--el-border)", padding: "16px", display: "flex", flexDirection: "column", gap: "12px", boxShadow: "var(--el-shadow)", width: "220px" }}>
-            <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)" }}>Custom Focus Time (m)</div>
-            <input type="number" autoFocus value={tempCustomFocus} onChange={e => setTempCustomFocus(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { setCustomFocusTime(tempCustomFocus || "90"); setFocusTime("custom_focus"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(tempCustomFocus || "90") + parseInt(actualBreakValue)) * 60; if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0); setShowCustomFocusPopup(false); } }} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", outline: "none", fontSize: "12px", borderRadius: 0, width: "100%", boxSizing: "border-box" }} />
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.4)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 150,
+          }}
+        >
+          <div
+            style={{
+              background: "var(--dropdown-bg)",
+              border: "1px solid var(--el-border)",
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              boxShadow: "var(--el-shadow)",
+              width: "220px",
+            }}
+          >
+            <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)" }}>
+              Custom Focus Time (m)
+            </div>
+            <input
+              type="number"
+              autoFocus
+              value={tempCustomFocus}
+              onChange={(e) => setTempCustomFocus(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setCustomFocusTime(tempCustomFocus || "90");
+                  setFocusTime("custom_focus");
+                  const newMinTime =
+                    actualFocusValue === "auto" || actualFocusValue === "off"
+                      ? 0
+                      : (parseInt(tempCustomFocus || "90") + parseInt(actualBreakValue)) * 60;
+                  if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0);
+                  setShowCustomFocusPopup(false);
+                }
+              }}
+              style={{
+                background: "transparent",
+                border: "1px solid var(--divider)",
+                color: "var(--text-primary)",
+                padding: "6px 8px",
+                outline: "none",
+                fontSize: "12px",
+                borderRadius: 0,
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
             <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-              <button onClick={() => setShowCustomFocusPopup(false)} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Cancel</button>
-              <button onClick={() => { setCustomFocusTime(tempCustomFocus || "90"); setFocusTime("custom_focus"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(tempCustomFocus || "90") + parseInt(actualBreakValue)) * 60; if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0); setShowCustomFocusPopup(false); }} style={{ background: "var(--text-primary)", border: "none", color: "var(--el-bg)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Save</button>
+              <button
+                onClick={() => setShowCustomFocusPopup(false)}
+                style={{
+                  background: "transparent",
+                  border: "1px solid var(--divider)",
+                  color: "var(--text-secondary)",
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  borderRadius: 0,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setCustomFocusTime(tempCustomFocus || "90");
+                  setFocusTime("custom_focus");
+                  const newMinTime =
+                    actualFocusValue === "auto" || actualFocusValue === "off"
+                      ? 0
+                      : (parseInt(tempCustomFocus || "90") + parseInt(actualBreakValue)) * 60;
+                  if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0);
+                  setShowCustomFocusPopup(false);
+                }}
+                style={{
+                  background: "var(--text-primary)",
+                  border: "none",
+                  color: "var(--el-bg)",
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  borderRadius: 0,
+                }}
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {showCustomBreakPopup && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150 }}>
-          <div style={{ background: "var(--dropdown-bg)", border: "1px solid var(--el-border)", padding: "16px", display: "flex", flexDirection: "column", gap: "12px", boxShadow: "var(--el-shadow)", width: "220px" }}>
-            <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)" }}>Custom Break Time (m)</div>
-            <input type="number" autoFocus value={tempCustomBreak} onChange={e => setTempCustomBreak(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { setCustomBreakTime(tempCustomBreak || "20"); setBreakTime("custom_break"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(tempCustomBreak || "20")) * 60; if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0); setShowCustomBreakPopup(false); } }} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", outline: "none", fontSize: "12px", borderRadius: 0, width: "100%", boxSizing: "border-box" }} />
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.4)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 150,
+          }}
+        >
+          <div
+            style={{
+              background: "var(--dropdown-bg)",
+              border: "1px solid var(--el-border)",
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              boxShadow: "var(--el-shadow)",
+              width: "220px",
+            }}
+          >
+            <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)" }}>
+              Custom Break Time (m)
+            </div>
+            <input
+              type="number"
+              autoFocus
+              value={tempCustomBreak}
+              onChange={(e) => setTempCustomBreak(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setCustomBreakTime(tempCustomBreak || "20");
+                  setBreakTime("custom_break");
+                  const newMinTime =
+                    actualFocusValue === "auto" || actualFocusValue === "off"
+                      ? 0
+                      : (parseInt(actualFocusValue) + parseInt(tempCustomBreak || "20")) * 60;
+                  if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0);
+                  setShowCustomBreakPopup(false);
+                }
+              }}
+              style={{
+                background: "transparent",
+                border: "1px solid var(--divider)",
+                color: "var(--text-primary)",
+                padding: "6px 8px",
+                outline: "none",
+                fontSize: "12px",
+                borderRadius: 0,
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
             <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-              <button onClick={() => setShowCustomBreakPopup(false)} style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Cancel</button>
-              <button onClick={() => { setCustomBreakTime(tempCustomBreak || "20"); setBreakTime("custom_break"); const newMinTime = (actualFocusValue === "auto" || actualFocusValue === "off") ? 0 : (parseInt(actualFocusValue) + parseInt(tempCustomBreak || "20")) * 60; if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0); setShowCustomBreakPopup(false); }} style={{ background: "var(--text-primary)", border: "none", color: "var(--el-bg)", padding: "4px 10px", cursor: "pointer", fontSize: "12px", borderRadius: 0 }}>Save</button>
+              <button
+                onClick={() => setShowCustomBreakPopup(false)}
+                style={{
+                  background: "transparent",
+                  border: "1px solid var(--divider)",
+                  color: "var(--text-secondary)",
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  borderRadius: 0,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setCustomBreakTime(tempCustomBreak || "20");
+                  setBreakTime("custom_break");
+                  const newMinTime =
+                    actualFocusValue === "auto" || actualFocusValue === "off"
+                      ? 0
+                      : (parseInt(actualFocusValue) + parseInt(tempCustomBreak || "20")) * 60;
+                  if (timeLeft > 0 && timeLeft < newMinTime) setTimeLeft(0);
+                  setShowCustomBreakPopup(false);
+                }}
+                style={{
+                  background: "var(--text-primary)",
+                  border: "none",
+                  color: "var(--el-bg)",
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  borderRadius: 0,
+                }}
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -926,43 +1136,79 @@ export default function ClockPane() {
                 {editingCatId ? "Edit Category" : "New Category"}
               </div>
               <button
-                onClick={() => { setShowCatPopup(false); setShowDeleteConfirm(false); }}
-                style={{ background: "transparent", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 0, display: "flex" }}
+                onClick={() => {
+                  setShowCatPopup(false);
+                  setShowDeleteConfirm(false);
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-secondary)",
+                  cursor: "pointer",
+                  padding: 0,
+                  display: "flex",
+                }}
               >
                 <X size={14} />
               </button>
             </div>
 
             {/* Tabs — luôn hiện, kể cả khi Add mới */}
-            <div style={{ display: "flex", borderBottom: "1px solid var(--divider)", marginBottom: "-4px" }}>
+            <div
+              style={{
+                display: "flex",
+                borderBottom: "1px solid var(--divider)",
+                marginBottom: "-4px",
+              }}
+            >
               <button
-                onClick={() => { setCatPopupTab("edit"); setShowDeleteConfirm(false); }}
+                onClick={() => {
+                  setCatPopupTab("edit");
+                  setShowDeleteConfirm(false);
+                }}
                 style={{
                   flex: 1,
                   background: "transparent",
                   border: "none",
-                  borderBottom: catPopupTab === "edit" ? "2px solid var(--text-primary)" : "2px solid transparent",
+                  borderBottom:
+                    catPopupTab === "edit"
+                      ? "2px solid var(--text-primary)"
+                      : "2px solid transparent",
                   color: catPopupTab === "edit" ? "var(--text-primary)" : "var(--text-secondary)",
                   cursor: "pointer",
                   fontSize: "11px",
                   fontWeight: 500,
                   padding: "4px 0 6px",
                 }}
-              >{editingCatId ? "Edit" : "New"}</button>
+              >
+                {editingCatId ? "Edit" : "New"}
+              </button>
               <button
-                onClick={() => { setCatPopupTab("archive"); setShowDeleteConfirm(false); }}
+                onClick={() => {
+                  setCatPopupTab("archive");
+                  setShowDeleteConfirm(false);
+                }}
                 style={{
                   flex: 1,
                   background: "transparent",
                   border: "none",
-                  borderBottom: catPopupTab === "archive" ? "2px solid var(--text-primary)" : "2px solid transparent",
-                  color: catPopupTab === "archive" ? "var(--text-primary)" : "var(--text-secondary)",
+                  borderBottom:
+                    catPopupTab === "archive"
+                      ? "2px solid var(--text-primary)"
+                      : "2px solid transparent",
+                  color:
+                    catPopupTab === "archive" ? "var(--text-primary)" : "var(--text-secondary)",
                   cursor: "pointer",
                   fontSize: "11px",
                   fontWeight: 500,
                   padding: "4px 0 6px",
                 }}
-              >Archive{categories.filter(c => c.archived).length > 0 ? ` (${categories.filter(c => c.archived).length})` : ""}</button>
+              >
+                Archive
+                {categories.filter((c) => c.archived).length > 0
+                  ? ` (${categories.filter((c) => c.archived).length})`
+                  : ""}
+              </button>
             </div>
 
             {/* ============ TAB EDIT / NEW ============ */}
@@ -970,23 +1216,51 @@ export default function ClockPane() {
               <>
                 {showDeleteConfirm ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    <div style={{ fontSize: "12px", color: "#e81123", fontWeight: 600 }}>Xóa loại việc này sẽ xóa luôn toàn bộ lịch sử liên quan. Không thể hoàn tác!</div>
+                    <div style={{ fontSize: "12px", color: "#e81123", fontWeight: 600 }}>
+                      Xóa loại việc này sẽ xóa luôn toàn bộ lịch sử liên quan. Không thể hoàn tác!
+                    </div>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <button
                         onClick={() => setShowDeleteConfirm(false)}
-                        style={{ flex: 1, background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", padding: "4px", cursor: "pointer", fontSize: "11px", borderRadius: 0 }}
-                      >Hủy</button>
+                        style={{
+                          flex: 1,
+                          background: "transparent",
+                          border: "1px solid var(--divider)",
+                          color: "var(--text-secondary)",
+                          padding: "4px",
+                          cursor: "pointer",
+                          fontSize: "11px",
+                          borderRadius: 0,
+                        }}
+                      >
+                        Hủy
+                      </button>
                       <button
                         onClick={() => {
                           deleteCategory(editingCatId!);
                           if (taskCategory === editingCatId) {
-                            setTaskCategory(categories.find((c) => c.id !== editingCatId && !c.archived)?.id || "");
+                            setTaskCategory(
+                              categories.find((c) => c.id !== editingCatId && !c.archived)?.id ||
+                                "",
+                            );
                           }
                           setShowCatPopup(false);
                           setShowDeleteConfirm(false);
                         }}
-                        style={{ flex: 1, background: "#e81123", border: "none", color: "white", padding: "4px", cursor: "pointer", fontSize: "11px", borderRadius: 0, fontWeight: 600 }}
-                      >Xóa hẳn</button>
+                        style={{
+                          flex: 1,
+                          background: "#e81123",
+                          border: "none",
+                          color: "white",
+                          padding: "4px",
+                          cursor: "pointer",
+                          fontSize: "11px",
+                          borderRadius: 0,
+                          fontWeight: 600,
+                        }}
+                      >
+                        Xóa hẳn
+                      </button>
                     </div>
                   </div>
                 ) : (
@@ -997,7 +1271,15 @@ export default function ClockPane() {
                           type="color"
                           value={newCatColor}
                           onChange={(e) => setNewCatColor(e.target.value)}
-                          style={{ width: "28px", height: "28px", padding: 0, border: "none", background: "transparent", cursor: "pointer", flexShrink: 0 }}
+                          style={{
+                            width: "28px",
+                            height: "28px",
+                            padding: 0,
+                            border: "none",
+                            background: "transparent",
+                            cursor: "pointer",
+                            flexShrink: 0,
+                          }}
                         />
                         <input
                           type="text"
@@ -1005,7 +1287,18 @@ export default function ClockPane() {
                           onChange={(e) => setNewCatName(e.target.value)}
                           placeholder="Category Name"
                           autoFocus
-                          style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", borderRadius: 0, fontSize: "13px", outline: "none", flex: 1, minWidth: 0, boxSizing: "border-box" }}
+                          style={{
+                            background: "transparent",
+                            border: "1px solid var(--divider)",
+                            color: "var(--text-primary)",
+                            padding: "6px 8px",
+                            borderRadius: 0,
+                            fontSize: "13px",
+                            outline: "none",
+                            flex: 1,
+                            minWidth: 0,
+                            boxSizing: "border-box",
+                          }}
                         />
                       </div>
                       <input
@@ -1013,12 +1306,30 @@ export default function ClockPane() {
                         value={newCatTarget}
                         onChange={(e) => setNewCatTarget(e.target.value)}
                         placeholder="Daily Target (mins, e.g. 120)"
-                        style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", borderRadius: 0, fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" }}
+                        style={{
+                          background: "transparent",
+                          border: "1px solid var(--divider)",
+                          color: "var(--text-primary)",
+                          padding: "6px 8px",
+                          borderRadius: 0,
+                          fontSize: "13px",
+                          outline: "none",
+                          width: "100%",
+                          boxSizing: "border-box",
+                        }}
                       />
                     </div>
 
                     {/* Action buttons */}
-                    <div style={{ display: "flex", gap: "8px", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginTop: "4px",
+                      }}
+                    >
                       {/* Left: Archive + Delete (only when editing) */}
                       {editingCatId && (
                         <div style={{ display: "flex", gap: "6px" }}>
@@ -1026,19 +1337,43 @@ export default function ClockPane() {
                             onClick={() => {
                               archiveCategory(editingCatId);
                               if (taskCategory === editingCatId) {
-                                setTaskCategory(categories.find((c) => c.id !== editingCatId && !c.archived)?.id || "");
+                                setTaskCategory(
+                                  categories.find((c) => c.id !== editingCatId && !c.archived)
+                                    ?.id || "",
+                                );
                               }
                               setShowCatPopup(false);
                             }}
                             title="Archive (xẩn, giữ lịch sử)"
-                            style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", cursor: "pointer", padding: "4px 8px", fontSize: "10px", borderRadius: 0, display: "flex", alignItems: "center", gap: "3px" }}
+                            style={{
+                              background: "transparent",
+                              border: "1px solid var(--divider)",
+                              color: "var(--text-secondary)",
+                              cursor: "pointer",
+                              padding: "4px 8px",
+                              fontSize: "10px",
+                              borderRadius: 0,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "3px",
+                            }}
                           >
                             Archive
                           </button>
                           <button
                             onClick={() => setShowDeleteConfirm(true)}
                             title="Xóa hẳn + xóa lịch sử"
-                            style={{ background: "transparent", border: "1px solid var(--divider)", color: "#e81123", cursor: "pointer", padding: "4px", fontSize: "10px", borderRadius: 0, display: "flex", alignItems: "center" }}
+                            style={{
+                              background: "transparent",
+                              border: "1px solid var(--divider)",
+                              color: "#e81123",
+                              cursor: "pointer",
+                              padding: "4px",
+                              fontSize: "10px",
+                              borderRadius: 0,
+                              display: "flex",
+                              alignItems: "center",
+                            }}
                           >
                             <Trash2 size={12} />
                           </button>
@@ -1049,25 +1384,60 @@ export default function ClockPane() {
                       <div style={{ display: "flex", gap: "8px", marginLeft: "auto" }}>
                         <button
                           onClick={() => setShowCatPopup(false)}
-                          style={{ background: "transparent", border: "1px solid var(--divider)", padding: "4px 10px", borderRadius: 0, color: "var(--text-secondary)", cursor: "pointer", fontSize: "12px" }}
-                        >Cancel</button>
+                          style={{
+                            background: "transparent",
+                            border: "1px solid var(--divider)",
+                            padding: "4px 10px",
+                            borderRadius: 0,
+                            color: "var(--text-secondary)",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          Cancel
+                        </button>
                         <button
                           onClick={() => {
                             if (newCatName.trim()) {
-                              const targetVal = newCatTarget.trim() ? parseInt(newCatTarget.trim()) : undefined;
-                              const finalTarget = targetVal !== undefined && !isNaN(targetVal) ? targetVal : undefined;
+                              const targetVal = newCatTarget.trim()
+                                ? parseInt(newCatTarget.trim())
+                                : undefined;
+                              const finalTarget =
+                                targetVal !== undefined && !isNaN(targetVal)
+                                  ? targetVal
+                                  : undefined;
                               if (editingCatId) {
-                                updateCategory(editingCatId, newCatName.trim(), newCatColor, finalTarget);
+                                updateCategory(
+                                  editingCatId,
+                                  newCatName.trim(),
+                                  newCatColor,
+                                  finalTarget,
+                                );
                               } else {
                                 const id = "cat_" + Date.now();
-                                addCategory({ id, name: newCatName.trim(), color: newCatColor, dailyTarget: finalTarget });
+                                addCategory({
+                                  id,
+                                  name: newCatName.trim(),
+                                  color: newCatColor,
+                                  dailyTarget: finalTarget,
+                                });
                                 setTaskCategory(id);
                               }
                               setShowCatPopup(false);
                             }
                           }}
-                          style={{ background: "var(--text-primary)", border: "none", padding: "4px 10px", borderRadius: 0, color: "var(--el-bg)", cursor: "pointer", fontSize: "12px" }}
-                        >Save</button>
+                          style={{
+                            background: "var(--text-primary)",
+                            border: "none",
+                            padding: "4px 10px",
+                            borderRadius: 0,
+                            color: "var(--el-bg)",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          Save
+                        </button>
                       </div>
                     </div>
                   </>
@@ -1078,37 +1448,115 @@ export default function ClockPane() {
             {/* ============ TAB ARCHIVE ============ */}
             {catPopupTab === "archive" && (
               <>
-                {categories.filter(c => c.archived).length === 0 ? (
-                  <div style={{ fontSize: "11px", color: "var(--text-secondary)", textAlign: "center", padding: "12px 0" }}>Không có loại việc nào đang ẩn</div>
+                {categories.filter((c) => c.archived).length === 0 ? (
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "var(--text-secondary)",
+                      textAlign: "center",
+                      padding: "12px 0",
+                    }}
+                  >
+                    Không có loại việc nào đang ẩn
+                  </div>
                 ) : (
-                  <div className="cat-archive-list" style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "150px", overflowY: "auto" }}>
-                    {categories.filter(c => c.archived).map(cat => (
-                      <div
-                        key={cat.id}
-                        style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", border: "1px solid var(--divider)", background: "var(--el-bg)" }}
-                      >
-                        <div style={{ width: 10, height: 10, borderRadius: "50%", background: cat.color, flexShrink: 0 }} />
-                        <span style={{ flex: 1, fontSize: "12px", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cat.name}</span>
-                        <button
-                          onClick={() => unarchiveCategory(cat.id)}
-                          style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", cursor: "pointer", padding: "2px 8px", fontSize: "10px", borderRadius: 0, flexShrink: 0 }}
-                        >Restore</button>
-                        <button
-                          onClick={() => {
-                            deleteCategory(cat.id);
+                  <div
+                    className="cat-archive-list"
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                      maxHeight: "150px",
+                      overflowY: "auto",
+                    }}
+                  >
+                    {categories
+                      .filter((c) => c.archived)
+                      .map((cat) => (
+                        <div
+                          key={cat.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            padding: "6px 8px",
+                            border: "1px solid var(--divider)",
+                            background: "var(--el-bg)",
                           }}
-                          title="Xóa hẳn"
-                          style={{ background: "transparent", border: "none", color: "#e81123", cursor: "pointer", padding: "2px", display: "flex", alignItems: "center", flexShrink: 0 }}
-                        ><Trash2 size={11} /></button>
-                      </div>
-                    ))}
+                        >
+                          <div
+                            style={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: "50%",
+                              background: cat.color,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span
+                            style={{
+                              flex: 1,
+                              fontSize: "12px",
+                              color: "var(--text-primary)",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {cat.name}
+                          </span>
+                          <button
+                            onClick={() => unarchiveCategory(cat.id)}
+                            style={{
+                              background: "transparent",
+                              border: "1px solid var(--divider)",
+                              color: "var(--text-secondary)",
+                              cursor: "pointer",
+                              padding: "2px 8px",
+                              fontSize: "10px",
+                              borderRadius: 0,
+                              flexShrink: 0,
+                            }}
+                          >
+                            Restore
+                          </button>
+                          <button
+                            onClick={() => {
+                              deleteCategory(cat.id);
+                            }}
+                            title="Xóa hẳn"
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "#e81123",
+                              cursor: "pointer",
+                              padding: "2px",
+                              display: "flex",
+                              alignItems: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Trash2 size={11} />
+                          </button>
+                        </div>
+                      ))}
                   </div>
                 )}
                 <div style={{ display: "flex", justifyContent: "flex-end" }}>
                   <button
                     onClick={() => setShowCatPopup(false)}
-                    style={{ background: "transparent", border: "1px solid var(--divider)", padding: "4px 10px", borderRadius: 0, color: "var(--text-secondary)", cursor: "pointer", fontSize: "12px" }}
-                  >Close</button>
+                    style={{
+                      background: "transparent",
+                      border: "1px solid var(--divider)",
+                      padding: "4px 10px",
+                      borderRadius: 0,
+                      color: "var(--text-secondary)",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                    }}
+                  >
+                    Close
+                  </button>
                 </div>
               </>
             )}

@@ -73,7 +73,7 @@ export default function MiniWindow() {
   const isInfinite = !isCountUp && totalSessionDuration === 0 && state !== "idle";
   const progressPercent = isCountUp
     ? // Stopwatch: điền đầy mỗi giờ
-      (elapsedSessionTime % 3600) / 3600 * 100
+      ((elapsedSessionTime % 3600) / 3600) * 100
     : isInfinite
       ? // Infinite block: progress theo block hiện tại
         sessionDuration > 0

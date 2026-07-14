@@ -31,7 +31,7 @@ export const customStorage: StateStorage = {
     if (customDir) {
       try {
         const filePath = await join(customDir, `${name}.json`);
-        
+
         // Migrate legacy pomodoro-storage.json to flowst-storage.json
         if (name === "flowst-storage") {
           const legacyFilePath = await join(customDir, "pomodoro-storage.json");

@@ -1,10 +1,18 @@
 import { useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { usePomodoroStore } from "../../stores/pomodoroStore";
-import { getLocalDateString } from "../../utils/date";import { getMockedDate } from "../../stores/debugStore";
+import { getLocalDateString } from "../../utils/date";
+import { getMockedDate } from "../../stores/debugStore";
 
-export default function DashboardChart({ selectedCategories, timeFilter, customDays }: { selectedCategories: string[], timeFilter: string, customDays: number | string }) {
-
+export default function DashboardChart({
+  selectedCategories,
+  timeFilter,
+  customDays,
+}: {
+  selectedCategories: string[];
+  timeFilter: string;
+  customDays: number | string;
+}) {
   const history = usePomodoroStore((state) => state.history);
   const categories = usePomodoroStore((state) => state.categories);
   const todayCategoryBreakdown = usePomodoroStore((state) => state.todayCategoryBreakdown);
@@ -15,17 +23,31 @@ export default function DashboardChart({ selectedCategories, timeFilter, customD
     let numDays = 0;
 
     switch (timeFilter) {
-      case "7d": numDays = 7; break;
-      case "1m": numDays = 30; break;
-      case "3m": numDays = 90; break;
-      case "thisWeek": numDays = today.getDay() === 0 ? 7 : today.getDay(); break;
-      case "thisMonth": numDays = today.getDate(); break;
+      case "7d":
+        numDays = 7;
+        break;
+      case "1m":
+        numDays = 30;
+        break;
+      case "3m":
+        numDays = 90;
+        break;
+      case "thisWeek":
+        numDays = today.getDay() === 0 ? 7 : today.getDay();
+        break;
+      case "thisMonth":
+        numDays = today.getDate();
+        break;
       case "thisYear":
         const startOfYear = new Date(today.getFullYear(), 0, 1);
         numDays = Math.ceil((today.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
         break;
-      case "custom": numDays = Number(customDays) || 1; break;
-      case "last1year": numDays = 365; break;
+      case "custom":
+        numDays = Number(customDays) || 1;
+        break;
+      case "last1year":
+        numDays = 365;
+        break;
       case "all":
         const keys = Object.keys(history || {});
         if (keys.length > 0) {
@@ -41,17 +63,18 @@ export default function DashboardChart({ selectedCategories, timeFilter, customD
           const startOfYear = new Date(year, 0, 1);
           const endOfYear = new Date(year, 11, 31);
           const compareDate = today < endOfYear ? today : endOfYear;
-          numDays = Math.ceil((compareDate.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
+          numDays =
+            Math.ceil((compareDate.getTime() - startOfYear.getTime()) / (1000 * 3600 * 24)) + 1;
         }
         break;
     }
 
     let anchorDate = today;
     if (!isNaN(Number(timeFilter))) {
-       const year = Number(timeFilter);
-       if (year !== today.getFullYear()) {
-           anchorDate = new Date(year, 11, 31);
-       }
+      const year = Number(timeFilter);
+      if (year !== today.getFullYear()) {
+        anchorDate = new Date(year, 11, 31);
+      }
     }
 
     startDate = new Date(anchorDate);
@@ -68,7 +91,7 @@ export default function DashboardChart({ selectedCategories, timeFilter, customD
 
       const point: any = {
         name: `${d.getDate()}/${d.getMonth() + 1}`,
-        fullDate: dateStr
+        fullDate: dateStr,
       };
 
       if (isToday) {
@@ -77,7 +100,7 @@ export default function DashboardChart({ selectedCategories, timeFilter, customD
           const hours = minutes / 60;
           if (hours > 0) {
             point[catId] = Math.round(hours * 10) / 10;
-            const currentCat = categories.find(c => c.id === catId);
+            const currentCat = categories.find((c) => c.id === catId);
             if (!catMap.has(catId) && currentCat) {
               catMap.set(catId, { name: currentCat.name, color: currentCat.color });
             }
@@ -92,7 +115,7 @@ export default function DashboardChart({ selectedCategories, timeFilter, customD
             if (!catMap.has(catId)) {
               catMap.set(catId, {
                 name: dayHist.categoryNames?.[catId] || catId,
-                color: dayHist.categoryColors?.[catId] || "#00F2F6"
+                color: dayHist.categoryColors?.[catId] || "#00F2F6",
               });
             }
           }
@@ -103,11 +126,11 @@ export default function DashboardChart({ selectedCategories, timeFilter, customD
     }
 
     const activeCatArr = Array.from(catMap.entries()).map(([id, val]) => ({ id, ...val }));
-    
+
     // Fill missing data points with 0 ONLY for days after the category's first appearance
     const catFirstIndex = new Map<string, number>();
     chartData.forEach((point, index) => {
-      activeCatArr.forEach(cat => {
+      activeCatArr.forEach((cat) => {
         if (point[cat.id] > 0 && !catFirstIndex.has(cat.id)) {
           catFirstIndex.set(cat.id, index);
         }
@@ -115,7 +138,7 @@ export default function DashboardChart({ selectedCategories, timeFilter, customD
     });
 
     chartData.forEach((point, index) => {
-      activeCatArr.forEach(cat => {
+      activeCatArr.forEach((cat) => {
         const firstIdx = catFirstIndex.get(cat.id);
         if (firstIdx !== undefined && index >= firstIdx) {
           if (point[cat.id] === undefined) {
@@ -129,31 +152,63 @@ export default function DashboardChart({ selectedCategories, timeFilter, customD
   }, [timeFilter, customDays, history, todayCategoryBreakdown, categories, selectedCategories]);
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-glass)", padding: "16px", border: "1px solid var(--glass-border)", overflow: "hidden" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+    <div
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        background: "var(--bg-glass)",
+        padding: "16px",
+        border: "1px solid var(--glass-border)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "16px",
+        }}
+      >
         <h3 style={{ margin: 0, fontSize: "18px" }}>Trend Overview</h3>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, marginTop: "12px" }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-            <XAxis dataKey="name" stroke="#888" fontSize={12} tickMargin={6} minTickGap={15} padding={{ left: 10, right: 10 }} />
+            <XAxis
+              dataKey="name"
+              stroke="#888"
+              fontSize={12}
+              tickMargin={6}
+              minTickGap={15}
+              padding={{ left: 10, right: 10 }}
+            />
             <YAxis stroke="#888" fontSize={12} tickFormatter={(val) => `${val}h`} />
             <Tooltip
-              contentStyle={{ background: "#fff", color: "#000", border: "none", borderRadius: "4px", fontSize: "14px", fontWeight: "bold", padding: "6px 10px" }}
+              contentStyle={{
+                background: "#fff",
+                color: "#000",
+                border: "none",
+                borderRadius: "4px",
+                fontSize: "14px",
+                fontWeight: "bold",
+                padding: "6px 10px",
+              }}
               itemStyle={{ color: "#000", padding: "2px 0" }}
               formatter={(value: any, name: any) => {
-                const cat = activeCategories.find(c => c.id === String(name));
+                const cat = activeCategories.find((c) => c.id === String(name));
                 return [`${value}h`, cat ? cat.name : String(name)];
               }}
               labelStyle={{ color: "#555", marginBottom: "4px" }}
             />
             {activeCategories.map((cat) => (
-              <Line 
+              <Line
                 key={cat.id}
-                type="monotone" 
-                dataKey={cat.id} 
-                stroke={cat.color} 
+                type="monotone"
+                dataKey={cat.id}
+                stroke={cat.color}
                 strokeWidth={2}
                 dot={{ r: 2 }}
                 activeDot={{ r: 4 }}
