@@ -6,7 +6,14 @@ import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { getLocalDateString } from "../utils/date";
 import { invoke } from "@tauri-apps/api/core";
 import { save, open, ask } from "@tauri-apps/plugin-dialog";
-import { writeTextFile, readTextFile, exists, remove, copyFile, readFile } from "@tauri-apps/plugin-fs";
+import {
+  writeTextFile,
+  readTextFile,
+  exists,
+  remove,
+  copyFile,
+  readFile,
+} from "@tauri-apps/plugin-fs";
 import { join, appDataDir, extname } from "@tauri-apps/api/path";
 
 const soundFiles = import.meta.glob("/src/sounds/*.*", {
