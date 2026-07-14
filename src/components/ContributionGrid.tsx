@@ -2,12 +2,7 @@ import { useMemo, useState } from "react";
 import { useDebugStore, getMockedDate } from "../stores/debugStore";
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { getLocalDateString } from "../utils/date";
-type CellData = {
-  level: number;
-  date: Date;
-  totalHours: number;
-  breakdown: { name: string; hours: number }[];
-};
+
 
 export default function ContributionGrid() {
   const days = 7;
@@ -88,14 +83,20 @@ export default function ContributionGrid() {
   }, [dateOffsetDays, todayTotalTime, todayCategoryBreakdown, history, categories]);
 
   const [hoveredCell, setHoveredCell] = useState<{
-    data: CellData;
+    rowIndex: number;
+    colIndex: number;
     rect: DOMRect;
   } | null>(null);
 
-  const handleMouseEnter = (e: React.MouseEvent, data: CellData) => {
-    if (data.level < 0) return; // Skip future cells
+  // Luôn đọc data trực tiếp từ grid (không cache snapshot) để phản ánh tên mới nhất
+  const hoveredData = hoveredCell
+    ? grid[hoveredCell.rowIndex]?.[hoveredCell.colIndex] ?? null
+    : null;
+
+  const handleMouseEnter = (e: React.MouseEvent, rowIndex: number, colIndex: number, level: number) => {
+    if (level < 0) return; // Skip future cells
     const rect = (e.target as HTMLElement).getBoundingClientRect();
-    setHoveredCell({ data, rect });
+    setHoveredCell({ rowIndex, colIndex, rect });
   };
 
   const handleMouseLeave = () => {
@@ -130,7 +131,7 @@ export default function ContributionGrid() {
                     backgroundColor: "transparent",
                     pointerEvents: cell.level === -1 ? "none" : "auto",
                   }}
-                  onMouseEnter={(e) => handleMouseEnter(e, cell)}
+                  onMouseEnter={(e) => handleMouseEnter(e, rowIndex, colIndex, cell.level)}
                 >
                   {/* Cell Background */}
                   <div
@@ -201,7 +202,7 @@ export default function ContributionGrid() {
         ))}
       </div>
 
-      {hoveredCell && (
+      {hoveredCell && hoveredData && (
         <div
           className="contribution-tooltip"
           ref={(el) => {
@@ -222,12 +223,12 @@ export default function ContributionGrid() {
           }}
         >
           <div className="tooltip-date">
-            {`${hoveredCell.data.date.getDate()}/${hoveredCell.data.date.getMonth() + 1}/${hoveredCell.data.date.getFullYear() % 100}`}
+            {`${hoveredData.date.getDate()}/${hoveredData.date.getMonth() + 1}/${hoveredData.date.getFullYear() % 100}`}
           </div>
-          <div className="tooltip-total">{hoveredCell.data.totalHours}h</div>
-          {hoveredCell.data.breakdown.length > 0 && (
+          <div className="tooltip-total">{hoveredData.totalHours}h</div>
+          {hoveredData.breakdown.length > 0 && (
             <div className="tooltip-breakdown">
-              {hoveredCell.data.breakdown.map((b) => (
+              {hoveredData.breakdown.map((b) => (
                 <div key={b.name} className="tooltip-b-item">
                   <span className="tooltip-b-hours">{b.hours}h</span>
                   <span className="tooltip-b-name">{b.name}</span>

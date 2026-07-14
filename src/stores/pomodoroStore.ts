@@ -40,6 +40,7 @@ export interface TaskCategory {
   name: string;
   color: string;
   dailyTarget?: number;
+  archived?: boolean;
 }
 
 export interface HistoryDay {
@@ -100,6 +101,8 @@ interface PomodoroState {
   addCategory: (category: TaskCategory) => void;
   updateCategory: (id: string, name: string, color: string, dailyTarget?: number) => void;
   deleteCategory: (id: string) => void;
+  archiveCategory: (id: string) => void;
+  unarchiveCategory: (id: string) => void;
   dailyTarget: number;
   setDailyTarget: (minutes: number) => void;
   todayTotalTime: number; // in minutes
@@ -158,15 +161,75 @@ export const usePomodoroStore = create<PomodoroState>()(
       addCategory: (category) => set((state) => ({ categories: [...state.categories, category] })),
 
       updateCategory: (id, name, color, dailyTarget) =>
+        set((state) => {
+          // Sync tên và màu mới vào toàn bộ lịch sử
+          const updatedHistory: Record<string, typeof state.history[string]> = {};
+          for (const [date, day] of Object.entries(state.history)) {
+            const updatedNames = { ...(day.categoryNames || {}) };
+            const updatedColors = { ...(day.categoryColors || {}) };
+            if (id in (day.breakdown || {})) {
+              updatedNames[id] = name;
+              updatedColors[id] = color;
+            }
+            updatedHistory[date] = {
+              ...day,
+              categoryNames: updatedNames,
+              categoryColors: updatedColors,
+            };
+          }
+          return {
+            categories: state.categories.map((c) =>
+              c.id === id ? { ...c, name, color, dailyTarget } : c,
+            ),
+            history: updatedHistory,
+          };
+        }),
+
+      deleteCategory: (id) =>
+        set((state) => {
+          // Xóa dữ liệu của category này khỏi toàn bộ lịch sử
+          const updatedHistory: Record<string, typeof state.history[string]> = {};
+          for (const [date, day] of Object.entries(state.history)) {
+            const newBreakdown = { ...(day.breakdown || {}) };
+            const newNames = { ...(day.categoryNames || {}) };
+            const newColors = { ...(day.categoryColors || {}) };
+            delete newBreakdown[id];
+            delete newNames[id];
+            delete newColors[id];
+            // Tính lại totalHours sau khi xóa
+            const newTotalHours = Object.values(newBreakdown).reduce((a, b) => a + b, 0);
+            updatedHistory[date] = {
+              ...day,
+              breakdown: newBreakdown,
+              categoryNames: newNames,
+              categoryColors: newColors,
+              totalHours: newTotalHours,
+            };
+          }
+          // Xóa khỏi todayCategoryBreakdown nếu có
+          const newTodayBreakdown = { ...state.todayCategoryBreakdown };
+          delete newTodayBreakdown[id];
+          const newTodayTotal = Object.values(newTodayBreakdown).reduce((a, b) => a + b, 0);
+          return {
+            categories: state.categories.filter((c) => c.id !== id),
+            history: updatedHistory,
+            todayCategoryBreakdown: newTodayBreakdown,
+            todayTotalTime: newTodayTotal,
+          };
+        }),
+
+      archiveCategory: (id) =>
         set((state) => ({
           categories: state.categories.map((c) =>
-            c.id === id ? { ...c, name, color, dailyTarget } : c,
+            c.id === id ? { ...c, archived: true } : c,
           ),
         })),
 
-      deleteCategory: (id) =>
+      unarchiveCategory: (id) =>
         set((state) => ({
-          categories: state.categories.filter((c) => c.id !== id),
+          categories: state.categories.map((c) =>
+            c.id === id ? { ...c, archived: false } : c,
+          ),
         })),
 
       setDailyTarget: (minutes) => set({ dailyTarget: minutes }),

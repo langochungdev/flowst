@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Square, Trash2, Pen, SkipForward, Settings2 } from "lucide-react";
+import { Play, Pause, Square, Trash2, Pen, SkipForward, Settings2, X } from "lucide-react";
 import ContributionGrid from "./ContributionGrid";
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore, getMockedDate } from "../stores/debugStore";
@@ -473,6 +473,8 @@ export default function ClockPane() {
     addCategory,
     updateCategory,
     deleteCategory,
+    archiveCategory,
+    unarchiveCategory,
     todayTotalTime,
     todayCategoryBreakdown,
     dailyTarget,
@@ -501,6 +503,8 @@ export default function ClockPane() {
   const [newCatName, setNewCatName] = useState("");
   const [newCatColor, setNewCatColor] = useState("");
   const [newCatTarget, setNewCatTarget] = useState("");
+  const [catPopupTab, setCatPopupTab] = useState<"edit" | "archive">("edit");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingCustom, setIsEditingCustom] = useState(false);
@@ -631,7 +635,7 @@ export default function ClockPane() {
         />
         <CustomSelect
           options={[
-            ...categories.map((c) => ({
+            ...categories.filter((c) => !c.archived).map((c) => ({
               label: c.name,
               value: c.id,
               color: c.color,
@@ -651,6 +655,8 @@ export default function ClockPane() {
               setNewCatName("");
               setNewCatTarget("");
               setEditingCatId(null);
+              setCatPopupTab("edit");
+              setShowDeleteConfirm(false);
               setShowCatPopup(true);
             } else {
               setTaskCategory(val);
@@ -663,6 +669,8 @@ export default function ClockPane() {
               setNewCatColor(cat.color);
               setNewCatTarget(cat.dailyTarget ? cat.dailyTarget.toString() : "");
               setEditingCatId(cat.id);
+              setCatPopupTab("edit");
+              setShowDeleteConfirm(false);
               setShowCatPopup(true);
             }
           }}
@@ -907,140 +915,198 @@ export default function ClockPane() {
               boxSizing: "border-box",
             }}
           >
+            {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)" }}>
                 {editingCatId ? "Edit Category" : "New Category"}
               </div>
-              {editingCatId && (
-                <button
-                  onClick={() => {
-                    deleteCategory(editingCatId);
-                    if (taskCategory === editingCatId) {
-                      setTaskCategory(categories.find((c) => c.id !== editingCatId)?.id || "auto");
-                    }
-                    setShowCatPopup(false);
-                  }}
-                  title="Delete Category"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "var(--text-secondary)",
-                    cursor: "pointer",
-                    padding: 0,
-                    display: "flex",
-                  }}
-                >
-                  <Trash2 size={14} />
-                </button>
-              )}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <input
-                  type="color"
-                  value={newCatColor}
-                  onChange={(e) => setNewCatColor(e.target.value)}
-                  style={{
-                    width: "28px",
-                    height: "28px",
-                    padding: 0,
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    flexShrink: 0,
-                  }}
-                />
-                <input
-                  type="text"
-                  value={newCatName}
-                  onChange={(e) => setNewCatName(e.target.value)}
-                  placeholder="Category Name"
-                  autoFocus
-                  style={{
-                    background: "transparent",
-                    border: "1px solid var(--divider)",
-                    color: "var(--text-primary)",
-                    padding: "6px 8px",
-                    borderRadius: 0,
-                    fontSize: "13px",
-                    outline: "none",
-                    flex: 1,
-                    minWidth: 0,
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-              <input
-                type="number"
-                value={newCatTarget}
-                onChange={(e) => setNewCatTarget(e.target.value)}
-                placeholder="Daily Target (mins, e.g. 120)"
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--divider)",
-                  color: "var(--text-primary)",
-                  padding: "6px 8px",
-                  borderRadius: 0,
-                  fontSize: "13px",
-                  outline: "none",
-                  width: "100%",
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
-            <div
-              style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "4px" }}
-            >
               <button
-                onClick={() => setShowCatPopup(false)}
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--divider)",
-                  padding: "4px 10px",
-                  borderRadius: 0,
-                  color: "var(--text-secondary)",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                }}
+                onClick={() => { setShowCatPopup(false); setShowDeleteConfirm(false); }}
+                style={{ background: "transparent", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 0, display: "flex" }}
               >
-                Cancel
+                <X size={14} />
               </button>
+            </div>
+
+            {/* Tabs — luôn hiện, kể cả khi Add mới */}
+            <div style={{ display: "flex", borderBottom: "1px solid var(--divider)", marginBottom: "-4px" }}>
               <button
-                onClick={() => {
-                  if (newCatName.trim()) {
-                    const targetVal = newCatTarget.trim()
-                      ? parseInt(newCatTarget.trim())
-                      : undefined;
-                    const finalTarget =
-                      targetVal !== undefined && !isNaN(targetVal) ? targetVal : undefined;
-                    if (editingCatId) {
-                      updateCategory(editingCatId, newCatName.trim(), newCatColor, finalTarget);
-                    } else {
-                      const id = "cat_" + Date.now();
-                      addCategory({
-                        id,
-                        name: newCatName.trim(),
-                        color: newCatColor,
-                        dailyTarget: finalTarget,
-                      });
-                      setTaskCategory(id);
-                    }
-                    setShowCatPopup(false);
-                  }
-                }}
+                onClick={() => { setCatPopupTab("edit"); setShowDeleteConfirm(false); }}
                 style={{
-                  background: "var(--text-primary)",
+                  flex: 1,
+                  background: "transparent",
                   border: "none",
-                  padding: "4px 10px",
-                  borderRadius: 0,
-                  color: "var(--el-bg)",
+                  borderBottom: catPopupTab === "edit" ? "2px solid var(--text-primary)" : "2px solid transparent",
+                  color: catPopupTab === "edit" ? "var(--text-primary)" : "var(--text-secondary)",
                   cursor: "pointer",
-                  fontSize: "12px",
+                  fontSize: "11px",
+                  fontWeight: 500,
+                  padding: "4px 0 6px",
                 }}
-              >
-                Save
-              </button>
+              >{editingCatId ? "Edit" : "New"}</button>
+              <button
+                onClick={() => { setCatPopupTab("archive"); setShowDeleteConfirm(false); }}
+                style={{
+                  flex: 1,
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: catPopupTab === "archive" ? "2px solid var(--text-primary)" : "2px solid transparent",
+                  color: catPopupTab === "archive" ? "var(--text-primary)" : "var(--text-secondary)",
+                  cursor: "pointer",
+                  fontSize: "11px",
+                  fontWeight: 500,
+                  padding: "4px 0 6px",
+                }}
+              >Archive{categories.filter(c => c.archived).length > 0 ? ` (${categories.filter(c => c.archived).length})` : ""}</button>
             </div>
+
+            {/* ============ TAB EDIT / NEW ============ */}
+            {catPopupTab === "edit" && (
+              <>
+                {showDeleteConfirm ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div style={{ fontSize: "12px", color: "#e81123", fontWeight: 600 }}>Xóa loại việc này sẽ xóa luôn toàn bộ lịch sử liên quan. Không thể hoàn tác!</div>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => setShowDeleteConfirm(false)}
+                        style={{ flex: 1, background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", padding: "4px", cursor: "pointer", fontSize: "11px", borderRadius: 0 }}
+                      >Hủy</button>
+                      <button
+                        onClick={() => {
+                          deleteCategory(editingCatId!);
+                          if (taskCategory === editingCatId) {
+                            setTaskCategory(categories.find((c) => c.id !== editingCatId && !c.archived)?.id || "");
+                          }
+                          setShowCatPopup(false);
+                          setShowDeleteConfirm(false);
+                        }}
+                        style={{ flex: 1, background: "#e81123", border: "none", color: "white", padding: "4px", cursor: "pointer", fontSize: "11px", borderRadius: 0, fontWeight: 600 }}
+                      >Xóa hẳn</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                        <input
+                          type="color"
+                          value={newCatColor}
+                          onChange={(e) => setNewCatColor(e.target.value)}
+                          style={{ width: "28px", height: "28px", padding: 0, border: "none", background: "transparent", cursor: "pointer", flexShrink: 0 }}
+                        />
+                        <input
+                          type="text"
+                          value={newCatName}
+                          onChange={(e) => setNewCatName(e.target.value)}
+                          placeholder="Category Name"
+                          autoFocus
+                          style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", borderRadius: 0, fontSize: "13px", outline: "none", flex: 1, minWidth: 0, boxSizing: "border-box" }}
+                        />
+                      </div>
+                      <input
+                        type="number"
+                        value={newCatTarget}
+                        onChange={(e) => setNewCatTarget(e.target.value)}
+                        placeholder="Daily Target (mins, e.g. 120)"
+                        style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-primary)", padding: "6px 8px", borderRadius: 0, fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box" }}
+                      />
+                    </div>
+
+                    {/* Action buttons */}
+                    <div style={{ display: "flex", gap: "8px", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
+                      {/* Left: Archive + Delete (only when editing) */}
+                      {editingCatId && (
+                        <div style={{ display: "flex", gap: "6px" }}>
+                          <button
+                            onClick={() => {
+                              archiveCategory(editingCatId);
+                              if (taskCategory === editingCatId) {
+                                setTaskCategory(categories.find((c) => c.id !== editingCatId && !c.archived)?.id || "");
+                              }
+                              setShowCatPopup(false);
+                            }}
+                            title="Archive (xẩn, giữ lịch sử)"
+                            style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", cursor: "pointer", padding: "4px 8px", fontSize: "10px", borderRadius: 0, display: "flex", alignItems: "center", gap: "3px" }}
+                          >
+                            Archive
+                          </button>
+                          <button
+                            onClick={() => setShowDeleteConfirm(true)}
+                            title="Xóa hẳn + xóa lịch sử"
+                            style={{ background: "transparent", border: "1px solid var(--divider)", color: "#e81123", cursor: "pointer", padding: "4px", fontSize: "10px", borderRadius: 0, display: "flex", alignItems: "center" }}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Right: Cancel + Save */}
+                      <div style={{ display: "flex", gap: "8px", marginLeft: "auto" }}>
+                        <button
+                          onClick={() => setShowCatPopup(false)}
+                          style={{ background: "transparent", border: "1px solid var(--divider)", padding: "4px 10px", borderRadius: 0, color: "var(--text-secondary)", cursor: "pointer", fontSize: "12px" }}
+                        >Cancel</button>
+                        <button
+                          onClick={() => {
+                            if (newCatName.trim()) {
+                              const targetVal = newCatTarget.trim() ? parseInt(newCatTarget.trim()) : undefined;
+                              const finalTarget = targetVal !== undefined && !isNaN(targetVal) ? targetVal : undefined;
+                              if (editingCatId) {
+                                updateCategory(editingCatId, newCatName.trim(), newCatColor, finalTarget);
+                              } else {
+                                const id = "cat_" + Date.now();
+                                addCategory({ id, name: newCatName.trim(), color: newCatColor, dailyTarget: finalTarget });
+                                setTaskCategory(id);
+                              }
+                              setShowCatPopup(false);
+                            }
+                          }}
+                          style={{ background: "var(--text-primary)", border: "none", padding: "4px 10px", borderRadius: 0, color: "var(--el-bg)", cursor: "pointer", fontSize: "12px" }}
+                        >Save</button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {/* ============ TAB ARCHIVE ============ */}
+            {catPopupTab === "archive" && (
+              <>
+                {categories.filter(c => c.archived).length === 0 ? (
+                  <div style={{ fontSize: "11px", color: "var(--text-secondary)", textAlign: "center", padding: "12px 0" }}>Không có loại việc nào đang ẩn</div>
+                ) : (
+                  <div className="cat-archive-list" style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "150px", overflowY: "auto" }}>
+                    {categories.filter(c => c.archived).map(cat => (
+                      <div
+                        key={cat.id}
+                        style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", border: "1px solid var(--divider)", background: "var(--el-bg)" }}
+                      >
+                        <div style={{ width: 10, height: 10, borderRadius: "50%", background: cat.color, flexShrink: 0 }} />
+                        <span style={{ flex: 1, fontSize: "12px", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cat.name}</span>
+                        <button
+                          onClick={() => unarchiveCategory(cat.id)}
+                          style={{ background: "transparent", border: "1px solid var(--divider)", color: "var(--text-secondary)", cursor: "pointer", padding: "2px 8px", fontSize: "10px", borderRadius: 0, flexShrink: 0 }}
+                        >Restore</button>
+                        <button
+                          onClick={() => {
+                            deleteCategory(cat.id);
+                          }}
+                          title="Xóa hẳn"
+                          style={{ background: "transparent", border: "none", color: "#e81123", cursor: "pointer", padding: "2px", display: "flex", alignItems: "center", flexShrink: 0 }}
+                        ><Trash2 size={11} /></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button
+                    onClick={() => setShowCatPopup(false)}
+                    style={{ background: "transparent", border: "1px solid var(--divider)", padding: "4px 10px", borderRadius: 0, color: "var(--text-secondary)", cursor: "pointer", fontSize: "12px" }}
+                  >Close</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

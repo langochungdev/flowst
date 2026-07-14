@@ -1014,3 +1014,22 @@ input:checked + .slider:before {
 .slider.round:before {
     border-radius: 50%;
 }
+
+/* ── Archive list scrollbar ── */
+.cat-archive-list {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+.cat-archive-list::-webkit-scrollbar {
+    width: 3px;
+}
+.cat-archive-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.cat-archive-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+.cat-archive-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
