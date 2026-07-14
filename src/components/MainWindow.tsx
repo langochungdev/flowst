@@ -1,18 +1,16 @@
 import { useState } from "react";
-import { Minimize2, Minus, X, Settings, Home } from "lucide-react";
+import { Minimize2, Minus, Settings, Home } from "lucide-react";
 import ClockPane from "./ClockPane";
 import SettingsPane from "./SettingsPane";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { useWindowDrag } from "../hooks/useWindowDrag";
-import { usePomodoroStore } from "../stores/pomodoroStore";
 
 export default function MainWindow() {
   const [isSettings, setIsSettings] = useState(false);
   const [, setHovered] = useState(false);
   const [isHiding, setIsHiding] = useState(false);
   const { bind } = useWindowDrag();
-  const isActive = usePomodoroStore((state) => state.isActive);
 
   const executeHideAction = (action: () => Promise<void>) => {
     setIsHiding(true);
@@ -27,13 +25,6 @@ export default function MainWindow() {
 
   const handleMinimize = () => {
     executeHideAction(() => invoke("hide_main_window_minimize"));
-  };
-
-  const handleClose = () => {
-    if (isActive) {
-      usePomodoroStore.getState().stopTimer();
-    }
-    executeHideAction(() => invoke("hide_main_window_close"));
   };
 
   const handleCompact = () => {
@@ -78,14 +69,6 @@ export default function MainWindow() {
           title="Minimize"
         >
           <Minus size={14} />
-        </button>
-        <div className="corner-divider" />
-        <button 
-          className={`corner-btn hover-danger ${isHiding ? 'force-no-hover' : ''}`} 
-          onClick={handleClose} 
-          title="Close"
-        >
-          <X size={14} />
         </button>
       </div>
 

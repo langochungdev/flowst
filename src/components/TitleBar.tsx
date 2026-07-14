@@ -75,25 +75,6 @@ export const TitleBar: React.FC = () => {
             <path d="M5 12h14" />
           </svg>
         </button>
-        <button 
-          className="titlebar-button close" 
-          onClick={(e) => {
-            e.currentTarget.blur();
-            invoke("hide_main_window_close").catch(() => appWindow?.close());
-          }} 
-          title="Close"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="14"
-            height="14"
-            stroke="currentColor"
-            strokeWidth="2"
-            fill="none"
-          >
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-        </button>
       </div>
     </div>
   );

@@ -429,8 +429,8 @@ input[type="number"] {
     position: absolute;
     top: -32px;
     left: 43px;
-    /* 57px - 14px padding of main-window */
-    right: 43px;
+    /* 28px (minimize btn) - 14px padding = 14px right offset */
+    right: 14px;
     height: 28px;
     display: flex;
     justify-content: flex-start;
