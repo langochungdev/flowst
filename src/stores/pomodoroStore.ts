@@ -732,63 +732,20 @@ listen<{ type: SessionType; duration: number }>("tray-preset", (event) => {
   }
 }).catch(console.error);
 
-export const swapData = (toDebug: boolean) => {
-  const currentState = usePomodoroStore.getState();
-  if (toDebug) {
-    localStorage.setItem("flowst-real-backup", JSON.stringify({ state: currentState }));
-    const debugDataStr = localStorage.getItem("flowst-debug-backup");
-    if (debugDataStr) {
-      try {
-        const debugData = JSON.parse(debugDataStr);
-        usePomodoroStore.setState({
-          ...debugData.state,
-          state: "idle",
-          isActive: false,
-          blocks: [],
-          currentBlockIndex: 0,
-          timeLeft: 25 * 60,
-          sessionDuration: 25 * 60,
-          totalSessionDuration: 0,
-          elapsedSessionTime: 0,
-        });
-      } catch {
-        // ignore JSON parse error
-      }
-    } else {
-      usePomodoroStore.setState({
-        history: {},
-        todayTotalTime: 0,
-        todayCategoryBreakdown: {},
-        goal: null,
-        blocks: [],
-        state: "idle",
-        isActive: false,
-        timeLeft: 25 * 60,
-        sessionDuration: 25 * 60,
-        totalSessionDuration: 0,
-        elapsedSessionTime: 0,
-      });
-    }
-  } else {
-    localStorage.setItem("flowst-debug-backup", JSON.stringify({ state: currentState }));
-    const realDataStr = localStorage.getItem("flowst-real-backup");
-    if (realDataStr) {
-      try {
-        const realData = JSON.parse(realDataStr);
-        usePomodoroStore.setState({
-          ...realData.state,
-          state: "idle",
-          isActive: false,
-          blocks: [],
-          currentBlockIndex: 0,
-          timeLeft: 25 * 60,
-          sessionDuration: 25 * 60,
-          totalSessionDuration: 0,
-          elapsedSessionTime: 0,
-        });
-      } catch {
-        // ignore JSON parse error
-      }
-    }
-  }
+export const swapData = async (_toDebug: boolean) => {
+  // Vị trí lưu trữ đã được cô lập hoàn toàn trong storage.ts dựa trên isDebugMode.
+  // Nên ta chỉ cần gọi rehydrate để Zustand tải lại state từ đúng nguồn (Debug hoặc Real DB).
+  await usePomodoroStore.persist.rehydrate();
+
+  // Reset trạng thái timer hiện hành cho an toàn
+  usePomodoroStore.setState({
+    state: "idle",
+    isActive: false,
+    blocks: [],
+    currentBlockIndex: 0,
+    timeLeft: 25 * 60,
+    sessionDuration: 25 * 60,
+    totalSessionDuration: 0,
+    elapsedSessionTime: 0,
+  });
 };

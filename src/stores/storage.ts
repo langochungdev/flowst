@@ -2,21 +2,31 @@ import { StateStorage } from "zustand/middleware";
 import { readTextFile, writeTextFile, exists, remove } from "@tauri-apps/plugin-fs";
 import { join } from "@tauri-apps/api/path";
 
-const getDirKey = () => {
+const isDebug = () => {
   try {
     const debugStoreStr = localStorage.getItem("flowst-debug-store");
     if (debugStoreStr) {
       const parsed = JSON.parse(debugStoreStr);
       if (parsed?.state?.isDebugMode) {
-        return "custom-data-dir-debug";
+        return true;
       }
     }
   } catch (e) {}
-  return "custom-data-dir";
+  return false;
+};
+
+const getDirKey = () => {
+  return isDebug() ? "custom-data-dir-debug" : "custom-data-dir";
+};
+
+const getLocalKey = (name: string) => {
+  if (name === "flowst-debug-store") return name; // Do not suffix the debug store itself
+  return isDebug() ? `${name}-debug` : name;
 };
 
 export const customStorage: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {
+    const localKey = getLocalKey(name);
     const customDir = localStorage.getItem(getDirKey());
     if (customDir) {
       try {
@@ -39,17 +49,18 @@ export const customStorage: StateStorage = {
         if (await exists(filePath)) {
           const content = await readTextFile(filePath);
           // Sync to localStorage as a backup
-          localStorage.setItem(name, content);
+          localStorage.setItem(localKey, content);
           return content;
         }
       } catch (e) {
         console.error("Failed to read from custom dir:", e);
       }
     }
-    return localStorage.getItem(name);
+    return localStorage.getItem(localKey);
   },
   setItem: async (name: string, value: string): Promise<void> => {
-    localStorage.setItem(name, value);
+    const localKey = getLocalKey(name);
+    localStorage.setItem(localKey, value);
     const customDir = localStorage.getItem(getDirKey());
     if (customDir) {
       try {
@@ -61,7 +72,8 @@ export const customStorage: StateStorage = {
     }
   },
   removeItem: async (name: string): Promise<void> => {
-    localStorage.removeItem(name);
+    const localKey = getLocalKey(name);
+    localStorage.removeItem(localKey);
     const customDir = localStorage.getItem(getDirKey());
     if (customDir) {
       try {

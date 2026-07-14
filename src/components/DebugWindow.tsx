@@ -1,7 +1,7 @@
 import { usePomodoroStore } from "../stores/pomodoroStore";
 import { useDebugStore, getMockedDate } from "../stores/debugStore";
 import { getLocalDateString } from "../utils/date";
-import { Trash2, Copy } from "lucide-react";
+import { Trash2, Copy, RotateCcw, FolderOpen, MessageSquareWarning } from "lucide-react";
 import { useEffect } from "react";
 import { ask, message } from "@tauri-apps/plugin-dialog";
 import { openPath } from "@tauri-apps/plugin-opener";
@@ -311,15 +311,16 @@ export default function DebugWindow() {
           </h2>
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button className="debug-btn" onClick={resetDebug} style={{ flex: "none" }}>
-                Reset Time/Date
+              <button className="debug-btn" onClick={resetDebug} style={{ flex: "none", padding: "4px 8px" }} title="Reset Time/Date">
+                <RotateCcw size={14} />
               </button>
               <button
                 className="debug-btn"
                 onClick={handleOpenSoundDir}
-                style={{ flex: "none", color: "#3498db", borderColor: "#3498db" }}
+                style={{ flex: "none", color: "#3498db", borderColor: "#3498db", padding: "4px 8px" }}
+                title="Open Sound Dir"
               >
-                Open Sound Dir
+                <FolderOpen size={14} />
               </button>
               <button
                 className="debug-btn"
@@ -329,16 +330,18 @@ export default function DebugWindow() {
                     { title: "Confirm Data Overwrite", kind: "warning" }
                   );
                 }}
-                style={{ flex: "none", color: "#f39c12", borderColor: "#f39c12" }}
+                style={{ flex: "none", color: "#f39c12", borderColor: "#f39c12", padding: "4px 8px" }}
+                title="Preview Dialog"
               >
-                Preview Dialog
+                <MessageSquareWarning size={14} />
               </button>
               <button
                 className="debug-btn danger"
                 onClick={handleClearAppData}
-                style={{ flex: "none" }}
+                style={{ flex: "none", padding: "4px 8px" }}
+                title="Clear App Data"
               >
-                Clear App Data
+                <Trash2 size={14} />
               </button>
             </div>
           </div>
