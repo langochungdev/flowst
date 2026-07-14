@@ -205,7 +205,7 @@ export default function DashboardChart({
                 name: string | number | undefined,
               ) => {
                 const cat = activeCategories.find((c) => c.id === String(name));
-                return [`${value || 0}h`, cat ? cat.name : String(name)] as any;
+                return [`${value || 0}h`, cat ? cat.name : String(name)] as [string, string];
               }}
               labelStyle={{ color: "#555", marginBottom: "4px" }}
             />

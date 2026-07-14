@@ -128,6 +128,8 @@ interface PomodoroState {
   setCustomFocusTime: (time: string) => void;
   customBreakTime: string;
   setCustomBreakTime: (time: string) => void;
+  contributionView: "grid" | "chart";
+  setContributionView: (view: "grid" | "chart") => void;
 }
 
 export const usePomodoroStore = create<PomodoroState>()(
@@ -162,6 +164,8 @@ export const usePomodoroStore = create<PomodoroState>()(
       selectedBreakTime: "5",
       customFocusTime: "90",
       customBreakTime: "20",
+      contributionView: "grid",
+      setContributionView: (view) => set({ contributionView: view }),
       categories: [
         { id: "study", name: "Study", color: "#00FBFF" },
         { id: "work", name: "Work", color: "#00FF66" },
