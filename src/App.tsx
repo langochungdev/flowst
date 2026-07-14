@@ -89,20 +89,24 @@ function App() {
 
     const isActive = usePomodoroStore((state) => state.isActive);
     const timeLeft = usePomodoroStore((state) => state.timeLeft);
-    const currentBlockIndex = usePomodoroStore((state) => state.currentBlockIndex);
+    const isCountUp = usePomodoroStore((state) => state.isCountUp);
+    const sessionState = usePomodoroStore((state) => state.state);
 
     useEffect(() => {
         if (windowLabel === "main") {
             let tooltip = "Flowst v0.7.0\nlangochungdev@gmail.com";
             if (isActive) {
                 const m = Math.floor(timeLeft / 60);
-                const isBreak = currentBlockIndex % 2 !== 0;
-                const phase = isBreak ? "Break" : "Focus";
-                tooltip = `${m}m left - ${phase}`;
+                if (isCountUp) {
+                    tooltip = `${m}m elapsed - Stopwatch`;
+                } else {
+                    const phase = sessionState === "break" ? "Break" : "Focus";
+                    tooltip = `${m}m left - ${phase}`;
+                }
             }
             invoke("update_tray_tooltip", { tooltip }).catch(console.error);
         }
-    }, [windowLabel, isActive, Math.floor(timeLeft / 60), currentBlockIndex]);
+    }, [windowLabel, isActive, Math.floor(timeLeft / 60), isCountUp, sessionState]);
 
     const gridColor = usePomodoroStore((state) => state.gridColor);
 
