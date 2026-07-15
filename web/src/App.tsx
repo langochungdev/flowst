@@ -208,10 +208,10 @@ export default function App() {
       </Helmet>
       
       <nav className="nav">
-        <div className="nav-brand">
-          <div className="dot"></div>
+        <a href="#" className="nav-brand">
+          <img src="/logo.png" alt="Flowst logo" className="nav-brand-logo" />
           Flowst
-        </div>
+        </a>
         <div className="nav-mid">
           <a href="#" className="nav-link active">Guide</a>
           <a href="privacy.html" className="nav-link">Privacy</a>
@@ -301,7 +301,15 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        Developed by La Ngọc Hùng · <a href="https://langochung.me" target="_blank">langochung.me</a>
+        <div className="footer-left">
+          <img src="/logo.png" alt="" className="footer-logo" />
+          <span>Flowst · Free Pomodoro Timer for Windows</span>
+        </div>
+        <div className="footer-right">
+          <span>By <a href="https://langochung.me" target="_blank">La Ngọc Hùng</a></span>
+          <a href="privacy.html">Privacy</a>
+          <a href="https://github.com/langochungdev/flowst" target="_blank">GitHub</a>
+        </div>
       </footer>
 
       {showDashPopup && (

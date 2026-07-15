@@ -7,11 +7,9 @@
   --t2: #888;
   --t3: #555;
   --accent: #00fbff;
-  --nav-h: 44px;
-  --foot-h: 36px;
-  --border-light: rgba(255,255,255,0.09);
-  
-  /* Make sure the grid active color matches the app */
+  --nav-h: 64px;
+  --foot-h: 60px;
+  --border-light: rgba(255,255,255,0.07);
   --grid-active: #00fbff;
 }
 
@@ -36,18 +34,33 @@ a:hover { opacity: 0.75; }
 .nav {
   height: var(--nav-h);
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--border-light);
-  background: rgba(17,17,17,0.92);
+  padding: 0 32px;
+  background: var(--bg);
   z-index: 100; flex-shrink: 0;
+  position: sticky; top: 0;
 }
-.nav-brand { display: flex; align-items: center; gap: 7px; font-weight: 600; font-size: 13px; color: var(--t1); }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px rgba(0,251,255,0.4); }
-.nav-mid { display: flex; gap: 2px; }
-.nav-link { padding: 4px 10px; font-size: 11px; font-weight: 500; color: var(--t2); border-radius: 4px; }
-.nav-link:hover, .nav-link.active { color: var(--t1); background: rgba(255,255,255,0.06); }
-.nav-dl { padding: 5px 14px; font-size: 11px; font-weight: 600; color: #000; background: var(--accent); border-radius: 3px; }
-.nav-dl:hover { opacity: 0.85; }
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 16px; color: var(--t1);
+  letter-spacing: -0.3px; text-decoration: none;
+}
+.nav-brand-logo {
+  width: 28px; height: 28px; flex-shrink: 0; border-radius: 6px;
+}
+.nav-mid { display: flex; gap: 8px; }
+.nav-link {
+  padding: 8px 16px; font-size: 13px; font-weight: 500;
+  color: var(--t2); border-radius: 6px;
+  transition: color 150ms, background 150ms;
+}
+.nav-link:hover, .nav-link.active { color: var(--t1); background: rgba(255,255,255,0.07); }
+.nav-dl {
+  padding: 10px 20px; font-size: 13px; font-weight: 700;
+  color: #000; background: var(--accent);
+  border-radius: 8px; letter-spacing: 0.1px;
+  transition: opacity 150ms, transform 150ms;
+}
+.nav-dl:hover { opacity: 0.85; transform: translateY(-1px); }
 
 /* GUIDE */
 .guide {
@@ -109,10 +122,17 @@ a:hover { opacity: 0.75; }
 
 /* FOOTER */
 .footer {
-  height: var(--foot-h); flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 10px; color: var(--t3); border-top: 1px solid var(--border-light);
+  height: var(--foot-h); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  font-size: 13px; color: var(--t2);
+  background: var(--bg);
+  letter-spacing: 0.2px;
 }
-.footer a { color: var(--t3); }
+.footer-left { display: flex; align-items: center; gap: 10px; }
+.footer-logo { width: 20px; height: 20px; border-radius: 4px; }
+.footer-right { display: flex; align-items: center; gap: 20px; }
+.footer a { color: var(--t2); transition: color 150ms; font-weight: 500; }
 .footer a:hover { color: var(--accent); }
 
 .stage-inner-wrap {
