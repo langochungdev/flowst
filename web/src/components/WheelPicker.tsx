@@ -102,7 +102,9 @@ export default function WheelPicker({
 
     try {
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch (err) {}
+    } catch {
+      // ignore
+    }
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {

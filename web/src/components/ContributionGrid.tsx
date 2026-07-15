@@ -80,7 +80,6 @@ export default function ContributionGrid() {
       }),
     );
   }, [
-    contributionView,
     dateOffsetDays,
     todayTotalTime,
     todayCategoryBreakdown,
@@ -176,7 +175,6 @@ export default function ContributionGrid() {
 
     return { chartData: data, activeCategories: activeCatArr };
   }, [
-    contributionView,
     dateOffsetDays,
     todayTotalTime,
     todayCategoryBreakdown,

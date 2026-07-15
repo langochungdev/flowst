@@ -6,7 +6,7 @@ console.log("Auto-formatting and fixing lint errors...");
 try {
   execSync("npm run format && npm run lint -- --fix", { stdio: "pipe", encoding: "utf-8" });
   console.log("Auto-format complete.\n");
-} catch (_error) {
+} catch {
   console.log("Auto-format encountered issues (some errors might need manual fixing).\n");
 }
 

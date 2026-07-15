@@ -1,13 +1,13 @@
 // Tauri API Mocks for Web browser execution
-export const invoke = async (_cmd: string, _args: any = {}) => {
+export const invoke = async (_cmd: string, _args: Record<string, unknown> = {}) => {
   return null;
 };
 
-export const listen = async (_event: string, _handler: any) => {
+export const listen = async (_event: string, _handler: (...args: unknown[]) => void) => {
   return async () => {};
 };
 
-export const emit = async (_event: string, _payload?: any) => {};
+export const emit = async (_event: string, _payload?: unknown) => {};
 
 export const WebviewWindow = {
   getByLabel: async (_label: string) => {

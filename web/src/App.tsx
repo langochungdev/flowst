@@ -5,7 +5,7 @@ import MiniWindow from "./components/MiniWindow";
 import MainWindow from "./components/MainWindow";
 import SettingsPane from "./components/SettingsPane";
 import DashboardWindow from "./components/DashboardWindow";
-import { usePomodoroStore } from "./stores/pomodoroStore";
+import { usePomodoroStore, type HistoryDay } from "./stores/pomodoroStore";
 
 interface Annotation {
   id: string;
@@ -89,6 +89,15 @@ const annotations = {
   ],
 } as const;
 
+type PlacedAnnotation = Annotation & {
+  dotX: number;
+  dotY: number;
+  labelX: number;
+  labelY: number;
+  LW: number;
+  d: string;
+};
+
 function AnnotationLayer({
   stageId,
   mockId,
@@ -98,11 +107,10 @@ function AnnotationLayer({
   mockId: string;
   config: readonly Annotation[];
 }) {
-  const [placed, setPlaced] = useState<any[]>([]);
+  const [placed, setPlaced] = useState<PlacedAnnotation[]>([]);
 
   // Use a resize observer and interval to robustly place annotations
   useEffect(() => {
-    let interval: any;
     const positionLines = () => {
       const stage = document.getElementById(stageId);
       const mock = document.getElementById(mockId);
@@ -257,7 +265,7 @@ function AnnotationLayer({
     };
 
     positionLines();
-    interval = setInterval(positionLines, 1000); // Check repeatedly to catch late renders
+    const interval = setInterval(positionLines, 1000); // Check repeatedly to catch late renders
 
     return () => clearInterval(interval);
   }, [config, mockId, stageId]);
@@ -605,7 +613,7 @@ export default function App() {
   useEffect(() => {
     // Generate mock history data for the demo
     const today = new Date();
-    const mockHistory: Record<string, any> = {};
+    const mockHistory: Record<string, HistoryDay> = {};
     for (let i = 0; i <= 90; i++) {
       const d = new Date();
       d.setDate(today.getDate() - i);
