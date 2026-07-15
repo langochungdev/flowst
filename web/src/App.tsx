@@ -124,6 +124,186 @@ function AnnotationLayer({ stageId, mockId, config }: { stageId: string, mockId:
     );
 }
 
+function DemoCursor() {
+    const [pos, setPos] = useState({ x: 250, y: 300 });
+    const [clicking, setClicking] = useState(false);
+    const [opacity, setOpacity] = useState(0);
+
+    useEffect(() => {
+        let mounted = true;
+        let cx = 250;
+        let cy = 300;
+
+        const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+        const updatePos = (x: number, y: number) => {
+            cx = x;
+            cy = y;
+            setPos({ x, y });
+        };
+
+        const animateCursor = async (endX: number, endY: number, duration: number) => {
+            const startX = cx;
+            const startY = cy;
+            const steps = 30; // Fewer steps for faster anim
+            const dt = duration / steps;
+            for (let i = 0; i <= steps; i++) {
+                if (!mounted) return;
+                const t = i / steps;
+                const ease = 1 - Math.pow(1 - t, 3);
+                updatePos(startX + (endX - startX) * ease, startY + (endY - startY) * ease);
+                await wait(dt);
+            }
+        };
+
+        const run = async () => {
+            await wait(1000);
+            while (mounted) {
+                // 1. Appear
+                updatePos(250, 300);
+                setOpacity(1);
+                await wait(200);
+
+                const getRel = (el: Element) => {
+                    const mockRect = document.querySelector('#mock-main')!.getBoundingClientRect();
+                    const scale = mockRect.width / 300;
+                    const r = el.getBoundingClientRect();
+                    return {
+                        x: (r.left - mockRect.left) / scale + (r.width / scale) / 2,
+                        y: (r.top - mockRect.top) / scale + (r.height / scale) / 2,
+                        clientX: r.left + r.width / 2,
+                        clientY: r.top + r.height / 2
+                    };
+                };
+
+                let timeText = document.querySelector('#mock-main .time-text.editable');
+                if (!timeText) { await wait(500); continue; }
+                
+                let ttPos = getRel(timeText);
+
+                // 2. Move to time text & single click
+                await animateCursor(ttPos.x, ttPos.y, 400);
+                await wait(100);
+                setClicking(true);
+                timeText.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: ttPos.clientX, clientY: ttPos.clientY }));
+                timeText.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: ttPos.clientX, clientY: ttPos.clientY }));
+                timeText.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: ttPos.clientX, clientY: ttPos.clientY }));
+                await wait(50);
+                setClicking(false);
+
+                // 3. Wait for wheel picker, drag to scroll, then pick active
+                await wait(300);
+                const wheelList = document.querySelector('#mock-main .wheel-list');
+                if (wheelList) {
+                    const wlPos = getRel(wheelList);
+                    await animateCursor(wlPos.x, wlPos.y + 40, 200); // move to bottom part of list
+                    await wait(50);
+
+                    // Drag up to scroll down
+                    setClicking(true);
+                    const mockRect = document.querySelector('#mock-main')!.getBoundingClientRect();
+                    const scale = mockRect.width / 300;
+                    const startClientY = wlPos.clientY + 40 * scale;
+                    
+                    wheelList.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: wlPos.clientX, clientY: startClientY, pointerId: 1 }));
+                    
+                    const dragSteps = 15;
+                    const dragDist = 120; // 120px drag up
+                    for (let i = 1; i <= dragSteps; i++) {
+                        if (!mounted) return;
+                        const currY = (wlPos.y + 40) - (dragDist * (i / dragSteps));
+                        const currCy = startClientY - (dragDist * scale * (i / dragSteps));
+                        updatePos(wlPos.x, currY);
+                        wheelList.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: wlPos.clientX, clientY: currCy, pointerId: 1 }));
+                        await wait(12);
+                    }
+                    
+                    wheelList.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: wlPos.clientX, clientY: startClientY - dragDist * scale, pointerId: 1 }));
+                    setClicking(false);
+                    
+                    // Wait for momentum scroll to finish
+                    await wait(800);
+
+                    const activeItem = document.querySelector('#mock-main .wheel-item.active') || document.querySelector('#mock-main .wheel-item:last-child');
+                    if (activeItem) {
+                        const actPos = getRel(activeItem);
+                        await animateCursor(actPos.x, actPos.y, 200);
+                        await wait(100);
+
+                        setClicking(true);
+                        activeItem.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: actPos.clientX, clientY: actPos.clientY, pointerId: 2 }));
+                        activeItem.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: actPos.clientX, clientY: actPos.clientY, pointerId: 2 }));
+                        await wait(50);
+                        setClicking(false);
+                    }
+                }
+
+                // 4. Wait for it to close
+                await wait(400);
+
+                // 5. Double click to type
+                timeText = document.querySelector('#mock-main .time-text.editable');
+                if (timeText) {
+                    ttPos = getRel(timeText);
+                    await animateCursor(ttPos.x, ttPos.y, 300);
+                    await wait(100);
+                    
+                    setClicking(true); await wait(50); setClicking(false);
+                    timeText.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: ttPos.clientX, clientY: ttPos.clientY }));
+                    await wait(50);
+                    setClicking(true); await wait(50); setClicking(false);
+                    timeText.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, clientX: ttPos.clientX, clientY: ttPos.clientY }));
+                }
+                
+                await wait(200);
+
+                // 6. Type "45"
+                const input = document.querySelector('#mock-main .time-text-input') as HTMLInputElement;
+                if (input) {
+                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+                    
+                    nativeInputValueSetter?.call(input, "4");
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    await wait(100);
+                    
+                    nativeInputValueSetter?.call(input, "45");
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    await wait(200);
+                    
+                    input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: "Enter" }));
+                    input.dispatchEvent(new Event('blur', { bubbles: true }));
+                }
+
+                await wait(1000);
+                setOpacity(0);
+                await wait(1000);
+            }
+        };
+
+        run();
+        return () => { mounted = false; };
+    }, []);
+
+    return (
+        <div style={{
+            position: 'absolute',
+            left: pos.x,
+            top: pos.y,
+            opacity,
+            transform: clicking ? 'scale(0.85)' : 'scale(1)',
+            transition: 'opacity 0.15s, transform 0.1s',
+            pointerEvents: 'none',
+            zIndex: 9999,
+            marginLeft: '-6px',
+            marginTop: '-2px'
+        }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5.5 3.5L18.5 10.5L11.5 12.5L9.5 19.5L5.5 3.5Z" fill="white" stroke="black" strokeWidth="1.5" strokeLinejoin="round"/>
+            </svg>
+        </div>
+    );
+}
+
 export default function App() {
     const [showDashPopup, setShowDashPopup] = useState(false);
 
@@ -246,6 +426,7 @@ export default function App() {
                         <div className="stage-inner-wrap" style={{ position: 'absolute', zIndex: 10 }}>
                             <div id="mock-main" className="app-wrapper app-wrapper-main">
                                 <MainWindow />
+                                <DemoCursor />
                             </div>
                         </div>
                     </div>
