@@ -1,5 +1,7 @@
 ## [0.13.0] - 2026-07-15
+
 ### Features
+
 - feat: add ContributionGrid component with toggleable grid and chart views for productivity visualization
 - feat: implement interactive annotation layer and dashboard component for visual walkthroughs
 - feat: add website landing page and essential public assets including privacy policy, sitemap, and SEO metadata
