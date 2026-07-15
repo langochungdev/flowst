@@ -5,6 +5,7 @@ import SettingsPane from "./SettingsPane";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { useWindowDrag } from "../hooks/useWindowDrag";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 export default function MainWindow() {
   const [isSettings, setIsSettings] = useState(false);
@@ -42,7 +43,38 @@ export default function MainWindow() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className="top-header-bar"></div>
+      <div className="top-header-bar">
+        {isSettings && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: "56px",
+              right: "28px",
+              height: "28px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "11px",
+              pointerEvents: "none"
+            }}
+          >
+            <span
+              style={{
+                cursor: "pointer",
+                pointerEvents: "auto",
+                color: "var(--text-secondary)",
+                transition: "color 150ms ease"
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+              onClick={() => openUrl("https://langochung.me")}
+            >
+              langochungdev@gmail.com
+            </span>
+          </div>
+        )}
+      </div>
 
       <div className="corner-btn-group left">
         <button
