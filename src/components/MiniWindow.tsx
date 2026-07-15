@@ -46,6 +46,7 @@ export default function MiniWindow() {
       if (usePomodoroStore.getState().isActive) {
         usePomodoroStore.getState().stopTimer();
       }
+      emit("reset-view").catch(console.error);
       appWindow.hide();
     }
   };

@@ -36,6 +36,9 @@ function App() {
     const unlisten3 = listen("debug-closed", () => {
       useDebugStore.getState().setDebugMode(false);
     });
+    const unlisten4 = listen("reset-view", () => {
+      setIsMiniMode(false);
+    });
 
     let unlistenAction: { unregister?: () => Promise<void> } | undefined;
     onAction(() => {
@@ -57,6 +60,7 @@ function App() {
       unlisten1.then((f) => f()).catch(console.error);
       unlisten2.then((f) => f()).catch(console.error);
       unlisten3.then((f) => f()).catch(console.error);
+      unlisten4.then((f) => f()).catch(console.error);
       if (unlistenAction && typeof unlistenAction.unregister === "function") {
         unlistenAction.unregister().catch(console.error);
       }

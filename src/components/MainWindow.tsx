@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Minimize2, Minus, Settings, Home } from "lucide-react";
 import ClockPane from "./ClockPane";
 import SettingsPane from "./SettingsPane";
 import { invoke } from "@tauri-apps/api/core";
-import { emit } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { useWindowDrag } from "../hooks/useWindowDrag";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
@@ -12,6 +12,15 @@ export default function MainWindow() {
   const [, setHovered] = useState(false);
   const [isHiding, setIsHiding] = useState(false);
   const { bind } = useWindowDrag();
+
+  useEffect(() => {
+    const unlisten = listen("reset-view", () => {
+      setIsSettings(false);
+    });
+    return () => {
+      unlisten.then((f) => f()).catch(console.error);
+    };
+  }, []);
 
   const executeHideAction = (action: () => Promise<void>) => {
     setIsHiding(true);

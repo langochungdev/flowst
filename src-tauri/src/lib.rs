@@ -300,32 +300,29 @@ pub fn run() {
                             let _ = if is_visible && !is_minimized {
                                 window.hide()
                             } else {
-                                if app
-                                    .state::<AppState>()
-                                    .reposition_on_show
-                                    .load(Ordering::SeqCst)
-                                {
-                                    if let Ok(window_size) = window.outer_size() {
-                                        let (tray_x, tray_y) = match rect.position {
-                                            tauri::Position::Physical(p) => (p.x, p.y),
-                                            tauri::Position::Logical(p) => (p.x as i32, p.y as i32),
-                                        };
-                                        let (tray_w, _tray_h) = match rect.size {
-                                            tauri::Size::Physical(s) => {
-                                                (s.width as i32, s.height as i32)
-                                            }
-                                            tauri::Size::Logical(s) => {
-                                                (s.width as i32, s.height as i32)
-                                            }
-                                        };
-
-                                        let x = tray_x - window_size.width as i32 + tray_w;
-                                        let y = tray_y - window_size.height as i32 - 10;
-                                        let _ = window.set_position(tauri::Position::Physical(
-                                            tauri::PhysicalPosition::new(x, y),
-                                        ));
+                                let scale_factor = window.scale_factor().unwrap_or(1.0);
+                                let target_size = tauri::LogicalSize::new(300.0, 320.0).to_physical::<u32>(scale_factor);
+                                
+                                let (tray_x, tray_y) = match rect.position {
+                                    tauri::Position::Physical(p) => (p.x, p.y),
+                                    tauri::Position::Logical(p) => (p.x as i32, p.y as i32),
+                                };
+                                let (tray_w, _tray_h) = match rect.size {
+                                    tauri::Size::Physical(s) => {
+                                        (s.width as i32, s.height as i32)
                                     }
-                                }
+                                    tauri::Size::Logical(s) => {
+                                        (s.width as i32, s.height as i32)
+                                    }
+                                };
+
+                                let x = tray_x - target_size.width as i32 + tray_w;
+                                let y = tray_y - target_size.height as i32 - 10;
+                                let _ = window.set_position(tauri::Position::Physical(
+                                    tauri::PhysicalPosition::new(x, y),
+                                ));
+                                let _ = window.emit("reset-view", ());
+                                crate::commands::window::toggle_mini_window(app.clone(), false);
                                 let _ = window.unminimize();
                                 window.show().and_then(|_| window.set_focus())
                             };
