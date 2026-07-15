@@ -45,7 +45,32 @@ a:hover { opacity: 0.75; }
   letter-spacing: -0.3px; text-decoration: none;
 }
 .nav-brand-logo {
-  width: 36px; height: 36px; flex-shrink: 0; border-radius: 8px;
+  width: 48px; height: 48px; flex-shrink: 0; border-radius: 8px;
+}
+
+.logo-path-anim {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: drawPath 2.5s ease-in-out infinite;
+}
+
+.logo-dot-anim {
+  opacity: 0;
+  animation: fadeDot 2.5s ease-in-out infinite;
+}
+
+@keyframes drawPath {
+  0% { stroke-dashoffset: 100; }
+  40% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes fadeDot {
+  0% { opacity: 0; transform: scale(0.5); transform-origin: 34px 91px; }
+  35% { opacity: 0; transform: scale(0.5); transform-origin: 34px 91px; }
+  45% { opacity: 1; transform: scale(1.2); transform-origin: 34px 91px; }
+  55% { opacity: 1; transform: scale(1); transform-origin: 34px 91px; }
+  100% { opacity: 1; transform: scale(1); transform-origin: 34px 91px; }
 }
 .nav-mid { display: flex; gap: 8px; }
 .nav-link {

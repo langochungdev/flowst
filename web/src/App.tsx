@@ -209,7 +209,12 @@ export default function App() {
 
             <nav className="nav">
                 <a href="#" className="nav-brand">
-                    <img src="/logo.png" alt="Flowst logo" className="nav-brand-logo" />
+                    <svg viewBox="0 0 140 140" className="nav-brand-logo" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="0" y="0" width="140" height="140" rx="32" fill="#000000"/>
+                        <circle cx="70" cy="70" r="42" fill="none" stroke="#8A8A8A" strokeWidth="8"/>
+                        <path className="logo-path-anim" pathLength="100" d="M 70 28 A 42 42 0 1 1 34 91" fill="none" stroke="#00FBFF" strokeWidth="8" strokeLinecap="round"/>
+                        <circle className="logo-dot-anim" cx="34" cy="91" r="7" fill="#00FBFF"/>
+                    </svg>
                     Flowst
                 </a>
                 <div className="nav-mid">
