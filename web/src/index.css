@@ -40,12 +40,12 @@ a:hover { opacity: 0.75; }
   position: sticky; top: 0;
 }
 .nav-brand {
-  display: flex; align-items: center; gap: 10px;
-  font-weight: 700; font-size: 16px; color: var(--t1);
+  display: flex; align-items: center; gap: 12px;
+  font-weight: 700; font-size: 18px; color: var(--t1);
   letter-spacing: -0.3px; text-decoration: none;
 }
 .nav-brand-logo {
-  width: 28px; height: 28px; flex-shrink: 0; border-radius: 6px;
+  width: 36px; height: 36px; flex-shrink: 0; border-radius: 8px;
 }
 .nav-mid { display: flex; gap: 8px; }
 .nav-link {
@@ -97,6 +97,12 @@ a:hover { opacity: 0.75; }
 .app-wrapper-main .glass-window,
 .app-wrapper-settings .glass-window {
   width: 100% !important; height: 100% !important;
+}
+
+/* Disable setting button on Main View mock to avoid confusion */
+.app-wrapper-main .corner-btn-group button[title="Settings"] {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
 }
 
 /* ANNOTATIONS */
