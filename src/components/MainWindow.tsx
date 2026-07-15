@@ -65,7 +65,7 @@ export default function MainWindow() {
               alignItems: "center",
               justifyContent: "center",
               fontSize: "11px",
-              pointerEvents: "none"
+              pointerEvents: "none",
             }}
           >
             <span
@@ -73,7 +73,7 @@ export default function MainWindow() {
                 cursor: "pointer",
                 pointerEvents: "auto",
                 color: "var(--text-secondary)",
-                transition: "color 150ms ease"
+                transition: "color 150ms ease",
               }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
