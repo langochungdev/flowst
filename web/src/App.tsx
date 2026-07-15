@@ -585,10 +585,18 @@ export default function App() {
             {showDashPopup && (
                 <div style={{
                     position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.5)',
-                    backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16
                 }} onClick={() => setShowDashPopup(false)}>
-                    <div className="app-wrapper" style={{ width: 450, height: 800, maxHeight: '90vh', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-                        <DashboardWindow />
+                    <div className="app-wrapper" style={{ 
+                        position: 'absolute',
+                        width: 450, 
+                        height: 800, 
+                        overflow: 'hidden', 
+                        borderRadius: 12,
+                        transform: `scale(${Math.min(1, (window.innerWidth - 32) / 450, (window.innerHeight - 32) / 800)})`,
+                        transformOrigin: 'center center'
+                    }} onClick={e => e.stopPropagation()}>
+                        <DashboardWindow onClose={() => setShowDashPopup(false)} />
                     </div>
                 </div>
             )}

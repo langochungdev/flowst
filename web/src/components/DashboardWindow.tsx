@@ -12,7 +12,7 @@ import { usePomodoroStore } from "../stores/pomodoroStore";
 import { getMockedDate } from "../stores/debugStore";
 import { useMemo } from "react";
 
-export default function DashboardWindow() {
+export default function DashboardWindow({ onClose }: { onClose?: () => void }) {
   const { isDragging, bind } = useWindowDrag();
   const containerRef = useRef<HTMLDivElement>(null);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
@@ -71,7 +71,11 @@ export default function DashboardWindow() {
   }, []);
 
   const closeWindow = () => {
-    getCurrentWebviewWindow()?.close();
+    if (onClose) {
+      onClose();
+    } else {
+      getCurrentWebviewWindow()?.close();
+    }
   };
 
   const handleExport = async () => {
