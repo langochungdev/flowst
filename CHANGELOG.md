@@ -1,3 +1,7 @@
+## [0.15.0] - 2026-07-15
+### Features
+- feat: initialize web project with React, Vite, and Tauri plugins
+
 ## [0.14.0] - 2026-07-15
 
 ### Features
