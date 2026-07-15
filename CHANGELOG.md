@@ -1,3 +1,22 @@
+## [0.13.0] - 2026-07-15
+### Features
+- feat: add ContributionGrid component with toggleable grid and chart views for productivity visualization
+- feat: implement interactive annotation layer and dashboard component for visual walkthroughs
+- feat: add website landing page and essential public assets including privacy policy, sitemap, and SEO metadata
+- feat: implement web-based annotation layer and Tauri API mocks for cross-platform previewing
+- feat: implement main index page and privacy policy document
+- feat: implement interactive annotation layer and demo cursor animation for product walkthroughs
+- feat: implement interactive UI annotation layer and automated demo cursor for Pomodoro components
+- feat: implement landing page guide with interactive app previews and annotations
+- feat: add privacy policy page and implement base stylesheet for the web landing page
+- feat: implement interactive annotation layer and demo content for application guide
+- feat: add DashboardWindow component and update project dependencies
+- feat: implement UI mode switching between main and mini window layouts
+- feat: add MainWindow component with navigation and window controls
+- feat: add contribution activity grid and chart components with store integration
+- feat: implement settings pane with custom storage directory management and sound configuration
+- feat: implement pomodoro store, settings UI, and pre-push hook
+
 ## [0.12.0] - 2026-07-10
 
 ### Features
