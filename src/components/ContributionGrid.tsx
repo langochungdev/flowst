@@ -79,13 +79,7 @@ export default function ContributionGrid() {
         return { level, date, totalHours, breakdown };
       }),
     );
-  }, [
-    dateOffsetDays,
-    todayTotalTime,
-    todayCategoryBreakdown,
-    history,
-    categories,
-  ]);
+  }, [dateOffsetDays, todayTotalTime, todayCategoryBreakdown, history, categories]);
 
   const { chartData, activeCategories } = useMemo(() => {
     void dateOffsetDays;
@@ -174,13 +168,7 @@ export default function ContributionGrid() {
     }
 
     return { chartData: data, activeCategories: activeCatArr };
-  }, [
-    dateOffsetDays,
-    todayTotalTime,
-    todayCategoryBreakdown,
-    history,
-    categories,
-  ]);
+  }, [dateOffsetDays, todayTotalTime, todayCategoryBreakdown, history, categories]);
 
   const [hoveredCell, setHoveredCell] = useState<{
     rowIndex: number;
