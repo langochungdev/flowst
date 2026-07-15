@@ -1,4 +1,6 @@
-import { execSync, spawn } from "child_process";
+import { execSync, spawn, exec } from "child_process";
+import { promisify } from "util";
+const execAsync = promisify(exec);
 import fs from "fs";
 import path from "path";
 
@@ -32,31 +34,39 @@ const checks = [
   { name: "Rust (Cargo Check)", cmd: "cargo check --manifest-path src-tauri/Cargo.toml" },
 ];
 
-console.log("Running comprehensive pre-push checks...");
+console.log("Running comprehensive pre-push checks (in parallel)...");
 
 let failed = false;
 let reportContent = `hãy fix hết các lỗi sau đó báo cáo các feature bị ảnh hưởng khi fix xong:\n\n`;
 
-for (const check of checks) {
-  console.log(`- Running ${check.name}...`);
-  try {
-    execSync(check.cmd, { stdio: "pipe", encoding: "utf-8" });
-    console.log(`  ✓ ${check.name} passed.`);
-  } catch (error) {
-    console.error(`  ✗ ${check.name} failed!`);
+const results = await Promise.all(
+  checks.map(async (check) => {
+    console.log(`- Started ${check.name}...`);
+    try {
+      await execAsync(check.cmd, { maxBuffer: 1024 * 1024 * 10 }); // 10MB buffer
+      console.log(`  ✓ ${check.name} passed.`);
+      return { check, passed: true };
+    } catch (error) {
+      console.error(`  ✗ ${check.name} failed!`);
+      return { check, passed: false, error };
+    }
+  })
+);
+
+for (const result of results) {
+  if (!result.passed) {
     failed = true;
     reportContent += `====================================\n`;
-    reportContent += `[FAILED CHECK]: ${check.name}\n`;
-    reportContent += `[COMMAND]: ${check.cmd}\n`;
+    reportContent += `[FAILED CHECK]: ${result.check.name}\n`;
+    reportContent += `[COMMAND]: ${result.check.cmd}\n`;
     reportContent += `====================================\n`;
 
-    // Some commands output to stdout (like eslint/prettier), some to stderr (like cargo)
-    const stdout = error.stdout ? error.stdout.toString() : "";
-    const stderr = error.stderr ? error.stderr.toString() : "";
+    const stdout = result.error.stdout ? result.error.stdout.toString() : "";
+    const stderr = result.error.stderr ? result.error.stderr.toString() : "";
 
     if (stdout.trim()) reportContent += `${stdout}\n`;
     if (stderr.trim()) reportContent += `${stderr}\n`;
-    if (!stdout.trim() && !stderr.trim()) reportContent += `${error.message || "Unknown error"}\n`;
+    if (!stdout.trim() && !stderr.trim()) reportContent += `${result.error.message || "Unknown error"}\n`;
 
     reportContent += `\n`;
   }
