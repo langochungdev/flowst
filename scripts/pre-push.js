@@ -50,7 +50,7 @@ const results = await Promise.all(
       console.error(`  ✗ ${check.name} failed!`);
       return { check, passed: false, error };
     }
-  })
+  }),
 );
 
 for (const result of results) {
@@ -66,7 +66,8 @@ for (const result of results) {
 
     if (stdout.trim()) reportContent += `${stdout}\n`;
     if (stderr.trim()) reportContent += `${stderr}\n`;
-    if (!stdout.trim() && !stderr.trim()) reportContent += `${result.error.message || "Unknown error"}\n`;
+    if (!stdout.trim() && !stderr.trim())
+      reportContent += `${result.error.message || "Unknown error"}\n`;
 
     reportContent += `\n`;
   }
