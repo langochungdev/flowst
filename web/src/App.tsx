@@ -274,9 +274,25 @@ function DemoCursor() {
                     input.dispatchEvent(new Event('blur', { bubbles: true }));
                 }
 
+                await wait(600);
+
+                // 7. Click switch activity
+                const viewToggle = document.querySelector('#mock-main #view-toggle');
+                if (viewToggle) {
+                    const vtPos = getRel(viewToggle);
+                    await animateCursor(vtPos.x, vtPos.y, 400);
+                    await wait(150);
+                    setClicking(true);
+                    viewToggle.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: vtPos.clientX, clientY: vtPos.clientY }));
+                    viewToggle.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: vtPos.clientX, clientY: vtPos.clientY }));
+                    viewToggle.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: vtPos.clientX, clientY: vtPos.clientY }));
+                    await wait(50);
+                    setClicking(false);
+                }
+
                 await wait(1000);
                 setOpacity(0);
-                await wait(1000);
+                await wait(800);
             }
         };
 
