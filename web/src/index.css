@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=VT323&display=swap');
+@import './App.css';
+
+:root {
+  --bg: #282725;
+  --t1: #fff;
+  --t2: #888;
+  --t3: #555;
+  --accent: #00fbff;
+  --nav-h: 44px;
+  --foot-h: 36px;
+  --border-light: rgba(255,255,255,0.09);
+  
+  /* Make sure the grid active color matches the app */
+  --grid-active: #00fbff;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { 
+  margin: 0; padding: 0; height: 100vh; overflow: hidden;
+  background: var(--bg); color: var(--t1);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { opacity: 0.75; }
+
+/* NAV */
+.nav {
+  height: var(--nav-h);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border-light);
+  background: rgba(17,17,17,0.92);
+  z-index: 100; flex-shrink: 0;
+}
+.nav-brand { display: flex; align-items: center; gap: 7px; font-weight: 600; font-size: 13px; color: var(--t1); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px rgba(0,251,255,0.4); }
+.nav-mid { display: flex; gap: 2px; }
+.nav-link { padding: 4px 10px; font-size: 11px; font-weight: 500; color: var(--t2); border-radius: 4px; }
+.nav-link:hover, .nav-link.active { color: var(--t1); background: rgba(255,255,255,0.06); }
+.nav-dl { padding: 5px 14px; font-size: 11px; font-weight: 600; color: #000; background: var(--accent); border-radius: 3px; }
+.nav-dl:hover { opacity: 0.85; }
+
+/* GUIDE */
+.guide {
+  flex: 1; display: grid; grid-template-columns: repeat(3, 1fr);
+  min-height: 0;
+}
+.col {
+  display: flex; flex-direction: column; min-height: 0;
+}
+.col-title {
+  flex-shrink: 0; padding: 8px 14px; font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.2px; color: var(--t3);
+  text-align: center;
+}
+
+.stage {
+  flex: 1; position: relative; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; min-height: 0; isolation: isolate;
+}
+
+/* APP WRAPPERS */
+.app-wrapper {
+  position: relative;
+  background: #000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+  overflow: hidden;
+}
+.app-wrapper-mini { width: 90px; height: 46px; }
+.app-wrapper-main { width: 300px; height: 320px; }
+.app-wrapper-settings { width: 300px; height: auto; }
+
+/* Overrides for rendering inside web instead of Tauri window */
+.app-wrapper-mini .mini-window-container,
+.app-wrapper-main .glass-window,
+.app-wrapper-settings .glass-window {
+  width: 100% !important; height: 100% !important;
+}
+
+/* ANNOTATIONS */
+.ann-svg {
+  position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 15;
+}
+.ann-dot {
+  position: absolute; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent); transform: translate(-50%, -50%);
+  box-shadow: 0 0 5px rgba(0,251,255,0.5); z-index: 20;
+}
+.ann-label {
+  position: absolute; display: flex; flex-direction: column; gap: 2px;
+  background: rgba(17,17,17,0.85); padding: 5px 7px;
+  border-left: 1px solid rgba(0,251,255,0.35); z-index: 50; max-width: 115px;
+  backdrop-filter: blur(4px); box-sizing: border-box;
+}
+.ann-label b { font-size: 10px; font-weight: 600; color: var(--t1); white-space: nowrap; }
+.ann-label span { font-size: 9px; color: var(--t2); line-height: 1.4; }
+.ann-label.right-aligned {
+  border-left: none; border-right: 1px solid rgba(0,251,255,0.35); text-align: right;
+}
+
+/* FOOTER */
+.footer {
+  height: var(--foot-h); flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--t3); border-top: 1px solid var(--border-light);
+}
+.footer a { color: var(--t3); }
+.footer a:hover { color: var(--accent); }
+
+.stage-inner-wrap {
+  transform: scale(0.90);
+  transform-origin: center;
+}
+
+/* SCALING DOWN ON SMALLER SCREENS */
+@media (max-width: 1100px) {
+  .stage-inner-wrap { transform: scale(0.80); }
+}
+
+@keyframes dashPulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 251, 255, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(0, 251, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 251, 255, 0); }
+}
+.pulse-anim {
+  animation: dashPulse 1.5s infinite;
+}
