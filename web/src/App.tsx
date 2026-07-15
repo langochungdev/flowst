@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Minimize2, Minus, Home } from "lucide-react";
+import { Minimize2, Minus, Home, Download } from "lucide-react";
 import MiniWindow from './components/MiniWindow';
 import MainWindow from './components/MainWindow';
 import SettingsPane from './components/SettingsPane';
@@ -52,39 +52,105 @@ function AnnotationLayer({ stageId, mockId, config }: { stageId: string, mockId:
                 let target = mock.querySelector(ann.targetSelector) as HTMLElement;
                 let tr = target ? target.getBoundingClientRect() : { top: mr.top + mr.height / 2, left: mr.left + mr.width / 2, right: mr.left + mr.width / 2, height: 10, width: 0 };
 
+                const isMobile = window.innerWidth <= 768;
+                let actualSide = ann.side;
+                let mIndex = 0;
+                
+                // On mobile, distribute annotations to top/bottom to avoid overlapping
+                if (isMobile) {
+                    if (ann.id === 'mini-progress') { actualSide = 'top'; mIndex = 0; }
+                    else if (ann.id === 'mini-close') { actualSide = 'bottom'; mIndex = 0; }
+                    else if (ann.id === 'main-dur') { actualSide = 'top'; mIndex = 0; }
+                    else if (ann.id === 'main-cat') { actualSide = 'top'; mIndex = 1; }
+                    else if (ann.id === 'main-goal') { actualSide = 'bottom'; mIndex = 1; }
+                    else if (ann.id === 'main-act') { actualSide = 'bottom'; mIndex = 0; }
+                    else if (ann.id === 'set-sound') { actualSide = 'top'; mIndex = 0; }
+                    else if (ann.id === 'set-dash') { actualSide = 'bottom'; mIndex = 0; }
+                }
+
                 const GAP = 5;
                 const LW = 95;
                 const LH = 36;
 
-                const labelY = ann.posY !== undefined ? ann.posY * sr.height : (i + 1) * (sr.height / (config.length + 1)) - LH / 2;
-                let dotX, dotY, labelX, lineTo;
+                let labelY = ann.posY !== undefined ? ann.posY * sr.height : (i + 1) * (sr.height / (config.length + 1)) - LH / 2;
+                
+                if (isMobile) {
+                    if (actualSide === 'top') {
+                        // Place above the mock frame, stack downwards using mIndex
+                        labelY = 15 + mIndex * 50;
+                    } else if (actualSide === 'bottom') {
+                        // Place below the mock frame, stack upwards using mIndex
+                        labelY = sr.height - 45 - mIndex * 50;
+                    }
+                }
 
+                let dotX, dotY;
+                
+                // Calculate touch point based on the original intended side
                 if (ann.side === 'left') {
                     dotX = tr.left - sr.left - GAP;
                     dotY = tr.top + tr.height / 2 - sr.top;
-                    labelX = dotX - LW - 16;
-                    labelX = Math.min(labelX, mr.left - sr.left - GAP - LW - 25);
-                    labelX = Math.max(4, labelX);
-                    lineTo = { x: labelX + LW, y: labelY + LH / 2 };
                 } else if (ann.side === 'top') {
                     dotX = tr.left + tr.width / 2 - sr.left;
                     dotY = tr.top - sr.top - GAP;
-                    labelX = dotX - LW / 2;
-                    labelX = Math.max(4, Math.min(sr.width - LW - 4, labelX));
-                    lineTo = { x: Math.max(labelX + 4, Math.min(labelX + LW - 4, dotX)), y: labelY + LH };
                 } else if (ann.side === 'bottom') {
                     dotX = tr.left + tr.width / 2 - sr.left;
                     dotY = tr.top + tr.height - sr.top + GAP;
-                    labelX = dotX - LW / 2;
-                    labelX = Math.max(4, Math.min(sr.width - LW - 4, labelX));
-                    lineTo = { x: Math.max(labelX + 4, Math.min(labelX + LW - 4, dotX)), y: labelY };
                 } else {
                     dotX = tr.right - sr.left + GAP;
                     dotY = tr.top + tr.height / 2 - sr.top;
+                }
+
+                let labelX, lineTo;
+
+                // Calculate label box position and connection line based on actualSide
+                if (actualSide === 'left') {
+                    labelX = dotX - LW - 16;
+                    labelX = Math.min(labelX, mr.left - sr.left - GAP - LW - 25);
+                    labelX = Math.max(10, labelX); // Avoid cut-off
+                    lineTo = { x: labelX + LW, y: labelY + LH / 2 };
+                } else if (actualSide === 'top') {
+                    labelX = dotX - LW / 2;
+                    labelX = Math.max(10, Math.min(sr.width - 120, labelX)); // Avoid cut-off
+                    lineTo = { x: Math.max(labelX + 4, Math.min(labelX + LW - 4, dotX)), y: labelY + LH };
+                } else if (actualSide === 'bottom') {
+                    labelX = dotX - LW / 2;
+                    labelX = Math.max(10, Math.min(sr.width - 120, labelX)); // Avoid cut-off
+                    lineTo = { x: Math.max(labelX + 4, Math.min(labelX + LW - 4, dotX)), y: labelY };
+                } else {
                     labelX = dotX + 16;
                     labelX = Math.max(labelX, mr.right - sr.left + GAP + 10);
-                    labelX = Math.min(sr.width - LW - 4, labelX);
+                    labelX = Math.max(10, Math.min(sr.width - 120, labelX)); // Avoid cut-off
                     lineTo = { x: labelX, y: labelY + LH / 2 };
+                }
+
+                // Explicit coordinate overrides per user request
+                if (isMobile) {
+                    if (ann.id === 'main-cat') {
+                        labelY = 18;
+                    } else if (ann.id === 'main-goal') {
+                        labelY = 429;
+                        labelX = 216.3;
+                        dotX = tr.left + tr.width - sr.left - 15; // Move left a bit
+                        dotY = tr.top + tr.height - sr.top - 15; // Move up a bit
+                    } else if (ann.id === 'mini-progress') {
+                        labelX = 35.3;
+                    } else if (ann.id === 'mini-close') {
+                        labelX = 232.175;
+                    } else if (ann.id === 'set-dash') {
+                        labelY = 429.8;
+                    }
+                    
+                    // Recalculate lineTo based on overridden labelX and labelY
+                    if (actualSide === 'left') {
+                        lineTo = { x: labelX + LW, y: labelY + LH / 2 };
+                    } else if (actualSide === 'top') {
+                        lineTo = { x: Math.max(labelX + 4, Math.min(labelX + LW - 4, dotX)), y: labelY + LH };
+                    } else if (actualSide === 'bottom') {
+                        lineTo = { x: Math.max(labelX + 4, Math.min(labelX + LW - 4, dotX)), y: labelY };
+                    } else {
+                        lineTo = { x: labelX, y: labelY + LH / 2 };
+                    }
                 }
 
                 const from = { x: dotX, y: dotY };
@@ -411,13 +477,16 @@ export default function App() {
                         <path className="logo-path-anim" pathLength="100" d="M 70 28 A 42 42 0 1 1 34 91" fill="none" stroke="#00FBFF" strokeWidth="8" strokeLinecap="round"/>
                         <circle className="logo-dot-anim" cx="34" cy="91" r="7" fill="#00FBFF"/>
                     </svg>
-                    Flowst
+                    <span className="nav-brand-text">Flowst</span>
                 </a>
-                <div className="nav-mid">
-                    <a href="#" className="nav-link active">Guide</a>
+                <div className="nav-right">
+                    <a href="https://langochung.me" target="_blank" rel="noreferrer" className="nav-link">Contact</a>
                     <a href="privacy.html" className="nav-link">Privacy</a>
+                    <a href="https://github.com/langochungdev/flowst/releases/latest" className="nav-dl" target="_blank" rel="noreferrer">
+                        <span className="dl-text">Download free ↓</span>
+                        <Download className="dl-icon" size={16} />
+                    </a>
                 </div>
-                <a href="https://github.com/langochungdev/flowst/releases/latest" className="nav-dl" target="_blank">Download free ↓</a>
             </nav>
 
             <main className="guide">

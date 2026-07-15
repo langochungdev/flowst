@@ -1,20 +1,17 @@
 // Tauri API Mocks for Web browser execution
-export const invoke = async (cmd: string, args: any = {}) => {
-  console.log(`[Tauri Mock] invoke: ${cmd}`, args);
+export const invoke = async (_cmd: string, _args: any = {}) => {
   return null;
 };
 
-export const listen = async (event: string, handler: any) => {
-  console.log(`[Tauri Mock] listen: ${event}`);
-  return async () => { console.log(`[Tauri Mock] unlisten: ${event}`) };
+export const listen = async (_event: string, _handler: any) => {
+  return async () => {};
 };
 
-export const emit = async (event: string, payload?: any) => {
-  console.log(`[Tauri Mock] emit: ${event}`, payload);
+export const emit = async (_event: string, _payload?: any) => {
 };
 
 export const WebviewWindow = {
-  getByLabel: async (label: string) => {
+  getByLabel: async (_label: string) => {
     return null;
   }
 };
@@ -22,9 +19,9 @@ export const WebviewWindow = {
 export const getCurrentWebviewWindow = () => {
   return {
     label: 'main',
-    close: async () => console.log('[Tauri Mock] window.close()'),
-    minimize: async () => console.log('[Tauri Mock] window.minimize()'),
-    unminimize: async () => console.log('[Tauri Mock] window.unminimize()'),
+    close: async () => {},
+    minimize: async () => {},
+    unminimize: async () => {},
   };
 };
 
