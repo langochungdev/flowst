@@ -32,10 +32,16 @@
     "bundle": {
         "active": true,
         "targets": "all",
-        "publisher": "La Ngọc Hùng",
+        "publisher": "langochungdev",
         "windows": {
+            "nsis": {
+                "installMode": "currentUser"
+            },
             "webviewInstallMode": {
                 "type": "skip"
+            },
+            "wix": {
+                "language": "en-US"
             }
         },
         "icon": [
