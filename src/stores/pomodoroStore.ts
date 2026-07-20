@@ -645,6 +645,7 @@ export const usePomodoroStore = create<PomodoroState>()(
         selectedBreakTime: state.selectedBreakTime,
         customFocusTime: state.customFocusTime,
         customBreakTime: state.customBreakTime,
+        contributionView: state.contributionView,
       }),
     },
   ),
