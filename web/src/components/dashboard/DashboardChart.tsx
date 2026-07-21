@@ -131,7 +131,7 @@ export default function DashboardChart({
     const activeCatArr = Array.from(catMap.entries()).map(([id, val]) => ({ id, ...val }));
 
     // Fill missing data points with 0 ONLY for days after the category's first appearance
-    // If there are 3 or more consecutive days of missing/0 data, leave them as undefined to break the line.
+    // If there are 3 or more consecutive days of missing/0 data, explicitly set them to null to break the line.
     activeCatArr.forEach((cat) => {
       const firstIdx = chartData.findIndex((point) => (point[cat.id] as number) > 0);
       if (firstIdx === -1) return;
@@ -139,7 +139,7 @@ export default function DashboardChart({
       let currentBlockStart = -1;
       
       for (let i = firstIdx; i <= chartData.length; i++) {
-        const isMissing = i === chartData.length || !(chartData[i][cat.id] as number > 0);
+        const isMissing = i < chartData.length && !(chartData[i][cat.id] as number > 0);
         
         if (isMissing) {
           if (currentBlockStart === -1) currentBlockStart = i;
@@ -149,6 +149,10 @@ export default function DashboardChart({
             if (blockLength < 3) {
               for (let j = currentBlockStart; j < i; j++) {
                 chartData[j][cat.id] = 0;
+              }
+            } else {
+              for (let j = currentBlockStart; j < i; j++) {
+                chartData[j][cat.id] = null as any; // Explicit null to break the line
               }
             }
             currentBlockStart = -1;

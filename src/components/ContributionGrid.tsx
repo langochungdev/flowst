@@ -134,25 +134,35 @@ export default function ContributionGrid() {
 
     const activeCatArr = Array.from(catMap.entries()).map(([id, val]) => ({ id, ...val }));
 
-    // Fill missing data points with 0
-    const catFirstIndex = new Map<string, number>();
-    data.forEach((point, index) => {
-      activeCatArr.forEach((cat) => {
-        if ((point[cat.id] as number) > 0 && !catFirstIndex.has(cat.id)) {
-          catFirstIndex.set(cat.id, index);
-        }
-      });
-    });
+    // Fill missing data points with 0 ONLY for days after the category's first appearance
+    // If there are 3 or more consecutive days of missing/0 data, explicitly set them to null to break the line.
+    activeCatArr.forEach((cat) => {
+      const firstIdx = data.findIndex((point) => (point[cat.id] as number) > 0);
+      if (firstIdx === -1) return;
 
-    data.forEach((point, index) => {
-      activeCatArr.forEach((cat) => {
-        const firstIdx = catFirstIndex.get(cat.id);
-        if (firstIdx !== undefined && index >= firstIdx) {
-          if (point[cat.id] === undefined) {
-            point[cat.id] = 0;
+      let currentBlockStart = -1;
+      
+      for (let i = firstIdx; i <= data.length; i++) {
+        const isMissing = i < data.length && !(data[i][cat.id] as number > 0);
+        
+        if (isMissing) {
+          if (currentBlockStart === -1) currentBlockStart = i;
+        } else {
+          if (currentBlockStart !== -1) {
+            const blockLength = i - currentBlockStart;
+            if (blockLength < 3) {
+              for (let j = currentBlockStart; j < i; j++) {
+                data[j][cat.id] = 0;
+              }
+            } else {
+              for (let j = currentBlockStart; j < i; j++) {
+                data[j][cat.id] = null as any; // Explicit null to break the line
+              }
+            }
+            currentBlockStart = -1;
           }
         }
-      });
+      }
     });
 
     if (activeCatArr.length === 0 && categories.length > 0) {
