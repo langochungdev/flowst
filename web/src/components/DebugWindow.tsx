@@ -115,19 +115,14 @@ export default function DebugWindow() {
         };
       } else {
         // Random
-        const isExtreme = type === "month-random";
-        const totalHours = isExtreme ? Math.random() * 12 : Math.random() * 6;
         const breakdown: Record<string, number> = {};
-        let remaining = totalHours;
+        let totalHours = 0;
 
-        newCats.forEach((cat, idx) => {
-          if (idx === newCats.length - 1) {
-            breakdown[cat.id] = remaining;
-          } else {
-            const amount = Math.random() * remaining;
-            breakdown[cat.id] = amount;
-            remaining -= amount;
-          }
+        newCats.forEach((cat) => {
+          // 40% chance of exactly 0 to test line breaks, otherwise random 0-8 hours
+          const amount = Math.random() > 0.4 ? Math.random() * 8 : 0;
+          breakdown[cat.id] = amount;
+          totalHours += amount;
         });
 
         const categoryNames: Record<string, string> = {};
