@@ -30,7 +30,7 @@ try {
 
 const checks = [
   { name: "ESLint", cmd: "npm run lint" },
-  { name: "TypeScript", cmd: "npx tsc --noEmit" },
+  { name: "TypeScript", cmd: "bun run tsc --noEmit" },
   { name: "Rust (Cargo Check)", cmd: "cargo check --manifest-path src-tauri/Cargo.toml" },
 ];
 
