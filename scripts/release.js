@@ -6,88 +6,123 @@ function run(cmd) {
 }
 
 try {
-  // 1. Get all unpushed commits
-  const commitsStr = run(`git log @{u}..HEAD --pretty=format:"%s"`);
-  if (!commitsStr) {
-    console.log("No new commits to release.");
+  // 1. Read the target version from web/public/version.json
+  const webVersionJsonPath = "./web/public/version.json";
+  if (!fs.existsSync(webVersionJsonPath)) {
+    console.log("No web/public/version.json found. Skipping release bump.");
     process.exit(0);
   }
+  const nextVersion = JSON.parse(fs.readFileSync(webVersionJsonPath, "utf8")).version;
 
-  const commits = commitsStr.split("\n");
+  // 2. Read current version from package.json
+  const pkgPath = "./package.json";
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
 
-  // 2. Classify commits
-  let major = false;
-  let minor = false;
-  let patch = false;
+  const isVersionBump = pkg.version !== nextVersion;
 
+  // 3. Get all unpushed commits for the changelog
+  const commitsStr = run(`git log @{u}..HEAD --pretty=format:"%s"`);
   const features = [];
   const fixes = [];
 
-  for (const msg of commits) {
-    if (msg.includes("BREAKING CHANGE") || msg.includes("!:")) {
-      major = true;
-    } else if (msg.startsWith("feat:") || msg.startsWith("feat(")) {
-      minor = true;
-      features.push(msg);
-    } else if (msg.startsWith("fix:") || msg.startsWith("fix(")) {
-      patch = true;
-      fixes.push(msg);
+  if (commitsStr) {
+    const commits = commitsStr.split("\n");
+    for (const msg of commits) {
+      if (msg.startsWith("feat:") || msg.startsWith("feat(")) {
+        features.push(msg);
+      } else if (msg.startsWith("fix:") || msg.startsWith("fix(")) {
+        fixes.push(msg);
+      }
     }
   }
 
-  if (!major && !minor && !patch) {
-    console.log("No feat/fix/breaking commits. Skipping release bump.");
+  if (features.length === 0 && fixes.length === 0) {
+    console.log("No feat/fix commits. Skipping release.");
     process.exit(0);
   }
 
-  // 3. Bump version
-  const pkgPath = "./package.json";
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-  const [vMajor, vMinor, vPatch] = pkg.version.split(".").map(Number);
+  if (isVersionBump) {
+    console.log(`Bumping version from ${pkg.version} to ${nextVersion}`);
+    // Update package.json
+    pkg.version = nextVersion;
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 
-  let nextVersion;
-  if (major) {
-    nextVersion = `${vMajor + 1}.0.0`;
-  } else if (minor) {
-    nextVersion = `${vMajor}.${vMinor + 1}.0`;
+    // Update tauri.conf.json
+    const tauriConfPath = "./src-tauri/tauri.conf.json";
+    const tauriConf = JSON.parse(fs.readFileSync(tauriConfPath, "utf8"));
+    tauriConf.version = nextVersion;
+    fs.writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2) + "\n");
+
+    // Update web version text file
+    const webVersionTextPath = "./web/public/version";
+    fs.writeFileSync(webVersionTextPath, nextVersion + "\n");
   } else {
-    nextVersion = `${vMajor}.${vMinor}.${vPatch + 1}`;
+    console.log(`Version is still ${pkg.version}. Adding commits to current changelog.`);
   }
-
-  console.log(`Bumping version from ${pkg.version} to ${nextVersion}`);
-
-  // Update package.json
-  pkg.version = nextVersion;
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
-
-  // Update tauri.conf.json
-  const tauriConfPath = "./src-tauri/tauri.conf.json";
-  const tauriConf = JSON.parse(fs.readFileSync(tauriConfPath, "utf8"));
-  tauriConf.version = nextVersion;
-  fs.writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2) + "\n");
 
   // 4. Update CHANGELOG.md
-  const date = new Date().toISOString().split("T")[0];
-  let changelog = `## [${nextVersion}] - ${date}\n`;
-  if (features.length > 0) {
-    changelog += `### Features\n${features.map((f) => `- ${f}`).join("\n")}\n`;
-  }
-  if (fixes.length > 0) {
-    changelog += `### Fixes\n${fixes.map((f) => `- ${f}`).join("\n")}\n`;
-  }
-  changelog += "\n";
-
   let currentChangelog = "";
   if (fs.existsSync("./CHANGELOG.md")) {
     currentChangelog = fs.readFileSync("./CHANGELOG.md", "utf8");
   }
-  fs.writeFileSync("./CHANGELOG.md", changelog + currentChangelog);
 
-  // Update web version files
-  const webVersionJsonPath = "./web/public/version.json";
-  const webVersionTextPath = "./web/public/version";
-  fs.writeFileSync(webVersionJsonPath, JSON.stringify({ version: nextVersion }, null, 2) + "\n");
-  fs.writeFileSync(webVersionTextPath, nextVersion + "\n");
+  const date = new Date().toISOString().split("T")[0];
+
+  if (isVersionBump || !currentChangelog.includes(`## [${nextVersion}]`)) {
+    let changelog = `## [${nextVersion}] - ${date}\n\n`;
+    if (features.length > 0) {
+      changelog += `### Features\n\n${features.map((f) => `- ${f}`).join("\n")}\n\n`;
+    }
+    if (fixes.length > 0) {
+      changelog += `### Fixes\n\n${fixes.map((f) => `- ${f}`).join("\n")}\n\n`;
+    }
+    fs.writeFileSync("./CHANGELOG.md", changelog + currentChangelog);
+  } else {
+    const lines = currentChangelog.split("\n");
+    let inSection = false;
+    let featIndex = -1;
+    let fixIndex = -1;
+    let versionIndex = -1;
+
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith(`## [${nextVersion}]`)) {
+        inSection = true;
+        versionIndex = i;
+      } else if (lines[i].startsWith("## [") && inSection) {
+        break;
+      }
+      if (inSection && lines[i].startsWith("### Features")) featIndex = i;
+      if (inSection && lines[i].startsWith("### Fixes")) fixIndex = i;
+    }
+
+    // Insert fixes
+    if (fixes.length > 0) {
+      if (fixIndex !== -1) {
+        lines.splice(fixIndex + 2, 0, ...fixes.map((f) => `- ${f}`));
+      } else {
+        const insertAt = featIndex !== -1 ? featIndex : versionIndex + 2;
+        lines.splice(insertAt, 0, "### Fixes", "", ...fixes.map((f) => `- ${f}`), "");
+      }
+    }
+
+    // Insert features (recalculate featIndex if we added fixes before it, but actually feat comes before fix usually. Let's just find featIndex again)
+    featIndex = lines.findIndex(
+      (l, idx) =>
+        idx > versionIndex &&
+        l.startsWith("### Features") &&
+        !lines.slice(versionIndex + 1, idx).some((x) => x.startsWith("## [")),
+    );
+
+    if (features.length > 0) {
+      if (featIndex !== -1) {
+        lines.splice(featIndex + 2, 0, ...features.map((f) => `- ${f}`));
+      } else {
+        lines.splice(versionIndex + 2, 0, "### Features", "", ...features.map((f) => `- ${f}`), "");
+      }
+    }
+
+    fs.writeFileSync("./CHANGELOG.md", lines.join("\n"));
+  }
 
   // 5. Commit changes
   run(

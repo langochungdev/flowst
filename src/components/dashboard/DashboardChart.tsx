@@ -152,7 +152,7 @@ export default function DashboardChart({
               }
             } else {
               for (let j = currentBlockStart; j < i; j++) {
-                chartData[j][cat.id] = null as any; // Explicit null to break the line
+                chartData[j][cat.id] = null as unknown as number; // Explicit null to break the line
               }
             }
             currentBlockStart = -1;

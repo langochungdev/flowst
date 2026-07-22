@@ -25,7 +25,7 @@ export default function MainWindow() {
     return () => {
       unlisten.then((f) => f()).catch(console.error);
     };
-  }, []);
+  }, [checkForUpdates]);
 
   const executeHideAction = (action: () => Promise<void>) => {
     setIsHiding(true);

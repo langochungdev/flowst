@@ -156,7 +156,7 @@ export default function ContributionGrid() {
               }
             } else {
               for (let j = currentBlockStart; j < i; j++) {
-                data[j][cat.id] = null as any; // Explicit null to break the line
+                data[j][cat.id] = null as unknown as number; // Explicit null to break the line
               }
             }
             currentBlockStart = -1;
