@@ -83,8 +83,16 @@ try {
   }
   fs.writeFileSync("./CHANGELOG.md", changelog + currentChangelog);
 
+  // Update web version files
+  const webVersionJsonPath = "./web/public/version.json";
+  const webVersionTextPath = "./web/public/version";
+  fs.writeFileSync(webVersionJsonPath, JSON.stringify({ version: nextVersion }, null, 2) + "\n");
+  fs.writeFileSync(webVersionTextPath, nextVersion + "\n");
+
   // 5. Commit changes
-  run("git add package.json src-tauri/tauri.conf.json CHANGELOG.md");
+  run(
+    "git add package.json src-tauri/tauri.conf.json CHANGELOG.md web/public/version.json web/public/version",
+  );
   run(`git commit -m "chore(release): v${nextVersion}"`);
   console.log("Release commit created successfully.");
 

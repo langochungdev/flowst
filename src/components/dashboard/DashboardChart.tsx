@@ -137,10 +137,10 @@ export default function DashboardChart({
       if (firstIdx === -1) return;
 
       let currentBlockStart = -1;
-      
+
       for (let i = firstIdx; i <= chartData.length; i++) {
-        const isMissing = i < chartData.length && !(chartData[i][cat.id] as number > 0);
-        
+        const isMissing = i < chartData.length && !((chartData[i][cat.id] as number) > 0);
+
         if (isMissing) {
           if (currentBlockStart === -1) currentBlockStart = i;
         } else {

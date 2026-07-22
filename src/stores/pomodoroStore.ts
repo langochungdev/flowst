@@ -130,6 +130,11 @@ interface PomodoroState {
   setCustomBreakTime: (time: string) => void;
   contributionView: "grid" | "chart";
   setContributionView: (view: "grid" | "chart") => void;
+  updateAvailable: boolean;
+  latestVersion: string | null;
+  lastUpdateCheck: number;
+  checkForUpdates: () => Promise<void>;
+  setUpdateAvailable: (available: boolean, version?: string) => void;
 }
 
 export const usePomodoroStore = create<PomodoroState>()(
@@ -165,6 +170,9 @@ export const usePomodoroStore = create<PomodoroState>()(
       customFocusTime: "90",
       customBreakTime: "20",
       contributionView: "grid",
+      updateAvailable: false,
+      latestVersion: null,
+      lastUpdateCheck: 0,
       setContributionView: (view) => set({ contributionView: view }),
       categories: [
         { id: "study", name: "Study", color: "#00FBFF" },
@@ -252,6 +260,32 @@ export const usePomodoroStore = create<PomodoroState>()(
       setSelectedBreakTime: (time) => set({ selectedBreakTime: time }),
       setCustomFocusTime: (time) => set({ customFocusTime: time }),
       setCustomBreakTime: (time) => set({ customBreakTime: time }),
+      setUpdateAvailable: (available, version) =>
+        set({ updateAvailable: available, latestVersion: version || null }),
+      checkForUpdates: async () => {
+        const { lastUpdateCheck } = get();
+        const now = Date.now();
+        // Check at most once per 12 hours
+        if (now - lastUpdateCheck < 12 * 60 * 60 * 1000) return;
+
+        try {
+          const res = await fetch("https://flowst.langochung.me/version.json");
+          const data = await res.json();
+          if (data && data.version) {
+            const { getVersion } = await import("@tauri-apps/api/app");
+            const currentVersion = await getVersion();
+
+            // Basic semver check, simple comparison
+            if (data.version !== currentVersion) {
+              set({ updateAvailable: true, latestVersion: data.version, lastUpdateCheck: now });
+            } else {
+              set({ updateAvailable: false, lastUpdateCheck: now });
+            }
+          }
+        } catch (e) {
+          console.error("Failed to check for updates:", e);
+        }
+      },
 
       setCustomSound: (sound) => set({ customSound: sound }),
       setSoundOption: (option) => set({ soundOption: option }),
@@ -646,6 +680,9 @@ export const usePomodoroStore = create<PomodoroState>()(
         customFocusTime: state.customFocusTime,
         customBreakTime: state.customBreakTime,
         contributionView: state.contributionView,
+        updateAvailable: state.updateAvailable,
+        latestVersion: state.latestVersion,
+        lastUpdateCheck: state.lastUpdateCheck,
       }),
     },
   ),

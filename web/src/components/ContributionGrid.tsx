@@ -141,10 +141,10 @@ export default function ContributionGrid() {
       if (firstIdx === -1) return;
 
       let currentBlockStart = -1;
-      
+
       for (let i = firstIdx; i <= data.length; i++) {
-        const isMissing = i < data.length && !(data[i][cat.id] as number > 0);
-        
+        const isMissing = i < data.length && !((data[i][cat.id] as number) > 0);
+
         if (isMissing) {
           if (currentBlockStart === -1) currentBlockStart = i;
         } else {

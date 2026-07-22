@@ -6,14 +6,19 @@ import { invoke } from "@tauri-apps/api/core";
 import { emit, listen } from "@tauri-apps/api/event";
 import { useWindowDrag } from "../hooks/useWindowDrag";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { usePomodoroStore } from "../stores/pomodoroStore";
 
 export default function MainWindow() {
   const [isSettings, setIsSettings] = useState(false);
   const [, setHovered] = useState(false);
   const [isHiding, setIsHiding] = useState(false);
   const { bind } = useWindowDrag();
+  const updateAvailable = usePomodoroStore((state) => state.updateAvailable);
+  const latestVersion = usePomodoroStore((state) => state.latestVersion);
+  const checkForUpdates = usePomodoroStore((state) => state.checkForUpdates);
 
   useEffect(() => {
+    checkForUpdates();
     const unlisten = listen("reset-view", () => {
       setIsSettings(false);
     });
@@ -72,14 +77,27 @@ export default function MainWindow() {
               style={{
                 cursor: "pointer",
                 pointerEvents: "auto",
-                color: "var(--text-secondary)",
+                color: updateAvailable ? "#00FBFF" : "var(--text-secondary)",
                 transition: "color 150ms ease",
+                fontWeight: updateAvailable ? "bold" : "normal",
               }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
-              onClick={() => openUrl("https://langochung.me")}
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = updateAvailable
+                  ? "#00FBFF"
+                  : "var(--text-secondary)")
+              }
+              onClick={() => {
+                if (updateAvailable) {
+                  openUrl("https://flowst.langochung.me");
+                } else {
+                  openUrl("https://langochung.me");
+                }
+              }}
             >
-              langochungdev@gmail.com
+              {updateAvailable
+                ? `Update available! (v${latestVersion})`
+                : "langochungdev@gmail.com"}
             </span>
           </div>
         )}

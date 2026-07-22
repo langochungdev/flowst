@@ -511,6 +511,30 @@ export default function DebugWindow() {
                   </button>
                 </div>
               </div>
+
+              <div className="debug-panel" style={{ padding: "8px" }}>
+                <div className="debug-panel-title">Update Tester</div>
+                <div className="btn-group">
+                  <button
+                    className="debug-btn"
+                    onClick={() => {
+                      usePomodoroStore.setState({ lastUpdateCheck: 0 });
+                      usePomodoroStore.getState().checkForUpdates();
+                    }}
+                  >
+                    Force Fetch
+                  </button>
+                  <button
+                    className="debug-btn primary"
+                    onClick={() => {
+                      const st = usePomodoroStore.getState();
+                      st.setUpdateAvailable(!st.updateAvailable, "9.9.9");
+                    }}
+                  >
+                    Toggle UI
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* System Logs */}

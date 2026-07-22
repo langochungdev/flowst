@@ -609,6 +609,32 @@ function DemoCursor() {
 
 export default function App() {
   const [showDashPopup, setShowDashPopup] = useState(false);
+  const [appVersion, setAppVersion] = useState("");
+
+  useEffect(() => {
+    fetch("/version.json")
+      .then((res) => res.json())
+      .then((data) => setAppVersion(data.version))
+      .catch((err) => console.error("Failed to fetch version", err));
+  }, []);
+
+  useEffect(() => {
+    // Send external view ping
+    if (!localStorage.getItem("flowst_view_pinged")) {
+      fetch("https://langochung.me/api/external-ping", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: "flowst",
+          url: window.location.href,
+          slug: window.location.pathname,
+          referrer: document.referrer,
+        }),
+      })
+        .then(() => localStorage.setItem("flowst_view_pinged", "true"))
+        .catch(console.error);
+    }
+  }, []);
 
   useEffect(() => {
     // Generate mock history data for the demo
@@ -725,12 +751,23 @@ export default function App() {
             Privacy
           </a>
           <a
-            href="https://github.com/langochungdev/flowst/releases/latest"
+            href="https://release-assets.githubusercontent.com/github-production-release-asset/1291251882/22a65c84-df56-4549-905c-98103c82fded"
             className="nav-dl"
             target="_blank"
             rel="noreferrer"
+            onClick={() => {
+              if (!localStorage.getItem("flowst_install_pinged")) {
+                fetch("https://langochung.me/api/ping/flowst", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ event: "install" }),
+                })
+                  .then(() => localStorage.setItem("flowst_install_pinged", "true"))
+                  .catch(console.error);
+              }
+            }}
           >
-            <span className="dl-text">Download free ↓</span>
+            <span className="dl-text">Download free {appVersion && `(v${appVersion})`} ↓</span>
             <Download className="dl-icon" size={16} />
           </a>
         </div>
