@@ -265,8 +265,9 @@ export const usePomodoroStore = create<PomodoroState>()(
       checkForUpdates: async () => {
         const { lastUpdateCheck } = get();
         const now = Date.now();
-        // Check at most once per 12 hours
-        if (now - lastUpdateCheck < 12 * 60 * 60 * 1000) return;
+        
+        // 7 days throttle
+        if (now - lastUpdateCheck < 7 * 24 * 60 * 60 * 1000) return;
 
         try {
           const res = await fetch("https://flowst.langochung.me/version.json");

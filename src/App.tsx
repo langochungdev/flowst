@@ -99,12 +99,23 @@ function App() {
   const timeLeft = usePomodoroStore((state) => state.timeLeft);
   const isCountUp = usePomodoroStore((state) => state.isCountUp);
   const sessionState = usePomodoroStore((state) => state.state);
+  const updateAvailable = usePomodoroStore((state) => state.updateAvailable);
+  const latestVersion = usePomodoroStore((state) => state.latestVersion);
 
   const timeLeftMins = Math.floor(timeLeft / 60);
 
+  const [appVersion, setAppVersion] = useState("v0.15.0");
+  useEffect(() => {
+    import("@tauri-apps/api/app")
+      .then((module) => module.getVersion())
+      .then((v) => setAppVersion(`v${v}`))
+      .catch(console.error);
+  }, []);
+
   useEffect(() => {
     if (windowLabel === "main") {
-      let tooltip = "Flowst v0.7.0\nlangochungdev@gmail.com";
+      let emailText = updateAvailable ? `Update available! (v${latestVersion})` : "langochungdev@gmail.com";
+      let tooltip = `Flowst ${appVersion}\n${emailText}`;
       if (isActive) {
         if (isCountUp) {
           tooltip = `${timeLeftMins}m elapsed - Stopwatch`;
@@ -115,7 +126,7 @@ function App() {
       }
       invoke("update_tray_tooltip", { tooltip }).catch(console.error);
     }
-  }, [windowLabel, isActive, timeLeftMins, isCountUp, sessionState]);
+  }, [windowLabel, isActive, timeLeftMins, isCountUp, sessionState, appVersion, updateAvailable, latestVersion]);
 
   const gridColor = usePomodoroStore((state) => state.gridColor);
 
