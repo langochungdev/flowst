@@ -2,6 +2,7 @@
 
 ### Features
 
+- feat: implement core pomodoro timer logic and multi-window application shell
 - feat: add automated pre-push script for linting, type checking, and error reporting
 - feat: add contribution activity visualization components and a release automation script
 - feat: initialize web project with React, Vite, and Tauri integration
