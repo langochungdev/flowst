@@ -265,7 +265,7 @@ export const usePomodoroStore = create<PomodoroState>()(
       checkForUpdates: async () => {
         const { lastUpdateCheck } = get();
         const now = Date.now();
-        
+
         // 7 days throttle
         if (now - lastUpdateCheck < 7 * 24 * 60 * 60 * 1000) return;
 

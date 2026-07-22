@@ -114,7 +114,9 @@ function App() {
 
   useEffect(() => {
     if (windowLabel === "main") {
-      let emailText = updateAvailable ? `Update available! (v${latestVersion})` : "langochungdev@gmail.com";
+      const emailText = updateAvailable
+        ? `Update available! (v${latestVersion})`
+        : "langochungdev@gmail.com";
       let tooltip = `Flowst ${appVersion}\n${emailText}`;
       if (isActive) {
         if (isCountUp) {
@@ -126,7 +128,16 @@ function App() {
       }
       invoke("update_tray_tooltip", { tooltip }).catch(console.error);
     }
-  }, [windowLabel, isActive, timeLeftMins, isCountUp, sessionState, appVersion, updateAvailable, latestVersion]);
+  }, [
+    windowLabel,
+    isActive,
+    timeLeftMins,
+    isCountUp,
+    sessionState,
+    appVersion,
+    updateAvailable,
+    latestVersion,
+  ]);
 
   const gridColor = usePomodoroStore((state) => state.gridColor);
 
