@@ -2,6 +2,18 @@
 
 ### Features
 
+- feat: add automated pre-push script for linting, type checking, and error reporting
+- feat: add contribution activity visualization components and a release automation script
+- feat: initialize web project with React, Vite, and Tauri integration
+- feat: add recommended VS Code extensions for project development
+- feat: initialize Tauri project configuration and Windows platform assets
+- feat: add ContributionGrid and DashboardChart components for activity visualization
+- feat: add DebugWindow and DashboardChart components to both src and web directories
+- feat: implement pomodoroStore with persistent state, category management, and tauri-based notifications
+- feat: initialize Tauri configuration for Flowst desktop application
+- feat: initialize Tauri configuration with window and bundle settings
+- feat: initialize Tauri configuration with window and bundle settings
+- feat: initialize Tauri configuration with window and bundle settings
 - feat: initialize web project with React, Vite, and Tauri plugins
 
 ## [0.14.0] - 2026-07-15
