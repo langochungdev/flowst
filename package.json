@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "tauri": "tauri",
-    "prepare": "husky"
+    "prepare": "husky",
+    "tauri:windows:build": "tauri-windows-bundle build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -29,6 +30,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@choochmeque/tauri-windows-bundle": "^0.1.28",
     "@tauri-apps/cli": "^2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",

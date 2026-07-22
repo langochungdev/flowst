@@ -1,0 +1,22 @@
+{
+  "publisher": "CN=E1870E81-1287-4C86-996E-D0583254BB95",
+  "publisherDisplayName": "langochungdev",
+  "capabilities": {
+    "general": [
+      "internetClient"
+    ]
+  },
+  "extensions": {
+    "shareTarget": false,
+    "fileAssociations": [],
+    "protocolHandlers": []
+  },
+  "signing": {
+    "pfx": null,
+    "pfxPassword": null
+  },
+  "resourceIndex": {
+    "enabled": false,
+    "keepConfig": false
+  }
+}
